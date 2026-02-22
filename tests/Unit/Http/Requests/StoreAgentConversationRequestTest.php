@@ -39,8 +39,6 @@ it('returns custom validation messages', function (): void {
         ->and($messages['model.required'])->toBe('Model is required');
 });
 
-
-
 it('returns empty string if no user message is found', function () use ($createRequest): void {
     $request = $createRequest([
         'messages' => [

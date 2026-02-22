@@ -41,7 +41,7 @@ enum ModelName: string
             self::GPT_5_NANO => 'Cheapest model, best for simpler tasks',
             self::GEMINI_2_5_FLASH => 'Fast and versatile performance across a variety of tasks',
             self::GEMINI_3_FLASH => 'Google\'s latest model with frontier intelligence built for speed that helps everyone learn, build, and plan anything — faster',
-            self::GEMINI_3_1_PRO => 'Google\'s latest Pro model with advanced reasoning and frontier capabilities',
+            self::GEMINI_3_1_PRO => "Google's latest Pro model with advanced reasoning and frontier capabilities",
         };
     }
 
