@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 
 export const AI_MODELS = {
     'gemini-3-flash-preview': 'chat.models.gemini_3_flash',
+    'gemini-3.1-pro-preview': 'chat.models.gemini_3_1_pro',
 } as const;
 
 export type AIModel = keyof typeof AI_MODELS;
@@ -37,30 +38,32 @@ export const CHAT_MODES = {
 export type ChatMode = keyof typeof CHAT_MODES;
 
 interface Props {
-    onSubmit: (message: string, mode: ChatMode, model: AIModel) => void;
+    onSubmit: (message: string) => void;
+    onModeChange: (mode: ChatMode) => void;
+    onModelChange: (model: AIModel) => void;
     className?: string;
     disabled?: boolean;
     isLoading?: boolean;
     mode: ChatMode;
+    model: AIModel;
 }
 
 export default function ChatInput({
     className,
     onSubmit,
+    onModeChange,
+    onModelChange,
     disabled = false,
     isLoading = false,
     mode,
+    model,
 }: Props) {
     const { t } = useTranslation('common');
     const [message, setMessage] = useState('');
-    const [selectedMode, setSelectedMode] = useState<ChatMode>(mode || 'ask');
-    const [selectedModel, setSelectedModel] = useState<AIModel>(
-        'gemini-3-flash-preview',
-    );
 
     const handleSubmit = () => {
         if (message.trim()) {
-            onSubmit(message, selectedMode, selectedModel);
+            onSubmit(message);
             setMessage('');
         }
     };
@@ -72,7 +75,7 @@ export default function ChatInput({
         }
     };
 
-    const SelectedModeIcon = CHAT_MODES[selectedMode].icon;
+    const SelectedModeIcon = CHAT_MODES[mode].icon;
 
     return (
         <div className="mx-auto flex w-full max-w-3xl items-end bg-background p-0.5 md:px-4 md:py-2">
@@ -103,10 +106,8 @@ export default function ChatInput({
                                     className="gap-1.5"
                                 >
                                     <SelectedModeIcon className="size-4" />
-                                    {selectedMode !== 'create-meal-plan' && (
-                                        <span>
-                                            {t(CHAT_MODES[selectedMode].label)}
-                                        </span>
+                                    {mode !== 'create-meal-plan' && (
+                                        <span>{t(CHAT_MODES[mode].label)}</span>
                                     )}
                                     <ChevronDown className="size-3.5 opacity-60" />
                                 </Button>
@@ -117,11 +118,11 @@ export default function ChatInput({
                                         <DropdownMenuItem
                                             key={key}
                                             onClick={() =>
-                                                setSelectedMode(key as ChatMode)
+                                                onModeChange(key as ChatMode)
                                             }
                                             className={cn(
                                                 'gap-2',
-                                                selectedMode === key &&
+                                                mode === key &&
                                                     'bg-accent text-accent-foreground',
                                             )}
                                         >
@@ -152,7 +153,7 @@ export default function ChatInput({
                                     className="gap-1.5 text-muted-foreground hover:text-foreground"
                                 >
                                     <span className="max-w-[80px] truncate sm:max-w-[90px]">
-                                        {t(AI_MODELS[selectedModel])}
+                                        {t(AI_MODELS[model])}
                                     </span>
                                     <ChevronDown className="size-3.5 opacity-60" />
                                 </Button>
@@ -163,10 +164,10 @@ export default function ChatInput({
                                         <DropdownMenuItem
                                             key={key}
                                             onClick={() =>
-                                                setSelectedModel(key as AIModel)
+                                                onModelChange(key as AIModel)
                                             }
                                             className={cn(
-                                                selectedModel === key &&
+                                                model === key &&
                                                     'bg-accent text-accent-foreground',
                                             )}
                                         >

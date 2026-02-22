@@ -7,6 +7,7 @@ import type { ChatPageProps, UIMessage } from '@/types/chat';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ChatInput, { type AIModel, type ChatMode } from './chat-input';
+
 import ChatMessages, { ChatErrorBanner } from './chat-messages';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -47,11 +48,7 @@ export default function CreateChat() {
         }
     }, [messages]);
 
-    function handleSubmit(
-        message: string,
-        chatMode: ChatMode,
-        aiModel: AIModel,
-    ) {
+    function handleSubmit(message: string) {
         if (!message.trim()) {
             return;
         }
@@ -65,8 +62,6 @@ export default function CreateChat() {
             });
         }
 
-        setMode(chatMode);
-        setModel(aiModel);
         sendMessage({ text: message });
     }
 
@@ -92,9 +87,12 @@ export default function CreateChat() {
                     <ChatInput
                         className="w-full"
                         onSubmit={handleSubmit}
+                        onModeChange={setMode}
+                        onModelChange={setModel}
                         disabled={isStreaming || isSubmitting}
                         isLoading={isStreaming || isSubmitting}
                         mode={mode}
+                        model={model}
                     />
                     <p className="px-4 pb-4 text-center text-xs text-muted-foreground">
                         For informational purposes only. Not a substitute for

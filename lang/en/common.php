@@ -963,6 +963,7 @@ return [
         ],
         'models' => [
             'gemini_3_flash' => 'Gemini 3 Flash',
+            'gemini_3_1_pro' => 'Gemini 3.1 Pro',
         ],
     ],
 ];

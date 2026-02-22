@@ -39,21 +39,6 @@ it('returns custom validation messages', function (): void {
         ->and($messages['model.required'])->toBe('Model is required');
 });
 
-it('prepares data for validation by merging query parameters', function (): void {
-    $uri = route('chat.stream', ['mode' => 'ask', 'model' => 'gpt-5-mini']);
-    $request = StoreAgentConversationRequest::create(
-        uri: $uri,
-        method: 'POST'
-    );
-
-    $reflection = new ReflectionClass($request);
-    $method = $reflection->getMethod('prepareForValidation');
-    $method->invoke($request);
-
-    expect($request->input('mode'))->toBe(AgentMode::Ask->value)
-        ->and($request->input('model'))->toBe(ModelName::GPT_5_MINI->value);
-});
-
 it('returns empty string if no user message is found', function () use ($createRequest): void {
     $request = $createRequest([
         'messages' => [

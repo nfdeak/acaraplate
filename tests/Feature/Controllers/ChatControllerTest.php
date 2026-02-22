@@ -71,13 +71,13 @@ it('validates stream endpoint', function (): void {
 it('accepts valid stream request', function (): void {
     $user = User::factory()->create();
 
-    $url = route('chat.stream').'?mode='.AgentMode::Ask->value.'&model='.ModelName::GPT_5_MINI->value;
-
     actingAs($user)
-        ->post($url, [
+        ->post(route('chat.stream'), [
             'messages' => [
                 ['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hello API']]],
             ],
+            'mode' => AgentMode::Ask->value,
+            'model' => ModelName::GPT_5_MINI->value,
         ])
         ->assertOk();
 });
