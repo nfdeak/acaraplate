@@ -35,7 +35,7 @@ final class StoreAgentConversationRequest extends FormRequest
             'messages.*.parts.*.type' => ['required', 'string'],
             'messages.*.parts.*.text' => ['required_if:messages.*.parts.*.type,text', 'string'],
 
-            // Query params
+            // Body params (sent by AI SDK transport)
             'mode' => ['required', Rule::enum(AgentMode::class)],
             'model' => ['required', Rule::enum(ModelName::class)],
         ];
@@ -93,17 +93,5 @@ final class StoreAgentConversationRequest extends FormRequest
             'mode.required' => 'Mode is required',
             'model.required' => 'Model is required',
         ];
-    }
-
-    /**
-     * Prepare the data for validation.
-     * Merge query parameters into the request data.
-     */
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'mode' => $this->query('mode'),
-            'model' => $this->query('model'),
-        ]);
     }
 }

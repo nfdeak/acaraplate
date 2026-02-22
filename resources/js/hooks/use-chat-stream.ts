@@ -3,7 +3,7 @@ import { stream } from '@/routes/chat';
 import type { ChatStatus } from '@/types/chat';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 interface UseChatStreamOptions {
     conversationId?: string;
@@ -28,14 +28,18 @@ export function useChatStream({
     model,
     initialMessages,
 }: UseChatStreamOptions): UseChatStreamReturn {
+    const modelRef = useRef({ model, mode });
+    modelRef.current = { model, mode };
+
     const transport = useMemo(
         () =>
             new DefaultChatTransport({
                 api: stream.url({
-                    query: { mode, model, conversationId },
+                    query: { conversationId },
                 }),
+                body: () => modelRef.current,
             }),
-        [mode, model, conversationId],
+        [conversationId],
     );
 
     const { messages, sendMessage, status, error } = useChat({
