@@ -114,7 +114,7 @@ enum ModelName: string
 
     /**
      * Get pricing per 1M tokens.
-     *
+     *Rough list of popular AI models
      * @return array{input: float, output: float, reasoning: float, cache_read: float}
      */
     public function getPricing(): array
