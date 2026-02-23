@@ -13,9 +13,9 @@ use App\Services\StripeService;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -90,6 +90,6 @@ final class AppServiceProvider extends ServiceProvider
      */
     private function registerEventListeners(): void
     {
-        $this->app->make(Dispatcher::class)->listen(AgentPrompted::class, TrackAiUsage::class);
+        Event::listen(AgentPrompted::class, TrackAiUsage::class);
     }
 }
