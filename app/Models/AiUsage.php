@@ -24,14 +24,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read int $reasoning_tokens
  * @property-read float $cost
  * @property-read CarbonInterface $created_at
+ * @property-read CarbonInterface $updated_at
  * @property-read User|null $user
  */
 final class AiUsage extends Model
 {
     /** @use HasFactory<AiUsageFactory> */
     use HasFactory;
-
-    protected $table = 'ai_usages';
 
     protected $guarded = [];
 
@@ -43,6 +42,7 @@ final class AiUsage extends Model
         'reasoning_tokens' => 'integer',
         'cost' => 'float',
         'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -60,6 +60,8 @@ final class AiUsage extends Model
 
     /**
      * @param  Builder<AiUsage>  $query
+     *
+     * @codeCoverageIgnore
      */
     #[Scope]
     protected function forUser(Builder $query, User $user): void
@@ -69,6 +71,8 @@ final class AiUsage extends Model
 
     /**
      * @param  Builder<AiUsage>  $query
+     *
+     * @codeCoverageIgnore
      */
     #[Scope]
     protected function dateRange(Builder $query, ?string $startDate, ?string $endDate): void

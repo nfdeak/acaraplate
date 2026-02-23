@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('cache_read_input_tokens')->default(0);
             $table->unsignedInteger('reasoning_tokens')->default(0);
             $table->decimal('cost', 10, 6)->default(0);
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 };

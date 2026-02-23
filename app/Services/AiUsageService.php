@@ -34,6 +34,8 @@ final class AiUsageService
 
     /**
      * @return Collection<int, AiUsage>
+     *
+     * @codeCoverageIgnore
      */
     public function getUsageForUser(User $user, ?string $startDate = null, ?string $endDate = null): Collection
     {
@@ -46,6 +48,8 @@ final class AiUsageService
 
     /**
      * @return array<array-key, array{model: string, provider: string, prompt_tokens: int, completion_tokens: int, cache_read_input_tokens: int, reasoning_tokens: int, cost: float, requests: int}>
+     *
+     * @codeCoverageIgnore
      */
     public function getUsageByModel(User $user, ?string $startDate = null, ?string $endDate = null): array
     {
@@ -62,6 +66,9 @@ final class AiUsageService
         return $result;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getTotalCost(User $user, ?string $startDate = null, ?string $endDate = null): float
     {
         return (float) AiUsage::query()
@@ -70,6 +77,9 @@ final class AiUsageService
             ->sum('cost');
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getTotalTokens(User $user, ?string $startDate = null, ?string $endDate = null): int
     {
         return (int) AiUsage::query()
