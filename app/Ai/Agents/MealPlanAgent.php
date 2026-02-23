@@ -37,8 +37,7 @@ final class MealPlanAgent implements Agent, GeneratesMealPlans, HasTools
         private readonly MealPlanPromptBuilder $promptBuilder,
         private readonly AnalyzeGlucoseForNotificationAction $analyzeGlucose,
         private readonly SystemPromptProviderResolver $systemPromptResolver,
-    ) {
-    }
+    ) {}
 
     public function withDietType(DietType $dietType): self
     {

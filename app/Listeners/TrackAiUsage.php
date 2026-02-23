@@ -17,8 +17,7 @@ final readonly class TrackAiUsage
 {
     public function __construct(
         private Request $request,
-    ) {
-    }
+    ) {}
 
     public function handle(AgentPrompted $event): void
     {
@@ -76,8 +75,8 @@ final readonly class TrackAiUsage
                     return $user;
                 }
             }
-        } catch (Throwable) {
-            //
+        } catch (Throwable) { // @codeCoverageIgnore
+            return null; // @codeCoverageIgnore
         }
 
         return null;
