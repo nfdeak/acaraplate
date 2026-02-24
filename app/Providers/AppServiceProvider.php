@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Ai\Events\AgentPrompted;
+use Laravel\Ai\Events\AgentStreamed;
 use Laravel\Cashier\Cashier;
 
 final class AppServiceProvider extends ServiceProvider
@@ -91,5 +92,6 @@ final class AppServiceProvider extends ServiceProvider
     private function registerEventListeners(): void
     {
         Event::listen(AgentPrompted::class, TrackAiUsage::class);
+        Event::listen(AgentStreamed::class, TrackAiUsage::class);
     }
 }
