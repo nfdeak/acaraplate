@@ -34,6 +34,8 @@ Route::get('/food', [Web\PublicFoodController::class, 'index'])->name('food.inde
 Route::get('/food/category/{category}', [Web\PublicFoodController::class, 'category'])->name('food.category');
 Route::get('/food/{slug}', [Web\PublicFoodController::class, 'show'])->name('food.show');
 
+Route::get('/food_sitemap.xml', [Web\FoodSitemapXmlController::class, 'food'])->name('food.sitemap');
+
 Route::post('/profile/timezone', [Web\UserTimezoneController::class, 'update'])->name('profile.timezone.update');
 
 Route::view('/ai-nutritionist', 'ai-nutritionist')->name('ai-nutritionist');
