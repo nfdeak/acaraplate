@@ -58,7 +58,7 @@ it('creates new conversation when none exists', function (): void {
         $conversationStore,
     );
 
-    $user = User::factory()->make(['id' => 1]);
+    $user = User::factory()->create();
     $result = $action->handle($user, 'Test message');
 
     expect($result['response'])->toBe('Hello!');
@@ -74,7 +74,7 @@ it('uses existing conversation when provided', function (): void {
         resolve(ConversationStore::class),
     );
 
-    $user = User::factory()->make(['id' => 1]);
+    $user = User::factory()->create();
     $result = $action->handle($user, 'Another message', 'existing-conv');
 
     expect($result['response'])->toBe('Continuing...');
@@ -120,7 +120,7 @@ it('reuses latest conversation when no id provided but exists', function (): voi
         $conversationStore,
     );
 
-    $user = User::factory()->make(['id' => 1]);
+    $user = User::factory()->create();
     $result = $action->handle($user, 'Message');
 
     expect($result['response'])->toBe('Reusing!');
@@ -166,7 +166,7 @@ it('resets conversation', function (): void {
         $conversationStore,
     );
 
-    $user = User::factory()->make(['id' => 1]);
+    $user = User::factory()->create();
     $result = $action->resetConversation($user);
 
     expect($result)->toBe('new-conv');
