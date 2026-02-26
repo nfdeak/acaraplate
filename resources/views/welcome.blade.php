@@ -274,6 +274,15 @@
 
         <main class="relative z-10 flex flex-col items-center gap-24 px-4 pb-24 pt-16 sm:px-6 lg:px-8">
             <section class="w-full max-w-6xl">
+                <x-cta-block
+                    title="Meet Altani — Your Personal AI Health Coach"
+                    description="Altani helps you plan meals, predict glucose responses, and stay on track with your health goals. She's available 24/7 and learns what works best for your body."
+                    buttonText="Chat with Altani"
+                    buttonUrl="{{ route('meet-altani') }}"
+                />
+            </section>
+
+            <section class="w-full max-w-6xl">
                 <div class="space-y-6">
                     <div class="text-center">
                         <h2 class="text-2xl font-bold text-slate-900 lg:text-3xl">Smart Tools for Better Choices</h2>
@@ -570,9 +579,9 @@
 
             <section class="w-full max-w-6xl">
                 <x-cta-block
-                    title="Meet Altani — Your Personal AI Health Coach"
-                    description="Altani helps you plan meals, predict glucose responses, and stay on track with your health goals. She's available 24/7 and learns what works best for your body."
-                    buttonText="Chat with Altani"
+                    title="Meet Altani — Your Health Helper"
+                    description="Altani is always here to help you eat right and stay healthy. She learns what your body needs, makes meal plans just for you, and spots blood sugar spikes before they happen."
+                    buttonText="Start Chatting"
                     buttonUrl="{{ route('meet-altani') }}"
                 />
             </section>

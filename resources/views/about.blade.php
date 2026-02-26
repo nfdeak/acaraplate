@@ -76,6 +76,20 @@
             <div class="prose prose-slate dark:prose-invert mx-auto max-w-4xl speakable-intro">
                 <h1>About Acara Plate</h1>
                 
+                <h2>Hi, I'm TJ</h2>
+                <p>
+                    I've been building tools to help people be more productive for 18 years. As a full-stack developer, I focus on scalable web products, production-grade APIs, AI, and automation.
+                </p>
+                <p>
+                    I created Acara Plate to help people take control of their health through personalized nutrition and diabetes management. As someone who has family members managing Type 2 diabetes, I saw firsthand how difficult it can be to find reliable, personalized meal planning support.
+                </p>
+                <p>
+                    I believe health technology should be accessible, transparent, and community-driven. That's why Acara Plate is fully open source—you can review the code, self-host it, and maintain complete ownership of your health data.
+                </p>
+                <p>
+                    You can find me on <a href="https://x.com/tuvshaw" target="_blank" rel="noopener">X</a>, <a href="https://www.linkedin.com/in/tuvshu/" target="_blank" rel="noopener">LinkedIn</a>, or <a href="mailto:hello@tuvshaw.dev">email</a>.
+                </p>
+
                 <h2>The Vision</h2>
                 <p>
                     The goal is simple: help users to take control of their health through personalized nutrition and diabetes management. 
