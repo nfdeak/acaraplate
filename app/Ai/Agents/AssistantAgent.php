@@ -9,6 +9,7 @@ use App\Ai\SystemPrompt;
 use App\Ai\Tools\CreateMealPlan;
 use App\Ai\Tools\GetDietReference;
 use App\Ai\Tools\GetFitnessGoals;
+use App\Ai\Tools\GetHealthEntries;
 use App\Ai\Tools\GetHealthGoals;
 use App\Ai\Tools\GetUserProfile;
 use App\Ai\Tools\PredictGlucoseSpike;
@@ -84,7 +85,7 @@ final class AssistantAgent implements Advisor
     }
 
     /**
-     * @return array<int, Tool>
+     * @return array<int, Tool|ProviderTool>
      */
     public function tools(): array
     {
@@ -95,6 +96,7 @@ final class AssistantAgent implements Advisor
             new PredictGlucoseSpike,
             new SuggestWellnessRoutine,
             new GetHealthGoals,
+            new GetHealthEntries,
             new SuggestWorkoutRoutine,
             new GetFitnessGoals,
             new GetDietReference,
@@ -192,6 +194,7 @@ final class AssistantAgent implements Advisor
             '   - suggest_wellness_routine: For sleep, stress, hydration, or lifestyle routines',
             '   - suggest_workout_routine: For fitness and exercise guidance',
             '   - get_user_profile: When you need specific profile data',
+            "   - get_health_entries: For retrieving user's logged health data (food log, glucose readings, vitals, exercise)",
             '   - get_health_goals: When user asks about wellness goals',
             '   - get_fitness_goals: When user asks about fitness goals',
             "4. Provide personalized, evidence-based advice that fits the user's situation",
@@ -236,6 +239,7 @@ final class AssistantAgent implements Advisor
             'suggest_wellness_routine: Use for sleep, stress, hydration, or lifestyle guidance',
             'suggest_workout_routine: Use for fitness and exercise recommendations',
             'get_user_profile: Use when you need specific user data',
+            'get_health_entries: Use when user asks about their logged data, food log, health history, what they ate, or wants to compare actual intake vs meal plan',
             'get_health_goals: Use when user asks about wellness goals',
             'get_fitness_goals: Use when user asks about fitness goals',
             'Always use tools rather than generating complex content manually',

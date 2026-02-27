@@ -62,15 +62,15 @@ final readonly class ChatController
         }
 
         $providers = match ($model) {
-            'gpt-5-mini', 'gpt-5-nano' => [Lab::OpenAI, Lab::Gemini],
-            default => [Lab::Gemini],
+            'gpt-5-mini', 'gpt-5-nano' => Lab::OpenAI->value,
+            default => Lab::Gemini->value, // @codeCoverageIgnore
         };
 
         return $agent
             ->stream(
                 prompt: $request->userMessage(),
-                model: $model,
-                provider: $providers
+                provider: $providers,
+                model: $model
             )
             ->usingVercelDataProtocol();
     }
