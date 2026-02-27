@@ -12,6 +12,7 @@ use App\Ai\Tools\GetFitnessGoals;
 use App\Ai\Tools\GetHealthEntries;
 use App\Ai\Tools\GetHealthGoals;
 use App\Ai\Tools\GetUserProfile;
+use App\Ai\Tools\LogHealthEntry;
 use App\Ai\Tools\PredictGlucoseSpike;
 use App\Ai\Tools\SuggestSingleMeal;
 use App\Ai\Tools\SuggestWellnessRoutine;
@@ -97,6 +98,7 @@ final class AssistantAgent implements Advisor
             new SuggestWellnessRoutine,
             new GetHealthGoals,
             new GetHealthEntries,
+            new LogHealthEntry,
             new SuggestWorkoutRoutine,
             new GetFitnessGoals,
             new GetDietReference,
@@ -188,6 +190,7 @@ final class AssistantAgent implements Advisor
             "1. Analyze the user's message to understand their wellness needs (nutrition, fitness, health/lifestyle)",
             "2. Review the user's profile context to understand their biometrics, goals, and constraints",
             '3. Use appropriate tools based on user intent:',
+            '   - log_health_entry: IMMEDIATELY log when user reports food, glucose, weight, BP, insulin, meds, or exercise',
             '   - suggest_meal: For specific meal suggestions',
             '   - create_meal_plan: For multi-day meal plans or when in "Create Meal Plan" mode',
             '   - predict_glucose_spike: For food/meal glucose impact questions',
@@ -233,6 +236,7 @@ final class AssistantAgent implements Advisor
     private function getToolsUsageInstructions(): array
     {
         return [
+            'log_health_entry: Use IMMEDIATELY when user reports eating food, glucose readings, weight, blood pressure, insulin, medications, or exercise. Do NOT ask for more details — extract what you can and log it right away. Estimate carbs if user mentions food without grams.',
             'suggest_meal: Use when user wants specific meal suggestions',
             'create_meal_plan: Use for multi-day meal plans or when in "Create Meal Plan" mode',
             'predict_glucose_spike: Use for food/meal glucose impact questions',

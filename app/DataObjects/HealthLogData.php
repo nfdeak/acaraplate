@@ -9,6 +9,7 @@ use App\Enums\GlucoseUnit;
 use App\Enums\HealthEntryType;
 use App\Enums\InsulinType;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Date;
 use Spatie\LaravelData\Data;
 
 final class HealthLogData extends Data
@@ -30,7 +31,36 @@ final class HealthLogData extends Data
         public ?string $exerciseType = null,
         public ?int $exerciseDurationMinutes = null,
         public ?CarbonInterface $measuredAt = null,
+        public ?string $notes = null,
     ) {}
+
+    /**
+     * Create a HealthLogData from a structured output array.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromParsedArray(array $data): self
+    {
+        return new self(
+            isHealthData: (bool) ($data['is_health_data'] ?? false),
+            logType: HealthEntryType::tryFrom($data['log_type'] ?? '') ?? HealthEntryType::Glucose,
+            glucoseValue: self::toFloat($data['glucose_value'] ?? null),
+            glucoseReadingType: GlucoseReadingType::tryFrom($data['glucose_reading_type'] ?? ''),
+            glucoseUnit: GlucoseUnit::tryFrom($data['glucose_unit'] ?? ''),
+            carbsGrams: self::toInt($data['carbs_grams'] ?? null),
+            insulinUnits: self::toFloat($data['insulin_units'] ?? null),
+            insulinType: InsulinType::tryFrom($data['insulin_type'] ?? ''),
+            medicationName: self::toNullableString($data['medication_name'] ?? null),
+            medicationDosage: self::toNullableString($data['medication_dosage'] ?? null),
+            weight: self::toFloat($data['weight'] ?? null),
+            bpSystolic: self::toInt($data['bp_systolic'] ?? null),
+            bpDiastolic: self::toInt($data['bp_diastolic'] ?? null),
+            exerciseType: self::toNullableString($data['exercise_type'] ?? null),
+            exerciseDurationMinutes: self::toInt($data['exercise_duration_minutes'] ?? null),
+            measuredAt: self::toDateTime($data['measured_at'] ?? null),
+            notes: self::toNullableString($data['notes'] ?? null),
+        );
+    }
 
     /**
      * Format the health log data for display confirmation.
@@ -64,6 +94,32 @@ final class HealthLogData extends Data
         };
     }
 
+    private static function toFloat(mixed $value): ?float
+    {
+        return is_numeric($value) ? (float) $value : null;
+    }
+
+    private static function toInt(mixed $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    private static function toNullableString(mixed $value): ?string
+    {
+        if (in_array($value, [null, 'null', ''], true)) {
+            return null;
+        }
+
+        return is_string($value) ? $value : (is_scalar($value) ? (string) $value : null);
+    }
+
+    private static function toDateTime(mixed $value): ?CarbonInterface
+    {
+        $string = self::toNullableString($value);
+
+        return $string !== null ? Date::parse($string) : null;
+    }
+
     private function formatGlucoseLog(): string
     {
         $unit = $this->glucoseUnit ?? GlucoseUnit::MgDl;
@@ -74,7 +130,9 @@ final class HealthLogData extends Data
 
     private function formatFoodLog(): string
     {
-        return sprintf('Food - %sg carbs', $this->carbsGrams);
+        $foodName = $this->notes ?? 'Food';
+
+        return sprintf('%s - %sg carbs', $foodName, $this->carbsGrams);
     }
 
     private function formatInsulinLog(): string
@@ -129,6 +187,7 @@ final class HealthLogData extends Data
     {
         return [
             'carbs_grams' => $this->carbsGrams,
+            'notes' => $this->notes,
         ];
     }
 

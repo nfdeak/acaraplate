@@ -74,6 +74,9 @@ final readonly class GetHealthEntries implements Tool
 
             if ($entry->carbs_grams !== null) {
                 $data['carbs_grams'] = $entry->carbs_grams;
+                if ($entry->notes !== null) {
+                    $data['food_name'] = $entry->notes;
+                }
             }
 
             if ($entry->weight !== null) {
