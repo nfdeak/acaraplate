@@ -7,5 +7,6 @@ namespace App\Enums;
 enum HealthEntrySource: string
 {
     case Web = 'web';
+    case Chat = 'chat';
     case Telegram = 'telegram';
 }

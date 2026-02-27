@@ -38,10 +38,28 @@ test('it formats food log correctly', function (): void {
     $data = new HealthLogData(
         isHealthData: true,
         logType: HealthEntryType::Food,
-        carbsGrams: 50,
+        carbsGrams: 50.0,
     );
 
     expect($data->formatForDisplay())->toBe('Food - 50g carbs');
+});
+
+test('it formats food log with all macros', function (): void {
+    $data = new HealthLogData(
+        isHealthData: true,
+        logType: HealthEntryType::Food,
+        carbsGrams: 50.0,
+        proteinGrams: 20.0,
+        fatGrams: 15.0,
+        calories: 400,
+        notes: 'tsuivan',
+    );
+
+    expect($data->formatForDisplay())->toContain('tsuivan')
+        ->toContain('50g carbs')
+        ->toContain('20g protein')
+        ->toContain('15g fat')
+        ->toContain('400 kcal');
 });
 
 test('it formats insulin log correctly', function (): void {
@@ -53,6 +71,17 @@ test('it formats insulin log correctly', function (): void {
     );
 
     expect($data->formatForDisplay())->toBe('Insulin 10 units (Basal)');
+});
+
+test('it formats insulin log with Mixed type', function (): void {
+    $data = new HealthLogData(
+        isHealthData: true,
+        logType: HealthEntryType::Insulin,
+        insulinUnits: 10.0,
+        insulinType: InsulinType::Mixed,
+    );
+
+    expect($data->formatForDisplay())->toBe('Insulin 10 units (Mixed)');
 });
 
 test('it formats insulin log with defaults', function (): void {
@@ -145,11 +174,15 @@ test('it exports to food record array', function (): void {
     $data = new HealthLogData(
         isHealthData: true,
         logType: HealthEntryType::Food,
-        carbsGrams: 50,
+        carbsGrams: 50.0,
     );
 
     expect($data->toRecordArray())->toBe([
-        'carbs_grams' => 50,
+        'carbs_grams' => 50.0,
+        'protein_grams' => null,
+        'fat_grams' => null,
+        'calories' => null,
+        'notes' => null,
     ]);
 });
 
@@ -209,4 +242,86 @@ test('it exports to exercise record array', function (): void {
         'exercise_type' => 'Running',
         'exercise_duration_minutes' => 30,
     ]);
+});
+
+test('fromParsedArray converts valid data correctly', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'glucose',
+        'glucose_value' => 120,
+        'glucose_reading_type' => 'fasting',
+        'glucose_unit' => 'mg/dL',
+        'measured_at' => '2023-01-01 10:00:00',
+    ]);
+
+    expect($data)
+        ->isHealthData->toBeTrue()
+        ->logType->toBe(HealthEntryType::Glucose)
+        ->glucoseValue->toBe(120.0)
+        ->glucoseReadingType->toBe(GlucoseReadingType::Fasting)
+        ->glucoseUnit->toBe(GlucoseUnit::MgDl)
+        ->measuredAt->not->toBeNull();
+});
+
+test('fromParsedArray handles string numbers correctly', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'glucose',
+        'glucose_value' => '120.5',
+        'carbs_grams' => '45',
+        'insulin_units' => '5.5',
+        'weight' => '80',
+        'bp_systolic' => '120',
+        'bp_diastolic' => '80',
+        'exercise_duration_minutes' => '30',
+    ]);
+
+    expect($data)
+        ->glucoseValue->toBe(120.5)
+        ->carbsGrams->toBe(45.0)
+        ->insulinUnits->toBe(5.5)
+        ->weight->toBe(80.0)
+        ->bpSystolic->toBe(120)
+        ->bpDiastolic->toBe(80)
+        ->exerciseDurationMinutes->toBe(30);
+});
+
+test('fromParsedArray handles null and invalid values gracefully', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => 'not-bool',
+        'log_type' => 'invalid-type',
+        'glucose_value' => 'not-numeric',
+        'glucose_reading_type' => 'invalid-enum',
+        'measured_at' => null,
+    ]);
+
+    expect($data)
+        ->isHealthData->toBeTrue() // 'not-bool' casts to true
+        ->logType->toBe(HealthEntryType::Glucose) // fallback
+        ->glucoseValue->toBeNull()
+        ->glucoseReadingType->toBeNull()
+        ->measuredAt->toBeNull();
+});
+
+test('fromParsedArray handles empty array', function (): void {
+    $data = HealthLogData::fromParsedArray([]);
+
+    expect($data)
+        ->isHealthData->toBeFalse()
+        ->logType->toBe(HealthEntryType::Glucose)
+        ->glucoseValue->toBeNull()
+        ->notes->toBeNull();
+});
+
+test('fromParsedArray handles null string values', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'meds',
+        'medication_name' => 'null',
+        'medication_dosage' => '',
+    ]);
+
+    expect($data)
+        ->medicationName->toBeNull()
+        ->medicationDosage->toBeNull();
 });

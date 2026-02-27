@@ -79,10 +79,13 @@ final class UpdateHealthEntryRequest extends FormRequest
             // Carbohydrate intake
             'carbs_grams' => [
                 $logType === HealthEntryType::Food->value ? 'required' : 'nullable',
-                'integer',
+                'numeric',
                 'min:0',
                 'max:1000',
             ],
+            'protein_grams' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'fat_grams' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'calories' => ['nullable', 'integer', 'min:0', 'max:5000'],
 
             // Exercise tracking
             'exercise_type' => [

@@ -289,3 +289,29 @@ it('formats notes correctly', function (): void {
 
     expect($json['entries'][0])->toHaveKey('notes', 'Felt dizzy after lunch');
 });
+
+it('returns food entries with all macros', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    HealthEntry::factory()->create([
+        'user_id' => $user->id,
+        'carbs_grams' => 50.0,
+        'protein_grams' => 20.0,
+        'fat_grams' => 15.0,
+        'calories' => 400,
+        'notes' => 'tsuivan',
+        'measured_at' => now(),
+        'source' => HealthEntrySource::Telegram,
+    ]);
+
+    $request = new Request(['type' => 'food']);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['entries'][0])->toHaveKey('carbs_grams', 50.0)
+        ->and($json['entries'][0])->toHaveKey('protein_grams', 20.0)
+        ->and($json['entries'][0])->toHaveKey('fat_grams', 15.0)
+        ->and($json['entries'][0])->toHaveKey('calories', 400)
+        ->and($json['entries'][0])->toHaveKey('food_name', 'tsuivan');
+});

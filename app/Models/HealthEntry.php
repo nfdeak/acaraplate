@@ -30,6 +30,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read int|null $blood_pressure_diastolic
  * @property-read float|null $a1c_value
  * @property-read int|null $carbs_grams
+ * @property-read float|null $protein_grams
+ * @property-read float|null $fat_grams
+ * @property-read int|null $calories
  * @property-read string|null $exercise_type
  * @property-read int|null $exercise_duration_minutes
  * @property-read CarbonInterface $created_at
@@ -71,7 +74,10 @@ final class HealthEntry extends Model
             'blood_pressure_systolic' => 'integer',
             'blood_pressure_diastolic' => 'integer',
             'a1c_value' => 'float',
-            'carbs_grams' => 'integer',
+            'carbs_grams' => 'decimal:2',
+            'protein_grams' => 'decimal:2',
+            'fat_grams' => 'decimal:2',
+            'calories' => 'integer',
             'exercise_type' => 'string',
             'exercise_duration_minutes' => 'integer',
             'created_at' => 'datetime',
