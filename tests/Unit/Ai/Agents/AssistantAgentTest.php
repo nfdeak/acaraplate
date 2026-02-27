@@ -10,6 +10,7 @@ use App\Ai\Tools\GetFitnessGoals;
 use App\Ai\Tools\GetHealthEntries;
 use App\Ai\Tools\GetHealthGoals;
 use App\Ai\Tools\GetUserProfile;
+use App\Ai\Tools\LogHealthEntry;
 use App\Ai\Tools\PredictGlucoseSpike;
 use App\Ai\Tools\SuggestSingleMeal;
 use App\Ai\Tools\SuggestWellnessRoutine;
@@ -86,7 +87,7 @@ it('returns instructions with CreateMealPlan mode', function (): void {
 it('returns correct tools', function (): void {
     $tools = $this->agent->tools();
 
-    expect($tools)->toHaveCount(10)
+    expect($tools)->toHaveCount(11)
         ->and($tools[0])->toBeInstanceOf(SuggestSingleMeal::class)
         ->and($tools[1])->toBeInstanceOf(GetUserProfile::class)
         ->and($tools[2])->toBeInstanceOf(CreateMealPlan::class)
@@ -94,9 +95,10 @@ it('returns correct tools', function (): void {
         ->and($tools[4])->toBeInstanceOf(SuggestWellnessRoutine::class)
         ->and($tools[5])->toBeInstanceOf(GetHealthGoals::class)
         ->and($tools[6])->toBeInstanceOf(GetHealthEntries::class)
-        ->and($tools[7])->toBeInstanceOf(SuggestWorkoutRoutine::class)
-        ->and($tools[8])->toBeInstanceOf(GetFitnessGoals::class)
-        ->and($tools[9])->toBeInstanceOf(GetDietReference::class);
+        ->and($tools[7])->toBeInstanceOf(LogHealthEntry::class)
+        ->and($tools[8])->toBeInstanceOf(SuggestWorkoutRoutine::class)
+        ->and($tools[9])->toBeInstanceOf(GetFitnessGoals::class)
+        ->and($tools[10])->toBeInstanceOf(GetDietReference::class);
 });
 
 it('returns empty messages when no history', function (): void {

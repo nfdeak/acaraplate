@@ -63,7 +63,7 @@ it('logs a glucose entry successfully', function (): void {
         ->toHaveKey('entry_id')
         ->toHaveKey('message');
 
-    $entry = HealthEntry::find($result['entry_id']);
+    $entry = HealthEntry::query()->find($result['entry_id']);
     expect($entry)
         ->glucose_value->toBe(140.0)
         ->source->toBe(HealthEntrySource::Chat);
@@ -84,11 +84,10 @@ it('logs a food entry with notes', function (): void {
 
     expect($result)->toHaveKey('success', true);
 
-    $entry = HealthEntry::find($result['entry_id']);
-    expect($entry)
-        ->carbs_grams->toBe(45)
-        ->notes->toBe('tsuivan')
-        ->source->toBe(HealthEntrySource::Chat);
+    $entry = HealthEntry::query()->find($result['entry_id']);
+    expect((float) $entry->carbs_grams)->toBe(45.0);
+    expect($entry->notes)->toBe('tsuivan');
+    expect($entry->source)->toBe(HealthEntrySource::Chat);
 });
 
 it('logs a vitals entry with weight', function (): void {
@@ -105,7 +104,7 @@ it('logs a vitals entry with weight', function (): void {
 
     expect($result)->toHaveKey('success', true);
 
-    $entry = HealthEntry::find($result['entry_id']);
+    $entry = HealthEntry::query()->find($result['entry_id']);
     expect($entry)
         ->weight->toBe(81.65)
         ->source->toBe(HealthEntrySource::Chat);
@@ -126,7 +125,7 @@ it('logs an exercise entry', function (): void {
 
     expect($result)->toHaveKey('success', true);
 
-    $entry = HealthEntry::find($result['entry_id']);
+    $entry = HealthEntry::query()->find($result['entry_id']);
     expect($entry)
         ->exercise_type->toBe('walking')
         ->exercise_duration_minutes->toBe(30)
@@ -148,7 +147,7 @@ it('logs a medication entry', function (): void {
 
     expect($result)->toHaveKey('success', true);
 
-    $entry = HealthEntry::find($result['entry_id']);
+    $entry = HealthEntry::query()->find($result['entry_id']);
     expect($entry)
         ->medication_name->toBe('metformin')
         ->medication_dosage->toBe('500mg')

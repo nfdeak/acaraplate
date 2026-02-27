@@ -108,6 +108,15 @@ export default function EditHealthEntryForm({
     const [carbsGrams, setCarbsGrams] = useState(
         logEntry.carbs_grams ? String(logEntry.carbs_grams) : '',
     );
+    const [proteinGrams, setProteinGrams] = useState(
+        logEntry.protein_grams ? String(logEntry.protein_grams) : '',
+    );
+    const [fatGrams, setFatGrams] = useState(
+        logEntry.fat_grams ? String(logEntry.fat_grams) : '',
+    );
+    const [calories, setCalories] = useState(
+        logEntry.calories ? String(logEntry.calories) : '',
+    );
 
     const glucosePlaceholder =
         glucoseUnit === GlucoseUnit.MmolL ? 'e.g., 6.7' : 'e.g., 120';
@@ -310,6 +319,77 @@ export default function EditHealthEntryForm({
                                     }
                                 />
                                 <InputError message={errors.carbs_grams} />
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-3">
+                                <div className="space-y-2">
+                                    <Label htmlFor="protein_grams">
+                                        {t(
+                                            'health_entries.food.protein_label',
+                                            'Protein (g)',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="protein_grams"
+                                        type="number"
+                                        name="protein_grams"
+                                        placeholder={t(
+                                            'health_entries.food.protein_placeholder',
+                                            'e.g., 25',
+                                        )}
+                                        value={proteinGrams}
+                                        onChange={(e) =>
+                                            setProteinGrams(e.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.protein_grams}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="fat_grams">
+                                        {t(
+                                            'health_entries.food.fat_label',
+                                            'Fat (g)',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="fat_grams"
+                                        type="number"
+                                        name="fat_grams"
+                                        placeholder={t(
+                                            'health_entries.food.fat_placeholder',
+                                            'e.g., 15',
+                                        )}
+                                        value={fatGrams}
+                                        onChange={(e) =>
+                                            setFatGrams(e.target.value)
+                                        }
+                                    />
+                                    <InputError message={errors.fat_grams} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="calories">
+                                        {t(
+                                            'health_entries.food.calories_label',
+                                            'Calories',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="calories"
+                                        type="number"
+                                        name="calories"
+                                        placeholder={t(
+                                            'health_entries.food.calories_placeholder',
+                                            'e.g., 400',
+                                        )}
+                                        value={calories}
+                                        onChange={(e) =>
+                                            setCalories(e.target.value)
+                                        }
+                                    />
+                                    <InputError message={errors.calories} />
+                                </div>
                             </div>
                         </TabsContent>
 

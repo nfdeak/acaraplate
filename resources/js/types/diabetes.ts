@@ -177,6 +177,9 @@ export interface HealthEntry {
     blood_pressure_diastolic: number | null;
     a1c_value: number | null;
     carbs_grams: number | null;
+    protein_grams: number | null;
+    fat_grams: number | null;
+    calories: number | null;
     exercise_type: string | null;
     exercise_duration_minutes: number | null;
     created_at: string;
@@ -204,6 +207,9 @@ export interface TodaysMeal {
     name: string;
     type: string;
     carbs: number;
+    protein?: number;
+    fat?: number;
+    calories?: number;
     label: string;
 }
 

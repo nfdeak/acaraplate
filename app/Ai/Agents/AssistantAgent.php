@@ -236,7 +236,7 @@ final class AssistantAgent implements Advisor
     private function getToolsUsageInstructions(): array
     {
         return [
-            'log_health_entry: Use IMMEDIATELY when user reports eating food, glucose readings, weight, blood pressure, insulin, medications, or exercise. Do NOT ask for more details — extract what you can and log it right away. Estimate carbs if user mentions food without grams.',
+            'log_health_entry: Use IMMEDIATELY when user reports eating food, glucose readings, weight, blood pressure, insulin, medications, or exercise. Do NOT ask for more details — extract what you can and log it right away. Log all macros when user provides them: carbs, protein, fat, and calories. Estimate values if user mentions food without grams.',
             'suggest_meal: Use when user wants specific meal suggestions',
             'create_meal_plan: Use for multi-day meal plans or when in "Create Meal Plan" mode',
             'predict_glucose_spike: Use for food/meal glucose impact questions',

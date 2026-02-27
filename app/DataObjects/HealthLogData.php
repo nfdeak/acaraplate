@@ -20,7 +20,10 @@ final class HealthLogData extends Data
         public ?float $glucoseValue = null,
         public ?GlucoseReadingType $glucoseReadingType = null,
         public ?GlucoseUnit $glucoseUnit = null,
-        public ?int $carbsGrams = null,
+        public ?float $carbsGrams = null,
+        public ?float $proteinGrams = null,
+        public ?float $fatGrams = null,
+        public ?int $calories = null,
         public ?float $insulinUnits = null,
         public ?InsulinType $insulinType = null,
         public ?string $medicationName = null,
@@ -43,13 +46,16 @@ final class HealthLogData extends Data
     {
         return new self(
             isHealthData: (bool) ($data['is_health_data'] ?? false),
-            logType: HealthEntryType::tryFrom($data['log_type'] ?? '') ?? HealthEntryType::Glucose,
+            logType: HealthEntryType::tryFrom(self::toNullableString($data['log_type'] ?? null) ?? '') ?? HealthEntryType::Glucose,
             glucoseValue: self::toFloat($data['glucose_value'] ?? null),
-            glucoseReadingType: GlucoseReadingType::tryFrom($data['glucose_reading_type'] ?? ''),
-            glucoseUnit: GlucoseUnit::tryFrom($data['glucose_unit'] ?? ''),
-            carbsGrams: self::toInt($data['carbs_grams'] ?? null),
+            glucoseReadingType: GlucoseReadingType::tryFrom(self::toNullableString($data['glucose_reading_type'] ?? null) ?? ''),
+            glucoseUnit: GlucoseUnit::tryFrom(self::toNullableString($data['glucose_unit'] ?? null) ?? ''),
+            carbsGrams: self::toFloat($data['carbs_grams'] ?? null),
+            proteinGrams: self::toFloat($data['protein_grams'] ?? null),
+            fatGrams: self::toFloat($data['fat_grams'] ?? null),
+            calories: self::toInt($data['calories'] ?? null),
             insulinUnits: self::toFloat($data['insulin_units'] ?? null),
-            insulinType: InsulinType::tryFrom($data['insulin_type'] ?? ''),
+            insulinType: InsulinType::tryFrom(self::toNullableString($data['insulin_type'] ?? null) ?? ''),
             medicationName: self::toNullableString($data['medication_name'] ?? null),
             medicationDosage: self::toNullableString($data['medication_dosage'] ?? null),
             weight: self::toFloat($data['weight'] ?? null),
@@ -131,8 +137,27 @@ final class HealthLogData extends Data
     private function formatFoodLog(): string
     {
         $foodName = $this->notes ?? 'Food';
+        $parts = [];
 
-        return sprintf('%s - %sg carbs', $foodName, $this->carbsGrams);
+        if ($this->carbsGrams !== null) {
+            $parts[] = $this->carbsGrams.'g carbs';
+        }
+
+        if ($this->proteinGrams !== null) {
+            $parts[] = $this->proteinGrams.'g protein';
+        }
+
+        if ($this->fatGrams !== null) {
+            $parts[] = $this->fatGrams.'g fat';
+        }
+
+        if ($this->calories !== null) {
+            $parts[] = $this->calories.' kcal';
+        }
+
+        $macros = $parts === [] ? '0g carbs' : implode(', ', $parts);
+
+        return sprintf('%s - %s', $foodName, $macros);
     }
 
     private function formatInsulinLog(): string
@@ -187,6 +212,9 @@ final class HealthLogData extends Data
     {
         return [
             'carbs_grams' => $this->carbsGrams,
+            'protein_grams' => $this->proteinGrams,
+            'fat_grams' => $this->fatGrams,
+            'calories' => $this->calories,
             'notes' => $this->notes,
         ];
     }

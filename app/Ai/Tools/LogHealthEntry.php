@@ -50,7 +50,7 @@ final readonly class LogHealthEntry implements Tool
             $healthData->toRecordArray(),
         );
 
-        $action = app(RecordHealthEntryAction::class);
+        $action = resolve(RecordHealthEntryAction::class);
         $entry = $action->handle($recordData, HealthEntrySource::Chat);
 
         return (string) json_encode([
@@ -74,8 +74,14 @@ final readonly class LogHealthEntry implements Tool
             'glucose_reading_type' => $schema->string()
                 ->enum(GlucoseReadingType::class)
                 ->description('When the glucose was measured.'),
-            'carbs_grams' => $schema->integer()
-                ->description('Carbohydrate intake in grams.'),
+            'carbs_grams' => $schema->number()
+                ->description('Carbohydrate intake in grams (can be decimal like 12.5).'),
+            'protein_grams' => $schema->number()
+                ->description('Protein intake in grams (can be decimal like 12.5).'),
+            'fat_grams' => $schema->number()
+                ->description('Fat intake in grams (can be decimal like 12.5).'),
+            'calories' => $schema->integer()
+                ->description('Total calories.'),
             'notes' => $schema->string()
                 ->description('Food name or additional notes.'),
             'insulin_units' => $schema->number()

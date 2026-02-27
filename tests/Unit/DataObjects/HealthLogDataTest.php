@@ -38,10 +38,28 @@ test('it formats food log correctly', function (): void {
     $data = new HealthLogData(
         isHealthData: true,
         logType: HealthEntryType::Food,
-        carbsGrams: 50,
+        carbsGrams: 50.0,
     );
 
     expect($data->formatForDisplay())->toBe('Food - 50g carbs');
+});
+
+test('it formats food log with all macros', function (): void {
+    $data = new HealthLogData(
+        isHealthData: true,
+        logType: HealthEntryType::Food,
+        carbsGrams: 50.0,
+        proteinGrams: 20.0,
+        fatGrams: 15.0,
+        calories: 400,
+        notes: 'tsuivan',
+    );
+
+    expect($data->formatForDisplay())->toContain('tsuivan')
+        ->toContain('50g carbs')
+        ->toContain('20g protein')
+        ->toContain('15g fat')
+        ->toContain('400 kcal');
 });
 
 test('it formats insulin log correctly', function (): void {
@@ -53,6 +71,17 @@ test('it formats insulin log correctly', function (): void {
     );
 
     expect($data->formatForDisplay())->toBe('Insulin 10 units (Basal)');
+});
+
+test('it formats insulin log with Mixed type', function (): void {
+    $data = new HealthLogData(
+        isHealthData: true,
+        logType: HealthEntryType::Insulin,
+        insulinUnits: 10.0,
+        insulinType: InsulinType::Mixed,
+    );
+
+    expect($data->formatForDisplay())->toBe('Insulin 10 units (Mixed)');
 });
 
 test('it formats insulin log with defaults', function (): void {
@@ -145,11 +174,14 @@ test('it exports to food record array', function (): void {
     $data = new HealthLogData(
         isHealthData: true,
         logType: HealthEntryType::Food,
-        carbsGrams: 50,
+        carbsGrams: 50.0,
     );
 
     expect($data->toRecordArray())->toBe([
-        'carbs_grams' => 50,
+        'carbs_grams' => 50.0,
+        'protein_grams' => null,
+        'fat_grams' => null,
+        'calories' => null,
         'notes' => null,
     ]);
 });
@@ -246,7 +278,7 @@ test('fromParsedArray handles string numbers correctly', function (): void {
 
     expect($data)
         ->glucoseValue->toBe(120.5)
-        ->carbsGrams->toBe(45)
+        ->carbsGrams->toBe(45.0)
         ->insulinUnits->toBe(5.5)
         ->weight->toBe(80.0)
         ->bpSystolic->toBe(120)
