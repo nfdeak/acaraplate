@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Enums\PreferredLanguage;
 use App\Models\User;
+use App\Utilities\LanguageUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
@@ -36,8 +36,7 @@ final class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        $language = $user instanceof User ? ($user->preferred_language ?? PreferredLanguage::English) : PreferredLanguage::English;
-        $locale = $language->value;
+        $locale = $user instanceof User ? ($user->locale ?? 'en') : 'en';
 
         return [
             ...parent::share($request),
@@ -49,7 +48,7 @@ final class HandleInertiaRequests extends Middleware
             'enablePremiumUpgrades' => config('plate.enable_premium_upgrades'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'locale' => $locale,
-            'preferred_language' => $locale,
+            'availableLanguages' => LanguageUtil::all(),
             'translations' => Inertia::once(fn (): array => $this->getTranslations($locale)),
         ];
     }

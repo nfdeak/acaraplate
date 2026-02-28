@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\PreferredLanguage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +27,7 @@ test('to array', function (): void {
             'is_verified',
             'settings',
             'preferred_language',
+            'locale',
             'is_onboarded',
             'has_meal_plan',
             'profile',
@@ -262,21 +262,3 @@ test('preferred_language returns null when not set', function (): void {
 
     expect($user->preferred_language)->toBeNull();
 });
-
-test('preferred_language can be updated via enum', function (): void {
-    $user = User::factory()->create(['preferred_language' => 'en']);
-
-    $user->update(['preferred_language' => PreferredLanguage::French]);
-
-    expect($user->fresh()->preferred_language)->toBe(PreferredLanguage::French);
-});
-
-test('preferred_language accepts valid string values', function (string $value, PreferredLanguage $expected): void {
-    $user = User::factory()->create(['preferred_language' => $value]);
-
-    expect($user->preferred_language)->toBe($expected);
-})->with([
-    'English' => ['en', PreferredLanguage::English],
-    'French' => ['fr', PreferredLanguage::French],
-    'Mongolian' => ['mn', PreferredLanguage::Mongolian],
-]);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\PreferredLanguage;
 use App\Models\User;
+use App\Utilities\LanguageUtil;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,10 +32,10 @@ final class UpdateUserRequest extends FormRequest
                 Rule::unique(User::class)->ignore($user->id),
             ],
 
-            'preferred_language' => [
+            'locale' => [
                 'nullable',
                 'string',
-                Rule::enum(PreferredLanguage::class),
+                Rule::in(LanguageUtil::keys()),
             ],
         ];
     }

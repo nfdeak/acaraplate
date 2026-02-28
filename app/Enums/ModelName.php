@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use Laravel\Ai\Enums\Lab;
+
 enum ModelName: string
 {
     case GPT_5_MINI = 'gpt-5-mini';
@@ -50,6 +52,28 @@ enum ModelName: string
         return match ($this) {
             self::GPT_5_MINI, self::GPT_5_NANO => 'openai',
             self::GEMINI_2_5_FLASH, self::GEMINI_3_FLASH, self::GEMINI_3_1_PRO => 'google',
+        };
+    }
+
+    /**
+     * Get the Lab provider enum value for this model.
+     */
+    public function labProvider(): string
+    {
+        return match ($this) {
+            self::GPT_5_MINI, self::GPT_5_NANO => Lab::OpenAI->value,
+            default => Lab::Gemini->value,
+        };
+    }
+
+    /**
+     * Check if this model supports web search as a tool.
+     */
+    public function supportsWebSearch(): bool
+    {
+        return match ($this) {
+            self::GPT_5_MINI, self::GPT_5_NANO => true,
+            default => false,
         };
     }
 
