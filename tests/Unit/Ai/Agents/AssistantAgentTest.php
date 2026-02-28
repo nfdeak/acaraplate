@@ -15,13 +15,9 @@ use App\Ai\Tools\PredictGlucoseSpike;
 use App\Ai\Tools\SuggestSingleMeal;
 use App\Ai\Tools\SuggestWellnessRoutine;
 use App\Ai\Tools\SuggestWorkoutRoutine;
-use App\Contracts\Ai\GeneratesMealPlans;
-use App\Contracts\Ai\GeneratesSingleMeals;
-use App\Contracts\Ai\PredictsGlucoseSpikes;
 use App\Enums\AgentMode;
 use App\Enums\GoalChoice;
 use App\Enums\Sex;
-use App\Models\History;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -40,26 +36,10 @@ beforeEach(function (): void {
     ]);
 
     $this->profileContext = new GetUserProfileContextAction;
-    $this->suggestSingleMealTool = new SuggestSingleMeal(resolve(GeneratesSingleMeals::class));
-    $this->getUserProfileTool = new GetUserProfile($this->profileContext);
-    $this->createMealPlanTool = new CreateMealPlan(resolve(GeneratesMealPlans::class));
-    $this->predictGlucoseSpikeTool = new PredictGlucoseSpike(resolve(PredictsGlucoseSpikes::class));
-    $this->suggestWellnessRoutineTool = new SuggestWellnessRoutine;
-    $this->getHealthGoalsTool = new GetHealthGoals($this->profileContext);
-    $this->suggestWorkoutRoutineTool = new SuggestWorkoutRoutine;
-    $this->getFitnessGoalsTool = new GetFitnessGoals($this->profileContext);
 
     $this->agent = new AssistantAgent(
         $this->user,
         $this->profileContext,
-        $this->suggestSingleMealTool,
-        $this->getUserProfileTool,
-        $this->createMealPlanTool,
-        $this->predictGlucoseSpikeTool,
-        $this->suggestWellnessRoutineTool,
-        $this->getHealthGoalsTool,
-        $this->suggestWorkoutRoutineTool,
-        $this->getFitnessGoalsTool,
     );
 });
 
@@ -101,47 +81,9 @@ it('returns correct tools', function (): void {
         ->and($tools[10])->toBeInstanceOf(GetDietReference::class);
 });
 
-it('returns empty messages when no history', function (): void {
+it('returns empty messages when no conversation', function (): void {
     $messages = $this->agent->messages();
 
     expect($messages)->toBeArray()
         ->toHaveCount(0);
-});
-
-it('returns messages from history', function (): void {
-    History::factory()->create([
-        'user_id' => $this->user->id,
-        'role' => 'user',
-        'content' => 'Hello, I need help with my diet',
-    ]);
-
-    History::factory()->create([
-        'user_id' => $this->user->id,
-        'role' => 'assistant',
-        'content' => 'I can help you with that!',
-    ]);
-
-    $messages = $this->agent->messages();
-
-    expect($messages)->toHaveCount(2);
-    // Messages are returned in chronological order (oldest first)
-    $userMessage = collect($messages)->first(fn ($m): bool => $m->content === 'Hello, I need help with my diet');
-    $assistantMessage = collect($messages)->first(fn ($m): bool => $m->content === 'I can help you with that!');
-    expect($userMessage)->not->toBeNull();
-    expect($assistantMessage)->not->toBeNull();
-});
-
-it('limits messages to 50', function (): void {
-    // Create 60 messages (only 50 should be returned)
-    for ($i = 0; $i < 60; $i++) {
-        History::factory()->create([
-            'user_id' => $this->user->id,
-            'role' => 'user',
-            'content' => 'Message '.$i,
-        ]);
-    }
-
-    $messages = $this->agent->messages();
-
-    expect($messages)->toHaveCount(50);
 });

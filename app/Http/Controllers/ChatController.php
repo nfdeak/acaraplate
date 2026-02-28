@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Contracts\Ai\Advisor;
+use App\Ai\Agents\AssistantAgent;
 use App\Enums\AgentMode;
 use App\Http\Requests\StoreAgentConversationRequest;
 use App\Models\Conversation;
@@ -14,7 +14,6 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Providers\Tools\WebSearch;
 use Laravel\Ai\Responses\StreamableAgentResponse;
 
@@ -50,27 +49,21 @@ final readonly class ChatController
     public function stream(
         StoreAgentConversationRequest $request
     ): StreamableAgentResponse {
+        $model = $request->modelName();
 
-        $agent = resolve(Advisor::class, ['user' => $this->user])
+        $agent = resolve(AssistantAgent::class, ['user' => $this->user])
             ->withMode($request->mode())
             ->forUser($this->user);
 
-        $model = $request->modelName()->value;
-
-        if (in_array($model, ['gpt-5-mini', 'gpt-5-nano'], true)) {
+        if ($model->supportsWebSearch()) {
             $agent->addTool(new WebSearch);
         }
-
-        $providers = match ($model) {
-            'gpt-5-mini', 'gpt-5-nano' => Lab::OpenAI->value,
-            default => Lab::Gemini->value, // @codeCoverageIgnore
-        };
 
         return $agent
             ->stream(
                 prompt: $request->userMessage(),
-                provider: $providers,
-                model: $model
+                provider: $model->labProvider(),
+                model: $model->value,
             )
             ->usingVercelDataProtocol();
     }

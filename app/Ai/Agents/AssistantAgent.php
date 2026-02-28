@@ -17,18 +17,18 @@ use App\Ai\Tools\PredictGlucoseSpike;
 use App\Ai\Tools\SuggestSingleMeal;
 use App\Ai\Tools\SuggestWellnessRoutine;
 use App\Ai\Tools\SuggestWorkoutRoutine;
-use App\Contracts\Ai\Advisor;
 use App\Enums\AgentMode;
-use App\Enums\PreferredLanguage;
-use App\Models\History;
 use App\Models\User;
+use App\Utilities\LanguageUtil;
 use Laravel\Ai\Concerns\RemembersConversations;
+use Laravel\Ai\Contracts\Agent;
+use Laravel\Ai\Contracts\Conversational;
+use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Contracts\Tool;
-use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
 use Laravel\Ai\Providers\Tools\ProviderTool;
 
-final class AssistantAgent implements Advisor
+final class AssistantAgent implements Agent, Conversational, HasTools
 {
     use Promptable, RemembersConversations;
 
@@ -60,29 +60,16 @@ final class AssistantAgent implements Advisor
 
     public function instructions(): string
     {
-        $profileData = $this->profileContext->handle($this->getUser());
+        $user = $this->conversationUser instanceof User ? $this->conversationUser : $this->user;
+        $profileData = $this->profileContext->handle($user);
 
         return (string) new SystemPrompt(
             background: $this->getBackgroundInstructions(),
-            context: $this->getContextInstructions($profileData),
+            context: $this->getContextInstructions($profileData, $user),
             steps: $this->getStepsInstructions(),
             output: $this->getOutputInstructions(),
             toolsUsage: $this->getToolsUsageInstructions(),
         );
-    }
-
-    /**
-     * @return array<int, Message>
-     */
-    public function messages(): array
-    {
-        return array_values(History::query()->where('user_id', $this->getUser()->id)
-            ->latest()
-            ->limit(50)
-            ->get()
-            ->reverse()
-            ->map(fn (History $message): Message => new Message($message->role, $message->content))
-            ->all());
     }
 
     /**
@@ -103,18 +90,6 @@ final class AssistantAgent implements Advisor
             new GetFitnessGoals,
             new GetDietReference,
         ], $this->additionalTools);
-    }
-
-    /**
-     * Get the current user (prefers conversation participant set by continue method).
-     */
-    private function getUser(): User
-    {
-        if ($this->conversationUser instanceof User) {
-            return $this->conversationUser;
-        }
-
-        return $this->user;
     }
 
     /**
@@ -157,11 +132,12 @@ final class AssistantAgent implements Advisor
      * @param  array<string, mixed>  $profileData
      * @return list<string>
      */
-    private function getContextInstructions(array $profileData): array
+    private function getContextInstructions(array $profileData, User $user): array
     {
         /** @var string $profileContext */
         $profileContext = $profileData['context'];
-        $language = $this->getUser()->preferred_language ?? PreferredLanguage::English;
+        $languageCode = $user->preferred_language ?? 'en';
+        $languageLabel = LanguageUtil::get($languageCode) ?? 'English';
 
         $context = [
             'USER PROFILE CONTEXT:',
@@ -169,7 +145,7 @@ final class AssistantAgent implements Advisor
             '',
             'CHAT MODE: '.$this->mode->value,
             '',
-            'LANGUAGE: Your default language is '.$language->label().' ('.$language->value.'). Respond in this language unless the user writes in a different language — in that case, naturally mirror their language.',
+            'LANGUAGE: Your default language is '.$languageLabel.' ('.$languageCode.'). Respond in this language unless the user writes in a different language — in that case, naturally mirror their language.',
         ];
 
         if ($this->mode === AgentMode::CreateMealPlan) {

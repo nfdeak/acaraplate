@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\PreferredLanguage;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -94,20 +93,19 @@ it('includes parent shared data', function (): void {
     expect($shared)->toHaveKey('errors');
 });
 
-it('defaults locale and preferred_language to en for guests', function (): void {
+it('defaults locale to en for guests', function (): void {
     $middleware = new HandleInertiaRequests();
 
     $request = Request::create('/', 'GET');
 
     $shared = $middleware->share($request);
 
-    expect($shared['locale'])->toBe('en')
-        ->and($shared['preferred_language'])->toBe('en');
+    expect($shared['locale'])->toBe('en');
 });
 
-it('uses user preferred language for locale and preferred_language', function (): void {
+it('uses user locale for portal', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => PreferredLanguage::Mongolian,
+        'locale' => 'mn',
     ]);
 
     $middleware = new HandleInertiaRequests();
@@ -117,13 +115,12 @@ it('uses user preferred language for locale and preferred_language', function ()
 
     $shared = $middleware->share($request);
 
-    expect($shared['locale'])->toBe('mn')
-        ->and($shared['preferred_language'])->toBe('mn');
+    expect($shared['locale'])->toBe('mn');
 });
 
-it('defaults to en when user has no preferred language set', function (): void {
+it('defaults to en when user has no locale set', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => null,
+        'locale' => null,
     ]);
 
     $middleware = new HandleInertiaRequests();
@@ -133,8 +130,7 @@ it('defaults to en when user has no preferred language set', function (): void {
 
     $shared = $middleware->share($request);
 
-    expect($shared['locale'])->toBe('en')
-        ->and($shared['preferred_language'])->toBe('en');
+    expect($shared['locale'])->toBe('en');
 });
 
 it('shares translations for current locale', function (): void {
