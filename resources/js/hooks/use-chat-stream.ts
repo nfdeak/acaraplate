@@ -2,6 +2,7 @@ import type { AIModel, ChatMode } from '@/pages/chat/chat-input';
 import { stream } from '@/routes/chat';
 import type { ChatStatus } from '@/types/chat';
 import { useChat, type UIMessage } from '@ai-sdk/react';
+import type { FileUIPart } from 'ai';
 import { DefaultChatTransport } from 'ai';
 import { useMemo, useRef } from 'react';
 
@@ -14,7 +15,7 @@ interface UseChatStreamOptions {
 
 interface UseChatStreamReturn {
     messages: UIMessage[];
-    sendMessage: (message: { text: string }) => void;
+    sendMessage: (message: { text: string; files?: FileUIPart[] }) => void;
     status: ChatStatus;
     error: Error | undefined;
     isStreaming: boolean;

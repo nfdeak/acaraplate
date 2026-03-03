@@ -103,6 +103,15 @@ function MessagePart({ part }: { part: UIMessage['parts'][number] }) {
                 </a>
             );
         case 'file':
+            if (part.mediaType?.startsWith('image/')) {
+                return (
+                    <img
+                        src={part.url}
+                        alt={part.filename ?? 'Uploaded image'}
+                        className="max-h-64 max-w-full rounded-lg object-contain"
+                    />
+                );
+            }
             return (
                 <div className="text-muted-foreground">📎 {part.filename}</div>
             );
@@ -121,10 +130,26 @@ function UserBubble({ message }: { message: UIMessage }) {
         .map((part) => (part.type === 'text' ? part.text : ''))
         .join('');
 
+    const imageParts = message.parts?.filter(
+        (part) => part.type === 'file' && part.mediaType?.startsWith('image/'),
+    );
+
     return (
         <div className="flex justify-end gap-3">
             <div className="max-w-[80%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground shadow-sm">
-                <p className="text-sm">{textContent}</p>
+                {imageParts && imageParts.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                        {imageParts.map((part, index) => (
+                            <img
+                                key={index}
+                                src={part.type === 'file' ? part.url : ''}
+                                alt="Uploaded image"
+                                className="max-h-48 max-w-full rounded-lg object-contain"
+                            />
+                        ))}
+                    </div>
+                )}
+                {textContent && <p className="text-sm">{textContent}</p>}
             </div>
             <MessageAvatar role="user" />
         </div>

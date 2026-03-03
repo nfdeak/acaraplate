@@ -123,6 +123,12 @@ final class AssistantAgent implements Agent, Conversational, HasTools
             '   - Provide hydration and lifestyle optimization advice',
             '   - Support habit formation and daily routine improvements',
             '',
+            '4. IMAGE ANALYSIS',
+            '   - You can see and analyze images that users share',
+            '   - When a user shares a food photo, use the analyze_photo tool for detailed nutritional breakdown',
+            '   - After receiving photo analysis results, use log_health_entry to save the food data',
+            '   - For non-food images, respond using your built-in vision capabilities',
+            '',
             'PERSONA ADAPTATION: Analyze user messages and automatically adopt the most relevant expertise.',
             'Users often mix topics - handle them all naturally within the same conversation.',
         ];
@@ -166,6 +172,7 @@ final class AssistantAgent implements Agent, Conversational, HasTools
             "1. Analyze the user's message to understand their wellness needs (nutrition, fitness, health/lifestyle)",
             "2. Review the user's profile context to understand their biometrics, goals, and constraints",
             '3. Use appropriate tools based on user intent:',
+            '   - analyze_photo: When user shares a food photo, use this for detailed nutritional analysis. Then log results with log_health_entry',
             '   - log_health_entry: IMMEDIATELY log when user reports food, glucose, weight, BP, insulin, meds, or exercise',
             '   - suggest_meal: For specific meal suggestions',
             '   - create_meal_plan: For multi-day meal plans or when in "Create Meal Plan" mode',
@@ -212,6 +219,7 @@ final class AssistantAgent implements Agent, Conversational, HasTools
     private function getToolsUsageInstructions(): array
     {
         return [
+            'analyze_photo: Use when the user shares a food photo or image of a meal. This tool performs detailed nutritional analysis of the food in the image and returns structured data including calories, protein, carbs, fat, and portion sizes. After receiving the results, use log_health_entry to save the food data.',
             'log_health_entry: Use IMMEDIATELY when user reports eating food, glucose readings, weight, blood pressure, insulin, medications, or exercise. Do NOT ask for more details — extract what you can and log it right away. Log all macros when user provides them: carbs, protein, fat, and calories. Estimate values if user mentions food without grams.',
             'suggest_meal: Use when user wants specific meal suggestions',
             'create_meal_plan: Use for multi-day meal plans or when in "Create Meal Plan" mode',

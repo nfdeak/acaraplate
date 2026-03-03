@@ -5,6 +5,7 @@ import chat from '@/routes/chat';
 import type { BreadcrumbItem } from '@/types';
 import type { ChatPageProps, UIMessage } from '@/types/chat';
 import { Head, router, usePage } from '@inertiajs/react';
+import type { FileUIPart } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 import ChatInput, { type AIModel, type ChatMode } from './chat-input';
 
@@ -48,8 +49,8 @@ export default function CreateChat() {
         }
     }, [messages]);
 
-    function handleSubmit(message: string) {
-        if (!message.trim()) {
+    function handleSubmit(message: string, files?: FileUIPart[]) {
+        if (!message.trim() && (!files || files.length === 0)) {
             return;
         }
 
@@ -62,7 +63,7 @@ export default function CreateChat() {
             });
         }
 
-        sendMessage({ text: message });
+        sendMessage({ text: message, files });
     }
 
     const showThinkingIndicator = isSubmitting && messages.length > 0;

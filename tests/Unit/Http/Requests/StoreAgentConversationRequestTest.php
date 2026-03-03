@@ -111,3 +111,57 @@ it('extracts mode and model from request', function () use ($createRequest): voi
     expect($request->mode())->toBe(AgentMode::CreateMealPlan)
         ->and($request->modelName())->toBe(ModelName::GEMINI_2_5_FLASH);
 });
+
+it('returns empty attachments when no file parts exist', function () use ($createRequest): void {
+    $request = $createRequest([
+        'messages' => [['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hi']]]],
+        'mode' => AgentMode::Ask->value,
+        'model' => ModelName::GPT_5_MINI->value,
+    ]);
+
+    expect($request->userAttachments())->toBe([]);
+});
+
+it('extracts image attachments from user message', function () use ($createRequest): void {
+    $base64Content = base64_encode('fake-image-data');
+    $dataUrl = 'data:image/jpeg;base64,'.$base64Content;
+
+    $request = $createRequest([
+        'messages' => [
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['type' => 'text', 'text' => 'What is this food?'],
+                    ['type' => 'file', 'mediaType' => 'image/jpeg', 'url' => $dataUrl],
+                ],
+            ],
+        ],
+        'mode' => AgentMode::Ask->value,
+        'model' => ModelName::GPT_5_MINI->value,
+    ]);
+
+    $attachments = $request->userAttachments();
+
+    expect($attachments)->toHaveCount(1)
+        ->and($attachments[0])->toBeInstanceOf(Laravel\Ai\Files\Base64Image::class)
+        ->and($attachments[0]->base64)->toBe($base64Content)
+        ->and($attachments[0]->mime)->toBe('image/jpeg');
+});
+
+it('ignores non-image file parts in attachments', function () use ($createRequest): void {
+    $request = $createRequest([
+        'messages' => [
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['type' => 'text', 'text' => 'Check this'],
+                    ['type' => 'file', 'mediaType' => 'application/pdf', 'url' => 'data:application/pdf;base64,abc123'],
+                ],
+            ],
+        ],
+        'mode' => AgentMode::Ask->value,
+        'model' => ModelName::GPT_5_MINI->value,
+    ]);
+
+    expect($request->userAttachments())->toBe([]);
+});

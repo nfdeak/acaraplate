@@ -6,6 +6,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import type { FileUIPart } from 'ai';
 import {
     ChevronDown,
     Loader2,
@@ -13,8 +14,9 @@ import {
     Plus,
     Send,
     UtensilsCrossed,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const AI_MODELS = {
@@ -40,7 +42,7 @@ export const CHAT_MODES = {
 export type ChatMode = keyof typeof CHAT_MODES;
 
 interface Props {
-    onSubmit: (message: string) => void;
+    onSubmit: (message: string, files?: FileUIPart[]) => void;
     onModeChange: (mode: ChatMode) => void;
     onModelChange: (model: AIModel) => void;
     className?: string;
@@ -48,6 +50,22 @@ interface Props {
     isLoading?: boolean;
     mode: ChatMode;
     model: AIModel;
+}
+
+function readFileAsDataURL(file: File): Promise<FileUIPart> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            resolve({
+                type: 'file',
+                mediaType: file.type,
+                url: reader.result as string,
+                filename: file.name,
+            });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 export default function ChatInput({
@@ -62,12 +80,22 @@ export default function ChatInput({
 }: Props) {
     const { t } = useTranslation('common');
     const [message, setMessage] = useState('');
+    const [selectedFiles, setSelectedFiles] = useState<FileUIPart[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const hasContent = message.trim() || selectedFiles.length > 0;
 
     const handleSubmit = () => {
-        if (message.trim()) {
-            onSubmit(message);
-            setMessage('');
+        if (!hasContent) {
+            return;
         }
+
+        const text =
+            message.trim() ||
+            (selectedFiles.length > 0 ? 'Analyze this image' : '');
+        onSubmit(text, selectedFiles.length > 0 ? selectedFiles : undefined);
+        setMessage('');
+        setSelectedFiles([]);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -75,6 +103,26 @@ export default function ChatInput({
             e.preventDefault();
             handleSubmit();
         }
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        const fileParts = await Promise.all(
+            Array.from(files).map(readFileAsDataURL),
+        );
+        setSelectedFiles((prev) => [...prev, ...fileParts]);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     const SelectedModeIcon = CHAT_MODES[mode].icon;
@@ -87,6 +135,27 @@ export default function ChatInput({
                     className,
                 )}
             >
+                {selectedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 px-2 pt-2 sm:px-3 sm:pt-3">
+                        {selectedFiles.map((file, index) => (
+                            <div key={index} className="group relative">
+                                <img
+                                    src={file.url}
+                                    alt={file.filename ?? 'Selected image'}
+                                    className="size-16 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeFile(index)}
+                                    className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-gray-800 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                >
+                                    <X className="size-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 <div className="p-2 sm:p-3">
                     <textarea
                         value={message}
@@ -136,11 +205,20 @@ export default function ChatInput({
                             </DropdownMenuContent>
                         </DropdownMenu>
 
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
                         <Button
                             variant="outline"
                             size="icon"
                             className="size-8"
-                            disabled
+                            disabled={disabled}
+                            onClick={() => fileInputRef.current?.click()}
                         >
                             <Plus className="size-4" />
                         </Button>
@@ -182,18 +260,16 @@ export default function ChatInput({
 
                         <Button
                             variant={
-                                message.trim() && !disabled
-                                    ? 'default'
-                                    : 'ghost'
+                                hasContent && !disabled ? 'default' : 'ghost'
                             }
                             size="icon"
                             className={`size-8 transition-all duration-200 ${
-                                message.trim() && !disabled
+                                hasContent && !disabled
                                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                     : 'text-muted-foreground hover:text-foreground'
                             }`}
                             onClick={handleSubmit}
-                            disabled={!message.trim() || disabled}
+                            disabled={!hasContent || disabled}
                         >
                             {isLoading ? (
                                 <Loader2 className="size-4 animate-spin" />

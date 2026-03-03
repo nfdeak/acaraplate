@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Ai\Agents\AssistantAgent;
+use App\Ai\Tools\AnalyzePhoto;
 use App\Enums\AgentMode;
 use App\Http\Requests\StoreAgentConversationRequest;
 use App\Models\Conversation;
@@ -50,6 +51,7 @@ final readonly class ChatController
         StoreAgentConversationRequest $request
     ): StreamableAgentResponse {
         $model = $request->modelName();
+        $attachments = $request->userAttachments();
 
         $agent = resolve(AssistantAgent::class, ['user' => $this->user])
             ->withMode($request->mode())
@@ -59,9 +61,14 @@ final readonly class ChatController
             $agent->addTool(new WebSearch);
         }
 
+        if ($attachments !== []) {
+            $agent->addTool(new AnalyzePhoto($attachments));
+        }
+
         return $agent
             ->stream(
                 prompt: $request->userMessage(),
+                attachments: $attachments,
                 provider: $model->labProvider(),
                 model: $model->value,
             )
