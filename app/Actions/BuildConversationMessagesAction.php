@@ -22,13 +22,15 @@ final class BuildConversationMessagesAction
             return [];
         }
 
-        return $conversation->messages
-            ->map(fn (History $message): array => [
-                'id' => $message->id,
-                'role' => $message->role->value,
-                'parts' => $this->buildParts($message),
-            ])
-            ->all();
+        return array_values(
+            $conversation->messages
+                ->map(fn (History $message): array => [
+                    'id' => $message->id,
+                    'role' => $message->role->value,
+                    'parts' => $this->buildParts($message),
+                ])
+                ->all()
+        );
     }
 
     /**
@@ -43,7 +45,7 @@ final class BuildConversationMessagesAction
         $textPart = ['type' => 'text', 'text' => $message->content];
 
         $attachmentParts = collect($message->attachments ?? [])
-            ->map(function (array $attachment): array { // @phpstan-ignore-line argument.type
+            ->map(function (array $attachment): array { // @phpstan-ignore argument.type
                 $mime = isset($attachment['mime']) && is_string($attachment['mime'])
                     ? $attachment['mime']
                     : 'image/jpeg';
@@ -55,9 +57,10 @@ final class BuildConversationMessagesAction
                 return [
                     'type' => 'file',
                     'mediaType' => $mime,
-                    'url' => 'data:'.$mime.';base64,'.$base64,
+                    'url' => sprintf('data:%s;base64,%s', $mime, $base64),
                 ];
             })
+            ->values()
             ->all();
 
         return [$textPart, ...$attachmentParts];

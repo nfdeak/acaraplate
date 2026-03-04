@@ -11,6 +11,8 @@ use App\Enums\Sex;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 use Spatie\LaravelData\DataCollection;
 use Workflow\WorkflowStub;
 
@@ -23,20 +25,16 @@ it('returns fluent interface when setting diet type', function (): void {
     expect($result)->toBeInstanceOf(MealPlanAgent::class);
 });
 
-it('returns max tokens', function (): void {
-    $action = resolve(MealPlanAgent::class);
-    $maxTokens = $action->maxTokens();
+it('has correct attributes configured', function (): void {
+    $reflection = new ReflectionClass(MealPlanAgent::class);
 
-    expect($maxTokens)->toBe(64000);
-});
+    $maxTokens = $reflection->getAttributes(MaxTokens::class);
+    $timeout = $reflection->getAttributes(Timeout::class);
 
-it('returns client options', function (): void {
-    $action = resolve(MealPlanAgent::class);
-    $options = $action->clientOptions();
-
-    expect($options)->toBeArray()
-        ->and($options)->toHaveKey('timeout')
-        ->and($options['timeout'])->toBe(180);
+    expect($maxTokens)->toHaveCount(1)
+        ->and($maxTokens[0]->newInstance()->value)->toBe(64000)
+        ->and($timeout)->toHaveCount(1)
+        ->and($timeout[0]->newInstance()->value)->toBe(180);
 });
 
 it('generates a meal plan using Laravel AI SDK', function (): void {

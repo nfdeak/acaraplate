@@ -9,6 +9,8 @@ use App\Enums\GoalChoice;
 use App\Enums\Sex;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 use Tests\Helpers\TestJsonSchema;
 
 uses(RefreshDatabase::class);
@@ -40,18 +42,16 @@ it('returns correct instructions', function (): void {
         ->toContain('glucose impact');
 });
 
-it('returns max tokens', function (): void {
-    $maxTokens = $this->agent->maxTokens();
+it('has correct attributes configured', function (): void {
+    $reflection = new ReflectionClass($this->agent);
 
-    expect($maxTokens)->toBe(8000);
-});
+    $maxTokens = $reflection->getAttributes(MaxTokens::class);
+    $timeout = $reflection->getAttributes(Timeout::class);
 
-it('returns client options', function (): void {
-    $options = $this->agent->clientOptions();
-
-    expect($options)->toBeArray()
-        ->and($options)->toHaveKey('timeout')
-        ->and($options['timeout'])->toBe(60);
+    expect($maxTokens)->toHaveCount(1)
+        ->and($maxTokens[0]->newInstance()->value)->toBe(8000)
+        ->and($timeout)->toHaveCount(1)
+        ->and($timeout[0]->newInstance()->value)->toBe(60);
 });
 
 it('returns valid schema with all fields', function (): void {

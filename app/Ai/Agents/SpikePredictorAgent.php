@@ -7,7 +7,6 @@ namespace App\Ai\Agents;
 use App\Ai\SystemPrompt;
 use App\Contracts\Ai\PredictsGlucoseSpikes;
 use App\DataObjects\SpikePredictionData;
-use App\Enums\SpikeRiskLevel;
 use App\Utilities\JsonCleaner;
 use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Attributes\Provider;
@@ -63,40 +62,17 @@ final class SpikePredictorAgent implements Agent, PredictsGlucoseSpikes
         );
     }
 
-    public function maxTokens(): int
-    {
-        return 2000;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function clientOptions(): array
-    {
-        return [
-            'timeout' => 120,
-        ];
-    }
-
     public function predict(string $food): SpikePredictionData
     {
         $prompt = sprintf('Analyze this food for glucose spike risk: "%s"', $food);
 
         $response = $this->prompt($prompt);
 
-        $jsonText = (string) $response;
-        $cleanedJsonText = JsonCleaner::extractAndValidateJson($jsonText);
+        $cleanedJsonText = JsonCleaner::extractAndValidateJson((string) $response);
 
-        /** @var array{risk_level: string, estimated_gl: int, explanation: string, smart_fix: string, spike_reduction_percentage: int} $data */
+        /** @var array<string, mixed> $data */
         $data = json_decode($cleanedJsonText, true, 512, JSON_THROW_ON_ERROR);
 
-        return new SpikePredictionData(
-            food: $food,
-            riskLevel: SpikeRiskLevel::from($data['risk_level']),
-            estimatedGlycemicLoad: $data['estimated_gl'],
-            explanation: $data['explanation'],
-            smartFix: $data['smart_fix'],
-            spikeReductionPercentage: $data['spike_reduction_percentage'],
-        );
+        return SpikePredictionData::from([...$data, 'food' => $food]);
     }
 }

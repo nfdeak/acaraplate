@@ -7,6 +7,8 @@ use App\Models\Meal;
 use App\Models\MealPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 
 uses(RefreshDatabase::class);
 
@@ -15,15 +17,16 @@ beforeEach(function (): void {
     $this->agent = new GroceryListGeneratorAgent;
 });
 
-it('returns correct max tokens', function (): void {
-    expect($this->agent->maxTokens())->toBe(67000);
-});
+it('has correct attributes configured', function (): void {
+    $reflection = new ReflectionClass($this->agent);
 
-it('returns client options with timeout', function (): void {
-    $options = $this->agent->clientOptions();
+    $maxTokens = $reflection->getAttributes(MaxTokens::class);
+    $timeout = $reflection->getAttributes(Timeout::class);
 
-    expect($options)->toHaveKey('timeout')
-        ->and($options['timeout'])->toBe(120);
+    expect($maxTokens)->toHaveCount(1)
+        ->and($maxTokens[0]->newInstance()->value)->toBe(67000)
+        ->and($timeout)->toHaveCount(1)
+        ->and($timeout[0]->newInstance()->value)->toBe(120);
 });
 
 it('returns instructions with grocery list guidance', function (): void {
