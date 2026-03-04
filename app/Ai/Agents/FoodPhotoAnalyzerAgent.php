@@ -23,7 +23,7 @@ use Spatie\LaravelData\DataCollection;
 
 #[Provider('gemini')]
 #[MaxTokens(16000)]
-#[Timeout(60)]
+#[Timeout(120)]
 final class FoodPhotoAnalyzerAgent implements Agent, HasStructuredOutput
 {
     use Promptable;
@@ -65,7 +65,7 @@ final class FoodPhotoAnalyzerAgent implements Agent, HasStructuredOutput
     public function clientOptions(): array
     {
         return [
-            'timeout' => 60,
+            'timeout' => 120,
         ];
     }
 

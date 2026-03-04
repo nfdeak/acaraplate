@@ -29,7 +29,7 @@ it('returns client options with timeout', function (): void {
     $options = $this->agent->clientOptions();
 
     expect($options)->toHaveKey('timeout')
-        ->and($options['timeout'])->toBe(60);
+        ->and($options['timeout'])->toBe(120);
 });
 
 it('analyzes food photo and returns analysis data', function (): void {
