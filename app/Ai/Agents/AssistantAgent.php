@@ -185,9 +185,13 @@ final class AssistantAgent implements Agent, Conversational, HasTools
         $languageCode = $user->preferred_language ?? 'en';
         $languageLabel = LanguageUtil::get($languageCode) ?? 'English';
 
+        $timezone = $this->resolveTimezone();
+
         $context = [
             'USER PROFILE CONTEXT:',
             $profileContext,
+            '',
+            'CURRENT TIME: '.now($timezone)->format('Y-m-d H:i (l)').' ('.$timezone.')',
             '',
             'CHAT MODE: '.$this->mode->value,
             '',
@@ -273,5 +277,12 @@ final class AssistantAgent implements Agent, Conversational, HasTools
             'Always use tools rather than generating complex content manually',
             'After using a tool, incorporate results naturally into your response',
         ];
+    }
+
+    private function resolveTimezone(): string
+    {
+        return session('timezone')
+            ?? $this->user->timezone
+            ?? 'UTC';
     }
 }
