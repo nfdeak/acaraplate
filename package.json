@@ -22,7 +22,7 @@
         "vite-plugin-pwa": "^1.2.0"
     },
     "dependencies": {
-        "@ai-sdk/react": "^3.0.113",
+        "@ai-sdk/react": "^3.0.114",
         "@headlessui/react": "^2.2.9",
         "@inertiajs/react": "^2.3.17",
         "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -49,10 +49,10 @@
         "clsx": "^2.1.1",
         "concurrently": "^9.2.1",
         "globals": "^17.4.0",
-        "i18next": "^25.8.13",
+        "i18next": "^25.8.14",
         "input-otp": "^1.4.2",
         "laravel-vite-plugin": "^2.1",
-        "lucide-react": "^0.576.0",
+        "lucide-react": "^0.577.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "react-i18next": "^16.5.4",

@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Ai\Agents\FoodPhotoAnalyzerAgent;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
+use Spatie\LaravelData\Exceptions\CannotCreateData;
 
 beforeEach(function (): void {
     $this->agent = new FoodPhotoAnalyzerAgent;
@@ -21,15 +24,16 @@ it('returns instructions with food analysis guidance', function (): void {
         ->toContain('portion');
 });
 
-it('returns correct max tokens', function (): void {
-    expect($this->agent->maxTokens())->toBe(35000);
-});
+it('has correct attributes configured', function (): void {
+    $reflection = new ReflectionClass($this->agent);
 
-it('returns client options with timeout', function (): void {
-    $options = $this->agent->clientOptions();
+    $maxTokens = $reflection->getAttributes(MaxTokens::class);
+    $timeout = $reflection->getAttributes(Timeout::class);
 
-    expect($options)->toHaveKey('timeout')
-        ->and($options['timeout'])->toBe(120);
+    expect($maxTokens)->toHaveCount(1)
+        ->and($maxTokens[0]->newInstance()->value)->toBe(35000)
+        ->and($timeout)->toHaveCount(1)
+        ->and($timeout[0]->newInstance()->value)->toBe(120);
 });
 
 it('analyzes food photo and returns analysis data', function (): void {
@@ -108,4 +112,4 @@ it('throws exception when structured data is empty', function (): void {
     $imageBase64 = base64_encode('fake-image-data');
 
     $this->agent->analyze($imageBase64, 'image/jpeg');
-})->throws(InvalidArgumentException::class, 'AI returned invalid analysis structure');
+})->throws(CannotCreateData::class);

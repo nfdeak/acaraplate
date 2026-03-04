@@ -6,12 +6,9 @@ namespace App\Ai\Agents;
 
 use App\Ai\SystemPrompt;
 use App\DataObjects\FoodAnalysisData;
-use App\DataObjects\FoodItemData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\ObjectType;
 use Illuminate\JsonSchema\Types\Type;
-use Illuminate\Support\Facades\Log;
-use InvalidArgumentException;
 use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Attributes\Provider;
 use Laravel\Ai\Attributes\Timeout;
@@ -19,7 +16,6 @@ use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Files\Base64Image;
 use Laravel\Ai\Promptable;
-use Spatie\LaravelData\DataCollection;
 
 #[Provider('gemini')]
 #[MaxTokens(35000)]
@@ -52,21 +48,6 @@ final class FoodPhotoAnalyzerAgent implements Agent, HasStructuredOutput
                 'If no food is detected in the image, return empty items array with zeros for totals and confidence of 0',
             ],
         );
-    }
-
-    public function maxTokens(): int
-    {
-        return 35000;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    public function clientOptions(): array
-    {
-        return [
-            'timeout' => 120,
-        ];
     }
 
     /**
@@ -102,51 +83,9 @@ final class FoodPhotoAnalyzerAgent implements Agent, HasStructuredOutput
             ]
         );
 
-        $json = json_encode($response);
-        // @phpstan-ignore argument.type
-        $data = json_decode($json, true);
+        /** @var array<string, mixed> $data */
+        $data = json_decode((string) json_encode($response), true);
 
-        // Validate response data is present and has required keys
-        $requiredKeys = ['items', 'total_calories', 'total_protein', 'total_carbs', 'total_fat', 'confidence'];
-        if (! is_array($data) || array_diff($requiredKeys, array_keys($data)) !== []) {
-            Log::error('Food analysis returned invalid structured data', [
-                'response' => $response,
-                'data' => $data,
-            ]);
-            throw new InvalidArgumentException('AI returned invalid analysis structure');
-        }
-
-        /** @var array{items: array<int, array{name: string, calories: float, protein: float, carbs: float, fat: float, portion: string}>, total_calories: float, total_protein: float, total_carbs: float, total_fat: float, confidence: float} $data */
-        return $this->mapToFoodAnalysisData($data);
-    }
-
-    /**
-     * Map the structured response to FoodAnalysisData DTO.
-     *
-     * @param  array{items: array<int, array{name: string, calories: float, protein: float, carbs: float, fat: float, portion: string}>, total_calories: float, total_protein: float, total_carbs: float, total_fat: float, confidence: float}  $data
-     */
-    private function mapToFoodAnalysisData(array $data): FoodAnalysisData
-    {
-        $items = $data['items'];
-
-        $foodItems = collect($items)->map(
-            fn (array $item): FoodItemData => new FoodItemData(
-                name: $item['name'],
-                calories: $item['calories'],
-                protein: $item['protein'],
-                carbs: $item['carbs'],
-                fat: $item['fat'],
-                portion: $item['portion'],
-            )
-        );
-
-        return new FoodAnalysisData(
-            items: new DataCollection(FoodItemData::class, $foodItems->toArray()),
-            totalCalories: $data['total_calories'],
-            totalProtein: $data['total_protein'],
-            totalCarbs: $data['total_carbs'],
-            totalFat: $data['total_fat'],
-            confidence: (int) $data['confidence'],
-        );
+        return FoodAnalysisData::from($data);
     }
 }

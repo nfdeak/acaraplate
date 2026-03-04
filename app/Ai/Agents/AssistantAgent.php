@@ -281,7 +281,10 @@ final class AssistantAgent implements Agent, Conversational, HasTools
 
     private function resolveTimezone(): string
     {
-        return session('timezone')
+        /** @var string|null $sessionTimezone */
+        $sessionTimezone = session('timezone');
+
+        return $sessionTimezone
             ?? $this->user->timezone
             ?? 'UTC';
     }

@@ -18,12 +18,16 @@ use App\Models\User;
 use App\Services\SystemPromptProviderResolver;
 use App\Utilities\JsonCleaner;
 use App\Workflows\MealPlanInitializeWorkflow;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Promptable;
 use Workflow\WorkflowStub;
 
+#[MaxTokens(64000)]
+#[Timeout(180)]
 final class MealPlanAgent implements Agent, GeneratesMealPlans, HasTools
 {
     use Promptable;
@@ -51,21 +55,6 @@ final class MealPlanAgent implements Agent, GeneratesMealPlans, HasTools
         $dietType = $this->dietType ?? DietType::Balanced;
 
         return $this->systemPromptResolver->resolve($dietType)->run();
-    }
-
-    public function maxTokens(): int
-    {
-        return 64000;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function clientOptions(): array
-    {
-        return [
-            'timeout' => 180,
-        ];
     }
 
     /**

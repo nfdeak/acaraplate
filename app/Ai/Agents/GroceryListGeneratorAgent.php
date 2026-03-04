@@ -56,21 +56,6 @@ final class GroceryListGeneratorAgent implements Agent
         );
     }
 
-    public function maxTokens(): int
-    {
-        return 67000;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function clientOptions(): array
-    {
-        return [
-            'timeout' => 120,
-        ];
-    }
-
     /**
      * Generate a consolidated grocery list from a meal plan.
      */

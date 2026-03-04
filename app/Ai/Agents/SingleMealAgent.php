@@ -9,10 +9,14 @@ use App\Contracts\Ai\GeneratesSingleMeals;
 use App\DataObjects\GeneratedMealData;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Promptable;
 
+#[MaxTokens(8000)]
+#[Timeout(60)]
 final class SingleMealAgent implements Agent, GeneratesSingleMeals, HasStructuredOutput
 {
     use Promptable;
@@ -24,21 +28,6 @@ final class SingleMealAgent implements Agent, GeneratesSingleMeals, HasStructure
     public function instructions(): string
     {
         return "You are a professional nutritionist and chef. Generate healthy, delicious meals that are appropriate for the user's dietary needs and health conditions. Always provide accurate nutritional estimates and consider glucose impact for users with diabetes or blood sugar concerns.";
-    }
-
-    public function maxTokens(): int
-    {
-        return 8000;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function clientOptions(): array
-    {
-        return [
-            'timeout' => 60,
-        ];
     }
 
     /**

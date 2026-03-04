@@ -5,17 +5,19 @@ declare(strict_types=1);
 use App\Ai\Agents\SpikePredictorAgent;
 use App\DataObjects\SpikePredictionData;
 use App\Enums\SpikeRiskLevel;
+use Laravel\Ai\Attributes\MaxTokens;
+use Laravel\Ai\Attributes\Timeout;
 
-it('returns correct max tokens', function (): void {
-    $agent = new SpikePredictorAgent;
+it('has correct attributes configured', function (): void {
+    $reflection = new ReflectionClass(SpikePredictorAgent::class);
 
-    expect($agent->maxTokens())->toBe(2000);
-});
+    $maxTokens = $reflection->getAttributes(MaxTokens::class);
+    $timeout = $reflection->getAttributes(Timeout::class);
 
-it('has client options with timeout', function (): void {
-    $agent = new SpikePredictorAgent;
-
-    expect($agent->clientOptions())->toBe(['timeout' => 120]);
+    expect($maxTokens)->toHaveCount(1)
+        ->and($maxTokens[0]->newInstance()->value)->toBe(2000)
+        ->and($timeout)->toHaveCount(1)
+        ->and($timeout[0]->newInstance()->value)->toBe(120);
 });
 
 it('instructions contains glycemic analysis guidance', function (): void {

@@ -34,15 +34,17 @@ final class DietMapper
 
     public static function getActivityMultiplier(GoalChoice $goalChoice, IntensityChoice $intensityChoice): float
     {
-        return match (true) {
-            $goalChoice === GoalChoice::Spikes && $intensityChoice === IntensityChoice::Balanced => 1.3,
-            $goalChoice === GoalChoice::Spikes && $intensityChoice === IntensityChoice::Aggressive => 1.55,
-            $goalChoice === GoalChoice::WeightLoss && $intensityChoice === IntensityChoice::Balanced => 1.375,
-            $goalChoice === GoalChoice::WeightLoss && $intensityChoice === IntensityChoice::Aggressive => 1.55,
-            $goalChoice === GoalChoice::HeartHealth => 1.3,
-            $goalChoice === GoalChoice::BuildMuscle => 1.55,
-            $goalChoice === GoalChoice::HealthyEating => 1.3,
-            default => 1.3,
+        return match ($goalChoice) {
+            GoalChoice::Spikes => match ($intensityChoice) {
+                IntensityChoice::Balanced => 1.3,
+                IntensityChoice::Aggressive => 1.55,
+            },
+            GoalChoice::WeightLoss => match ($intensityChoice) {
+                IntensityChoice::Balanced => 1.375,
+                IntensityChoice::Aggressive => 1.55,
+            },
+            GoalChoice::HeartHealth, GoalChoice::HealthyEating => 1.3,
+            GoalChoice::BuildMuscle => 1.55,
         };
     }
 }
