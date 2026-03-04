@@ -22,7 +22,7 @@ it('returns instructions with food analysis guidance', function (): void {
 });
 
 it('returns correct max tokens', function (): void {
-    expect($this->agent->maxTokens())->toBe(8000);
+    expect($this->agent->maxTokens())->toBe(16000);
 });
 
 it('returns client options with timeout', function (): void {

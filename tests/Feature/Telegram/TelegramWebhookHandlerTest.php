@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Contracts\DownloadsTelegramPhoto;
 use App\Contracts\ProcessesAdvisorMessage;
 use App\Enums\Sex;
 use App\Exceptions\TelegramUserException;
@@ -12,6 +13,7 @@ use DefStudio\Telegraph\Facades\Telegraph;
 use DefStudio\Telegraph\Models\TelegraphBot;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use Illuminate\Testing\TestResponse;
+use Laravel\Ai\Files\Base64Image;
 use Tests\Fixtures\TelegramWebhookPayloads;
 
 beforeEach(function (): void {
@@ -28,6 +30,17 @@ function sendWebhook(mixed $test, string $text): TestResponse
     return $test->postJson(
         route('telegraph.webhook', ['token' => $test->bot->token]),
         TelegramWebhookPayloads::message($text, (string) $test->telegraphChat->chat_id),
+    );
+}
+
+function sendPhotoWebhook(mixed $test, string $caption = ''): TestResponse
+{
+    return $test->postJson(
+        route('telegraph.webhook', ['token' => $test->bot->token]),
+        TelegramWebhookPayloads::photoMessage(
+            chatId: (string) $test->telegraphChat->chat_id,
+            caption: $caption,
+        ),
     );
 }
 
@@ -251,7 +264,7 @@ describe('/new command', function (): void {
 
             public array $calls = [];
 
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 $this->calls[] = ['method' => 'handle', 'user' => $user->id, 'message' => $message];
 
@@ -287,7 +300,7 @@ describe('/reset command', function (): void {
         {
             public string $resetConversationReturn = 'reset-conv-id';
 
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 return ['response' => 'Test', 'conversation_id' => 'conv-123'];
             }
@@ -325,7 +338,7 @@ describe('chat message handling', function (): void {
         {
             public array $calls = [];
 
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 $this->calls[] = [
                     'method' => 'handle',
@@ -363,7 +376,7 @@ describe('chat message handling', function (): void {
 
         $mock = new class implements ProcessesAdvisorMessage
         {
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 return [
                     'response' => 'Welcome!',
@@ -394,7 +407,7 @@ describe('chat message handling', function (): void {
 
         $mock = new class implements ProcessesAdvisorMessage
         {
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 return [
                     'response' => 'Response',
@@ -424,7 +437,7 @@ describe('chat message handling', function (): void {
 
         $mock = new class implements ProcessesAdvisorMessage
         {
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 throw new Exception('AI service unavailable');
             }
@@ -451,7 +464,7 @@ describe('chat message handling', function (): void {
 
         $mock = new class implements ProcessesAdvisorMessage
         {
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 throw new TelegramUserException('User error occurred');
             }
@@ -478,7 +491,7 @@ describe('chat message handling', function (): void {
 
         $mock = new class implements ProcessesAdvisorMessage
         {
-            public function handle(User $user, string $message, ?string $conversationId = null): array
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
             {
                 throw new Exception('Unexpected error');
             }
@@ -494,5 +507,126 @@ describe('chat message handling', function (): void {
         sendWebhook($this, 'Something went wrong');
 
         Telegraph::assertSent('❌ Error processing message. Please try again.');
+    });
+});
+
+describe('photo message handling', function (): void {
+    it('processes photo with caption and passes attachments', function (): void {
+        $user = User::factory()->create();
+
+        UserTelegramChat::factory()->for($user)->linked()->create([
+            'telegraph_chat_id' => $this->telegraphChat->id,
+            'conversation_id' => 'existing-conv',
+        ]);
+
+        $mock = new class implements ProcessesAdvisorMessage
+        {
+            public array $calls = [];
+
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
+            {
+                $this->calls[] = [
+                    'message' => $message,
+                    'conversationId' => $conversationId,
+                    'attachmentCount' => count($attachments),
+                ];
+
+                return [
+                    'response' => 'I analyzed your food photo!',
+                    'conversation_id' => 'existing-conv',
+                ];
+            }
+
+            public function resetConversation(User $user): string
+            {
+                return 'new-conv';
+            }
+        };
+
+        app()->instance(ProcessesAdvisorMessage::class, $mock);
+
+        $downloadAction = Mockery::mock(DownloadsTelegramPhoto::class);
+        $downloadAction->shouldReceive('handle')
+            ->once()
+            ->andReturn(new Base64Image(base64_encode('fake-image'), 'image/jpeg'));
+        app()->instance(DownloadsTelegramPhoto::class, $downloadAction);
+
+        sendPhotoWebhook($this, 'What is this meal?');
+
+        Telegraph::assertSent('I analyzed your food photo!', false);
+        expect($mock->calls)->toHaveCount(1)
+            ->and($mock->calls[0]['message'])->toBe('What is this meal?')
+            ->and($mock->calls[0]['attachmentCount'])->toBe(1);
+    });
+
+    it('uses default message when photo has no caption', function (): void {
+        $user = User::factory()->create();
+
+        UserTelegramChat::factory()->for($user)->linked()->create([
+            'telegraph_chat_id' => $this->telegraphChat->id,
+            'conversation_id' => 'existing-conv',
+        ]);
+
+        $mock = new class implements ProcessesAdvisorMessage
+        {
+            public array $calls = [];
+
+            public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
+            {
+                $this->calls[] = ['message' => $message, 'attachmentCount' => count($attachments)];
+
+                return [
+                    'response' => 'Analyzed!',
+                    'conversation_id' => 'existing-conv',
+                ];
+            }
+
+            public function resetConversation(User $user): string
+            {
+                return 'new-conv';
+            }
+        };
+
+        app()->instance(ProcessesAdvisorMessage::class, $mock);
+
+        $downloadAction = Mockery::mock(DownloadsTelegramPhoto::class);
+        $downloadAction->shouldReceive('handle')
+            ->once()
+            ->andReturn(new Base64Image(base64_encode('fake-image'), 'image/jpeg'));
+        app()->instance(DownloadsTelegramPhoto::class, $downloadAction);
+
+        sendPhotoWebhook($this);
+
+        expect($mock->calls[0]['message'])->toBe('Analyze this food photo and log it.')
+            ->and($mock->calls[0]['attachmentCount'])->toBe(1);
+    });
+
+    it('handles photo download failure gracefully', function (): void {
+        $user = User::factory()->create();
+
+        UserTelegramChat::factory()->for($user)->linked()->create([
+            'telegraph_chat_id' => $this->telegraphChat->id,
+        ]);
+
+        $downloadAction = Mockery::mock(DownloadsTelegramPhoto::class);
+        $downloadAction->shouldReceive('handle')
+            ->once()
+            ->andThrow(new RuntimeException('Download failed'));
+        app()->instance(DownloadsTelegramPhoto::class, $downloadAction);
+
+        sendPhotoWebhook($this, 'Analyze this');
+
+        Telegraph::assertSent('❌ Error processing message. Please try again.');
+    });
+
+    it('replies not linked when no active link exists for photo message', function (): void {
+        $downloadAction = Mockery::mock(DownloadsTelegramPhoto::class);
+        $downloadAction->shouldNotReceive('handle');
+
+        app()->instance(DownloadsTelegramPhoto::class, $downloadAction);
+
+        sendPhotoWebhook($this);
+
+        Telegraph::assertSent('🔒 Please link your account first.', false);
     });
 });

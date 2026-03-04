@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Telegram;
 
+use App\Contracts\DownloadsTelegramPhoto;
 use App\Contracts\ProcessesAdvisorMessage;
 use App\Exceptions\TelegramUserException;
 use App\Models\User;
 use App\Models\UserTelegramChat;
+use DefStudio\Telegraph\DTO\Message;
 use DefStudio\Telegraph\Handlers\WebhookHandler;
 use Illuminate\Support\Stringable;
+use Laravel\Ai\Files\Base64Image;
 use Throwable;
 
 final class TelegramWebhookHandler extends WebhookHandler
@@ -17,6 +20,7 @@ final class TelegramWebhookHandler extends WebhookHandler
     public function __construct(
         private readonly ProcessesAdvisorMessage $processAdvisorMessage,
         private readonly TelegramMessageService $telegramMessage,
+        private readonly DownloadsTelegramPhoto $downloadTelegramPhoto,
     ) {}
 
     public function start(): void
@@ -136,7 +140,15 @@ final class TelegramWebhookHandler extends WebhookHandler
 
         try {
             $this->telegramMessage->sendTypingIndicator($this->chat);
-            $this->generateAndSendResponse($linkedChat, $text->toString());
+
+            $attachments = $this->extractPhotoAttachments();
+            $message = $text->toString();
+
+            if ($attachments !== [] && $message === '') {
+                $message = 'Analyze this food photo and log it.';
+            }
+
+            $this->generateAndSendResponse($linkedChat, $message, $attachments);
         } catch (TelegramUserException $e) {
             $this->chat->message($e->getMessage())->send();
         } catch (Throwable $e) {
@@ -145,12 +157,30 @@ final class TelegramWebhookHandler extends WebhookHandler
         }
     }
 
-    private function generateAndSendResponse(UserTelegramChat $linkedChat, string $message): void
+    /**
+     * @return array<int, Base64Image>
+     */
+    private function extractPhotoAttachments(): array
+    {
+        if (! $this->message instanceof Message || $this->message->photos()->isEmpty()) {
+            return [];
+        }
+
+        $photo = $this->message->photos()->last();
+
+        return [$this->downloadTelegramPhoto->handle($this->bot, $photo)];
+    }
+
+    /**
+     * @param  array<int, Base64Image>  $attachments
+     */
+    private function generateAndSendResponse(UserTelegramChat $linkedChat, string $message, array $attachments = []): void
     {
         $result = $this->processAdvisorMessage->handle(
             $linkedChat->user,
             $message,
             $linkedChat->conversation_id,
+            $attachments,
         );
 
         if ($linkedChat->conversation_id === null) {

@@ -6,6 +6,7 @@ use App\Enums\AgentMode;
 use App\Enums\ModelName;
 use App\Http\Requests\StoreAgentConversationRequest;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Ai\Files\Base64Image;
 
 $createRequest = function (array $data): StoreAgentConversationRequest {
     $request = new StoreAgentConversationRequest();
@@ -143,7 +144,7 @@ it('extracts image attachments from user message', function () use ($createReque
     $attachments = $request->userAttachments();
 
     expect($attachments)->toHaveCount(1)
-        ->and($attachments[0])->toBeInstanceOf(Laravel\Ai\Files\Base64Image::class)
+        ->and($attachments[0])->toBeInstanceOf(Base64Image::class)
         ->and($attachments[0]->base64)->toBe($base64Content)
         ->and($attachments[0]->mime)->toBe('image/jpeg');
 });

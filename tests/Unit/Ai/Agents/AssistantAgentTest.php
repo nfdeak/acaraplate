@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\GetUserProfileContextAction;
 use App\Ai\Agents\AssistantAgent;
+use App\Ai\Tools\AnalyzePhoto;
 use App\Ai\Tools\CreateMealPlan;
 use App\Ai\Tools\GetDietReference;
 use App\Ai\Tools\GetFitnessGoals;
@@ -20,6 +21,7 @@ use App\Enums\GoalChoice;
 use App\Enums\Sex;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Ai\Files\Base64Image;
 
 uses(RefreshDatabase::class);
 
@@ -86,4 +88,34 @@ it('returns empty messages when no conversation', function (): void {
 
     expect($messages)->toBeArray()
         ->toHaveCount(0);
+});
+
+it('adds a custom tool via addTool()', function (): void {
+    $customTool = new AnalyzePhoto([]);
+
+    $result = $this->agent->addTool($customTool);
+
+    // addTool() is fluent — it returns $this
+    expect($result)->toBe($this->agent);
+
+    // The custom tool should now appear in the tools list
+    $toolClasses = collect($this->agent->tools())
+        ->map(fn (mixed $t): string => $t::class)
+        ->all();
+
+    expect($toolClasses)->toContain(AnalyzePhoto::class);
+});
+
+it('includes AnalyzePhoto tool when attachments are set', function (): void {
+    $image = new Base64Image(base64_encode('fake-image'), 'image/jpeg');
+
+    $this->agent->withAttachments([$image]);
+
+    $tools = $this->agent->tools();
+
+    $toolClasses = collect($tools)
+        ->map(fn (mixed $t): string => $t::class)
+        ->all();
+
+    expect($toolClasses)->toContain(AnalyzePhoto::class);
 });

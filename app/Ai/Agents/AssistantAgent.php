@@ -6,6 +6,7 @@ namespace App\Ai\Agents;
 
 use App\Actions\GetUserProfileContextAction;
 use App\Ai\SystemPrompt;
+use App\Ai\Tools\AnalyzePhoto;
 use App\Ai\Tools\CreateMealPlan;
 use App\Ai\Tools\GetDietReference;
 use App\Ai\Tools\GetFitnessGoals;
@@ -20,19 +21,30 @@ use App\Ai\Tools\SuggestWorkoutRoutine;
 use App\Enums\AgentMode;
 use App\Models\User;
 use App\Utilities\LanguageUtil;
+use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Contracts\Tool;
+use Laravel\Ai\Files\Base64Image;
 use Laravel\Ai\Promptable;
 use Laravel\Ai\Providers\Tools\ProviderTool;
+use Laravel\Ai\Providers\Tools\WebSearch;
 
+#[Timeout(120)]
 final class AssistantAgent implements Agent, Conversational, HasTools
 {
     use Promptable, RemembersConversations;
 
     private AgentMode $mode = AgentMode::Ask;
+
+    /**
+     * @var array<int, Base64Image>
+     */
+    private array $attachments = [];
+
+    private bool $webSearchEnabled = false;
 
     /**
      * @var array<int, Tool|ProviderTool>
@@ -51,6 +63,23 @@ final class AssistantAgent implements Agent, Conversational, HasTools
         return $this;
     }
 
+    /**
+     * @param  array<int, Base64Image>  $attachments
+     */
+    public function withAttachments(array $attachments): self
+    {
+        $this->attachments = $attachments;
+
+        return $this;
+    }
+
+    public function withWebSearch(): self
+    {
+        $this->webSearchEnabled = true;
+
+        return $this;
+    }
+
     public function withMode(AgentMode $mode): self
     {
         $this->mode = $mode;
@@ -60,7 +89,8 @@ final class AssistantAgent implements Agent, Conversational, HasTools
 
     public function instructions(): string
     {
-        $user = $this->conversationUser instanceof User ? $this->conversationUser : $this->user;
+        $participant = $this->conversationParticipant();
+        $user = $participant instanceof User ? $participant : $this->user;
         $profileData = $this->profileContext->handle($user);
 
         return (string) new SystemPrompt(
@@ -77,7 +107,7 @@ final class AssistantAgent implements Agent, Conversational, HasTools
      */
     public function tools(): array
     {
-        return array_merge([
+        $tools = [
             new SuggestSingleMeal,
             new GetUserProfile,
             new CreateMealPlan,
@@ -89,7 +119,17 @@ final class AssistantAgent implements Agent, Conversational, HasTools
             new SuggestWorkoutRoutine,
             new GetFitnessGoals,
             new GetDietReference,
-        ], $this->additionalTools);
+        ];
+
+        if ($this->attachments !== []) {
+            $tools[] = new AnalyzePhoto($this->attachments);
+        }
+
+        if ($this->webSearchEnabled) {
+            $tools[] = new WebSearch;
+        }
+
+        return array_merge($tools, $this->additionalTools);
     }
 
     /**
