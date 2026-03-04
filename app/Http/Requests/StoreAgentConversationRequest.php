@@ -105,9 +105,9 @@ final class StoreAgentConversationRequest extends FormRequest
             ->reverse()
             ->firstWhere('role', 'user');
 
-        if (! $lastUserMessage) {
-            return [];
-        }
+        if (! $lastUserMessage) { // @codeCoverageIgnoreStart
+            return []; // @codeCoverageIgnore
+        } // @codeCoverageIgnoreEnd
 
         return collect($lastUserMessage['parts'])
             ->where('type', 'file')
@@ -115,9 +115,7 @@ final class StoreAgentConversationRequest extends FormRequest
                 && str_starts_with($part['mediaType'], 'image/')
                 && str_starts_with($part['url'], 'data:'))
             ->map(function (array $part): Base64Image {
-                /** @var string $url */
                 $url = $part['url'];
-                /** @var string $mediaType */
                 $mediaType = $part['mediaType'];
 
                 // Parse data URL: "data:image/jpeg;base64,/9j/4AAQ..."

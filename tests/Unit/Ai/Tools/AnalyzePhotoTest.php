@@ -6,6 +6,7 @@ use App\Ai\Agents\FoodPhotoAnalyzerAgent;
 use App\Ai\Tools\AnalyzePhoto;
 use Laravel\Ai\Files\Base64Image;
 use Laravel\Ai\Tools\Request;
+use Tests\Helpers\TestJsonSchema;
 
 it('has the correct name', function (): void {
     $tool = new AnalyzePhoto([]);
@@ -43,17 +44,27 @@ it('analyzes food photo and returns structured data', function (): void {
 
     $result = json_decode($tool->handle($request), true);
 
-    expect($result)->toHaveKey('totalCalories')
-        ->and($result['totalCalories'])->toBe(165.0)
+    expect($result)->toHaveKey('total_calories')
+        ->and($result['total_calories'])->toBe(165)
         ->and($result)->toHaveKey('items')
         ->and($result['items'])->toHaveCount(1);
 });
 
 it('has a schema with query parameter', function (): void {
     $tool = new AnalyzePhoto([]);
-    $schema = app(Illuminate\Contracts\JsonSchema\JsonSchema::class);
+    $schema = new TestJsonSchema();
 
     $result = $tool->schema($schema);
 
     expect($result)->toHaveKey('query');
+});
+
+it('has a non-empty description', function (): void {
+    $tool = new AnalyzePhoto([]);
+
+    expect($tool->description())
+        ->toBeString()
+        ->not->toBeEmpty()
+        ->toContain('food photo')
+        ->toContain('log_health_entry');
 });

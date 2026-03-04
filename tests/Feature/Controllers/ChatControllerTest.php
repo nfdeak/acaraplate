@@ -81,3 +81,32 @@ it('accepts valid stream request', function (): void {
         ])
         ->assertOk();
 });
+
+it('includes image attachments in message parts when loading conversation', function (): void {
+    $user = User::factory()->create();
+    $conversation = Conversation::factory()->create(['user_id' => $user->id]);
+
+    $base64Content = base64_encode('fake-image-data');
+    $history = History::factory()->create([
+        'conversation_id' => $conversation->id,
+        'role' => 'user',
+        'content' => 'What is this food?',
+        'attachments' => [
+            ['type' => 'base64-image', 'name' => null, 'base64' => $base64Content, 'mime' => 'image/jpeg'],
+        ],
+    ]);
+
+    actingAs($user)
+        ->get(route('chat.create', ['conversationId' => $conversation->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('conversationId', $conversation->id)
+            ->has('messages', 1)
+            ->where('messages.0.id', $history->id)
+            ->where('messages.0.parts.0.type', 'text')
+            ->where('messages.0.parts.0.text', 'What is this food?')
+            ->where('messages.0.parts.1.type', 'file')
+            ->where('messages.0.parts.1.mediaType', 'image/jpeg')
+            ->where('messages.0.parts.1.url', 'data:image/jpeg;base64,'.$base64Content)
+        );
+});

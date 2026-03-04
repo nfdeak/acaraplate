@@ -9,6 +9,7 @@ use App\Contracts\ProcessesAdvisorMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Ai\Contracts\ConversationStore;
+use Laravel\Ai\Files\Base64Image;
 
 final readonly class ProcessAdvisorMessageAction implements ProcessesAdvisorMessage
 {
@@ -18,9 +19,10 @@ final readonly class ProcessAdvisorMessageAction implements ProcessesAdvisorMess
     ) {}
 
     /**
+     * @param  array<int, Base64Image>  $attachments
      * @return array{response: string, conversation_id: string}
      */
-    public function handle(User $user, string $message, ?string $conversationId = null): array
+    public function handle(User $user, string $message, ?string $conversationId = null, array $attachments = []): array
     {
         // Ensure the user is set in the auth guard so AI tools can access it
         // via Auth::user() (Telegram requests bypass web auth middleware).
@@ -29,8 +31,11 @@ final readonly class ProcessAdvisorMessageAction implements ProcessesAdvisorMess
         $conversationId ??= $this->conversationStore->latestConversationId($user->id)
             ?? $this->conversationStore->storeConversation($user->id, 'Telegram Chat');
 
-        $agent = $this->advisor->continue($conversationId, $user);
-        $response = $agent->prompt($message);
+        $agent = $this->advisor
+            ->withAttachments($attachments)
+            ->continue($conversationId, $user);
+
+        $response = $agent->prompt($message, attachments: $attachments);
 
         return [
             'response' => $response->text,
