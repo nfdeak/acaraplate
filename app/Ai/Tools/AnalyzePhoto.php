@@ -24,7 +24,7 @@ final readonly class AnalyzePhoto implements Tool
 
     public function description(): string
     {
-        return 'Analyze a food photo shared by the user. Performs detailed nutritional analysis including calorie count, macronutrients (protein, carbs, fat), and portion size estimation for each food item. Use this tool when the user shares a photo of food or a meal. After receiving the results, use log_health_entry to save the nutritional data.';
+        return 'Analyze a food photo shared by the user. Performs detailed nutritional analysis including calorie count, macronutrients (protein, carbs, fat), and portion size estimation for each food item. Use this tool when the user shares a photo of food or a meal. After receiving the results, present the nutritional summary to the user for confirmation before logging with log_health_entry.';
     }
 
     public function handle(Request $request): string
