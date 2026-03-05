@@ -51,7 +51,7 @@ it('returns instructions with default mode', function (): void {
     $instructions = $this->agent->instructions();
 
     expect($instructions)
-        ->toContain('You are a comprehensive AI wellness assistant')
+        ->toContain('You are Altani, a comprehensive AI wellness assistant')
         ->toContain('CHAT MODE: ask')
         ->toContain('USER PROFILE CONTEXT:')
         ->toContain('BIOMETRICS:');
@@ -62,7 +62,7 @@ it('returns instructions with CreateMealPlan mode', function (): void {
     $instructions = $this->agent->instructions();
 
     expect($instructions)
-        ->toContain('You are a comprehensive AI wellness assistant')
+        ->toContain('You are Altani, a comprehensive AI wellness assistant')
         ->toContain('CHAT MODE: create-meal-plan')
         ->toContain('The user has explicitly selected "Create Meal Plan" mode')
         ->toContain('Use the create_meal_plan tool');

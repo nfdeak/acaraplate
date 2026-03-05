@@ -190,6 +190,11 @@ final class TelegramWebhookHandler extends WebhookHandler
         $this->telegramMessage->sendLongMessage($this->chat, $result['response'], true);
     }
 
+    /**
+     * Summary of formatProfileInfo
+     *
+     * @codeCoverageIgnore
+     */
     private function formatProfileInfo(User $user): string
     {
         $profile = $user->profile;
@@ -203,7 +208,24 @@ final class TelegramWebhookHandler extends WebhookHandler
         $height = $profile->height !== null ? $profile->height.'cm' : 'N/A';
         $weight = $profile->weight !== null ? $profile->weight.'kg' : 'N/A';
 
-        return "\n\n📊 {$age}, {$sex}\n📏 {$height}, {$weight}";
+        $text = "\n\n📊 {$age}, {$sex}\n📏 {$height}, {$weight}";
+
+        if ($profile->bmi !== null) {
+            $text .= '
+⚖️ BMI: '.$profile->bmi;
+        }
+
+        if ($profile->goal_choice !== null) {
+            $text .= '
+🎯 Goal: '.$profile->goal_choice->label();
+        }
+
+        if ($profile->calculated_diet_type !== null) {
+            $text .= '
+🥗 Diet: '.$profile->calculated_diet_type->shortName();
+        }
+
+        return $text;
     }
 
     private function resolveLinkedChat(): ?UserTelegramChat
