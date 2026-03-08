@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\DataObjects\ContentMetaData;
 use App\Enums\ContentType;
 use App\Enums\FoodCategory;
 use Carbon\CarbonInterface;
@@ -19,12 +20,10 @@ use Illuminate\Support\Facades\Storage;
  * @property-read ContentType $type
  * @property-read string $slug
  * @property-read string $title
- * @property-read string $meta_title
- * @property-read string $meta_description
  * @property-read array<string, mixed> $body
  * @property-read FoodCategory|null $category
  * @property-read string|null $image_path
- * @property-read array<string, mixed>|null $seo_metadata
+ * @property-read ContentMetaData|null $meta
  * @property-read bool $is_published
  * @property-read string $display_name
  * @property-read string|null $diabetic_insight
@@ -56,10 +55,8 @@ final class Content extends Model
             'category' => FoodCategory::class,
             'slug' => 'string',
             'title' => 'string',
-            'meta_title' => 'string',
-            'meta_description' => 'string',
             'body' => 'array',
-            'seo_metadata' => 'array',
+            'meta_data' => 'array',
             'image_path' => 'string',
             'is_published' => 'boolean',
             'created_at' => 'datetime',
@@ -110,6 +107,31 @@ final class Content extends Model
         }
 
         return Storage::disk('s3_public')->url($this->image_path);
+    }
+
+    protected function getMetaAttribute(): ?ContentMetaData
+    {
+        $data = $this->meta_data;
+
+        if ($data === null) {
+            return null;
+        }
+
+        return new ContentMetaData(
+            seoTitle: $data['seo_title'] ?? '',
+            seoDescription: $data['seo_description'] ?? '',
+            manualLinks: $data['manual_links'] ?? [],
+        );
+    }
+
+    protected function getMetaTitleAttribute(): string
+    {
+        return $this->meta?->seoTitle ?? '';
+    }
+
+    protected function getMetaDescriptionAttribute(): string
+    {
+        return $this->meta?->seoDescription ?? '';
     }
 
     protected function getDisplayNameAttribute(): string
@@ -225,7 +247,7 @@ final class Content extends Model
     protected function getManualLinksAttribute(): array
     {
         /** @var array<int, array{slug: string, anchor: string}> $links */
-        $links = $this->seo_metadata['manual_links'] ?? [];
+        $links = $this->meta_data['manual_links'] ?? [];
 
         return $links;
     }
