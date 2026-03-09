@@ -6,7 +6,7 @@ use App\Actions\BuildAssistantAgentAction;
 use App\Ai\Agents\AssistantAgent;
 use App\Enums\AgentMode;
 use App\Enums\ModelName;
-use App\Http\Requests\StoreAgentConversationRequest;
+use App\Http\Requests\StreamChatRequest;
 use App\Models\User;
 
 beforeEach(function (): void {
@@ -22,9 +22,12 @@ function makeStreamRequest(
     ModelName $model = ModelName::GPT_5_MINI,
     AgentMode $mode = AgentMode::Ask,
     array $messages = [['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hello']]]],
-): StoreAgentConversationRequest {
-    $request = StoreAgentConversationRequest::create(
-        route('chat.stream'),
+    ?string $conversationId = null,
+): StreamChatRequest {
+    $conversationId ??= (string) fake()->uuid();
+
+    $request = StreamChatRequest::create(
+        route('chat.stream', $conversationId),
         'POST',
         [
             'model' => $model->value,
