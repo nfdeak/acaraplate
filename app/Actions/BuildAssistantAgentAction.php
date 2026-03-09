@@ -23,10 +23,10 @@ final class BuildAssistantAgentAction
         $model = $request->modelName();
         $attachments = $request->userAttachments();
 
-        $agent = resolve(AssistantAgent::class, ['user' => $user])
+        $agent = resolve(AssistantAgent::class)
+            ->withUser($user)
             ->withMode($request->mode())
-            ->withAttachments($attachments)
-            ->forUser($user);
+            ->withAttachments($attachments);
 
         if ($model->supportsWebSearch()) {
             $agent->withWebSearch();

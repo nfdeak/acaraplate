@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\GetUserProfileContextAction;
 use App\Ai\Agents\AssistantAgent;
 use App\Ai\Tools\AnalyzePhoto;
 use App\Ai\Tools\CreateMealPlan;
@@ -42,14 +41,10 @@ beforeEach(function (): void {
         'derived_activity_multiplier' => 1.5,
     ]);
 
-    $this->profileContext = new GetUserProfileContextAction;
     $this->toolRegistry = resolve(ToolRegistry::class);
 
-    $this->agent = new AssistantAgent(
-        $this->user,
-        $this->profileContext,
-        $this->toolRegistry,
-    );
+    $this->agent = new AssistantAgent($this->toolRegistry)
+        ->withUser($this->user);
 });
 
 it('returns instructions with default mode', function (): void {

@@ -38,9 +38,9 @@ final class AssistantAgent implements Agent, Conversational, HasTools
      */
     private array $additionalTools = [];
 
+    private ?User $user = null;
+
     public function __construct(
-        private User $user,
-        private readonly GetUserProfileContextAction $profileContext,
         private readonly ToolRegistry $toolRegistry,
     ) {}
 
@@ -75,13 +75,27 @@ final class AssistantAgent implements Agent, Conversational, HasTools
         return $this;
     }
 
+    public function withUser(User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
     public function instructions(): string
     {
         $participant = $this->conversationParticipant();
         $user = $participant instanceof User ? $participant : $this->user;
-        $profileData = $this->profileContext->handle($user);
 
-        $languageCode = $user->preferred_language ?? 'en';
+        if (! $user instanceof User) {
+            $profileData = [
+                'context' => 'No user context available.',
+            ];
+        } else {
+            $profileData = app(GetUserProfileContextAction::class)->handle($user);
+        }
+
+        $languageCode = $user instanceof User ? ($user->preferred_language ?? 'en') : 'en';
         $timezone = $this->resolveTimezone();
 
         return view('ai.prompts.altani-static', [
