@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Ai\Agents\AssistantAgent;
-use App\Http\Requests\StoreAgentConversationRequest;
+use App\Http\Requests\StreamChatRequest;
 use App\Models\User;
 
 final class BuildAssistantAgentAction
@@ -18,7 +18,7 @@ final class BuildAssistantAgentAction
      *  - Wire the agent mode and attachments from the request
      *  - Conditionally enable web search based on the selected model
      */
-    public function handle(StoreAgentConversationRequest $request, User $user): AssistantAgent
+    public function handle(StreamChatRequest $request, User $user): AssistantAgent
     {
         $model = $request->modelName();
         $attachments = $request->userAttachments();

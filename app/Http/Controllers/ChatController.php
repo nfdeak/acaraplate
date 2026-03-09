@@ -8,10 +8,10 @@ use App\Actions\BuildAssistantAgentAction;
 use App\Actions\BuildConversationMessagesAction;
 use App\Actions\GetOrCreateConversationAction;
 use App\Enums\AgentMode;
-use App\Http\Requests\StoreAgentConversationRequest;
+use App\Http\Requests\StoreChatConversationRequest;
+use App\Http\Requests\StreamChatRequest;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Ai\Responses\StreamableAgentResponse;
@@ -26,7 +26,7 @@ final readonly class ChatController
     ) {}
 
     public function create(
-        Request $request,
+        StoreChatConversationRequest $request,
         string $conversationId
     ): Response {
         $conversation = $this->conversationAction->handle($conversationId, $this->user);
@@ -39,7 +39,7 @@ final readonly class ChatController
     }
 
     public function stream(
-        StoreAgentConversationRequest $request,
+        StreamChatRequest $request,
         string $conversationId
     ): StreamableAgentResponse {
         $agent = $this->agentAction->handle($request, $this->user);

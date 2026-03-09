@@ -11,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Laravel\Ai\Files\Base64Image;
 
-final class StoreAgentConversationRequest extends FormRequest
+final class StreamChatRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

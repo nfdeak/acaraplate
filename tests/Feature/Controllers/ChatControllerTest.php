@@ -49,17 +49,22 @@ it('renders chat page with correct props with conversation id', function (): voi
         );
 });
 
-it('handles invalid conversation id gracefully', function (): void {
+it('returns 400 for invalid UUID format', function (): void {
     $user = User::factory()->create();
-    $conversationId = 'non-existent-uuid';
 
     actingAs($user)
-        ->get(route('chat.create', ['conversationId' => $conversationId]))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('conversationId', $conversationId)
-            ->has('messages', 0)
-        );
+        ->get(route('chat.create', ['conversationId' => 'not-a-uuid']))
+        ->assertStatus(400);
+});
+
+it('prevents access to another users conversation', function (): void {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $conversation = Conversation::factory()->create(['user_id' => $owner->id]);
+
+    actingAs($intruder)
+        ->get(route('chat.create', ['conversationId' => $conversation->id]))
+        ->assertForbidden();
 });
 
 it('validates stream endpoint', function (): void {

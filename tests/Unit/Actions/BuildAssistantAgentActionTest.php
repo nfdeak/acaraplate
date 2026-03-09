@@ -6,7 +6,7 @@ use App\Actions\BuildAssistantAgentAction;
 use App\Ai\Agents\AssistantAgent;
 use App\Enums\AgentMode;
 use App\Enums\ModelName;
-use App\Http\Requests\StoreAgentConversationRequest;
+use App\Http\Requests\StreamChatRequest;
 use App\Models\User;
 
 beforeEach(function (): void {
@@ -23,10 +23,10 @@ function makeStreamRequest(
     AgentMode $mode = AgentMode::Ask,
     array $messages = [['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hello']]]],
     ?string $conversationId = null,
-): StoreAgentConversationRequest {
+): StreamChatRequest {
     $conversationId ??= (string) fake()->uuid();
 
-    $request = StoreAgentConversationRequest::create(
+    $request = StreamChatRequest::create(
         route('chat.stream', $conversationId),
         'POST',
         [

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\Enums\AgentMode;
 use App\Enums\ModelName;
-use App\Http\Requests\StoreAgentConversationRequest;
+use App\Http\Requests\StreamChatRequest;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Ai\Files\Base64Image;
 
-$createRequest = function (array $data): StoreAgentConversationRequest {
-    $request = new StoreAgentConversationRequest();
+$createRequest = function (array $data): StreamChatRequest {
+    $request = new StreamChatRequest();
 
     $request->merge($data);
 
@@ -24,12 +24,12 @@ $createRequest = function (array $data): StoreAgentConversationRequest {
 };
 
 it('authorizes the request', function (): void {
-    $request = new StoreAgentConversationRequest();
+    $request = new StreamChatRequest();
     expect($request->authorize())->toBeTrue();
 });
 
 it('returns custom validation messages', function (): void {
-    $request = new StoreAgentConversationRequest();
+    $request = new StreamChatRequest();
     $messages = $request->messages();
 
     expect($messages)->toHaveKey('messages.required')
