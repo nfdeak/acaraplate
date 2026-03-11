@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\GetAiUsageForBillingAction;
 use App\Http\Controllers\BillingHistoryController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,7 +19,8 @@ it('returns empty billing history when user is null', function (): void {
         }
     };
 
-    $controller = new BillingHistoryController();
+    $action = new GetAiUsageForBillingAction();
+    $controller = new BillingHistoryController($action);
     $response = $controller->index($request);
 
     expect($response)->toBeInstanceOf(InertiaResponse::class);
@@ -37,7 +39,8 @@ it('returns billing history for authenticated user', function (): void {
         }
     };
 
-    $controller = new BillingHistoryController();
+    $action = new GetAiUsageForBillingAction();
+    $controller = new BillingHistoryController($action);
 
     // Will try to call Stripe API, which will fail without real credentials
     // This covers the try-catch block
@@ -60,7 +63,8 @@ it('returns empty billing history when exception occurs fetching invoices', func
         }
     };
 
-    $controller = new BillingHistoryController();
+    $action = new GetAiUsageForBillingAction();
+    $controller = new BillingHistoryController($action);
     $response = $controller->index($request);
 
     // Should handle the exception gracefully and return empty array

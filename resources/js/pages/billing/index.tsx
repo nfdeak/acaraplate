@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 import HeadingSmall from '@/components/heading-small';
+import { UsageWidget } from '@/components/usage-widget';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import billing from '@/routes/billing';
@@ -16,8 +17,22 @@ interface Invoice {
     download_url: string;
 }
 
+interface AiUsageData {
+    current: number;
+    limit: number;
+    percentage: number;
+    resets_in: string;
+}
+
+interface AiUsage {
+    rolling: AiUsageData;
+    weekly: AiUsageData;
+    monthly: AiUsageData;
+}
+
 interface Props {
     billingHistory: Invoice[];
+    aiUsage?: AiUsage;
 }
 
 const getBreadcrumbs = (t: (key: string) => string): BreadcrumbItem[] => [
@@ -27,7 +42,7 @@ const getBreadcrumbs = (t: (key: string) => string): BreadcrumbItem[] => [
     },
 ];
 
-export default function Index({ billingHistory }: Props) {
+export default function Index({ billingHistory, aiUsage }: Props) {
     const { t } = useTranslation('common');
     return (
         <AppLayout breadcrumbs={getBreadcrumbs(t)}>
@@ -38,6 +53,34 @@ export default function Index({ billingHistory }: Props) {
                     <HeadingSmall
                         title={t('billing.title')}
                         description={t('billing.description')}
+                    />
+
+                    {aiUsage && (
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <UsageWidget
+                                title={t('billing.usage.rolling')}
+                                currentAmount={aiUsage.rolling.current}
+                                limit={aiUsage.rolling.limit}
+                                resetsIn={aiUsage.rolling.resets_in}
+                            />
+                            <UsageWidget
+                                title={t('billing.usage.weekly')}
+                                currentAmount={aiUsage.weekly.current}
+                                limit={aiUsage.weekly.limit}
+                                resetsIn={aiUsage.weekly.resets_in}
+                            />
+                            <UsageWidget
+                                title={t('billing.usage.monthly')}
+                                currentAmount={aiUsage.monthly.current}
+                                limit={aiUsage.monthly.limit}
+                                resetsIn={aiUsage.monthly.resets_in}
+                            />
+                        </div>
+                    )}
+
+                    <HeadingSmall
+                        title={t('billing.history.title')}
+                        description={t('billing.history.description')}
                     />
 
                     {billingHistory.length === 0 ? (

@@ -53,4 +53,23 @@ return [
     'provider_tools' => [
         WebSearch::class,
     ],
+
+    // Converts internal cost units to user-facing credits (1 unit = 1,000 credits).
+    'credit_multiplier' => 1_000,
+
+    // Limits are stored as internal cost units; displayed as credits to users.
+    'ai_usage_limits' => [
+        'rolling' => [
+            'limit' => 1,
+            'period_hours' => 24,
+        ],
+        'weekly' => [
+            'limit' => 5,
+            'period_days' => 7,
+        ],
+        'monthly' => [
+            'limit' => 20,
+            'period_days' => 30,
+        ],
+    ],
 ];

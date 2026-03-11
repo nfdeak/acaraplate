@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\GetAiUsageForBillingAction;
 use Exception;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,15 +13,21 @@ use Laravel\Cashier\Invoice;
 
 final readonly class BillingHistoryController
 {
+    public function __construct(
+        private GetAiUsageForBillingAction $getAiUsageForBilling,
+    ) {}
+
     public function index(Request $request): Response
     {
         $user = $request->user();
 
         $billingHistory = [];
+        $aiUsage = null;
 
         if ($user === null) {
             return Inertia::render('billing/index', [
                 'billingHistory' => $billingHistory,
+                'aiUsage' => $aiUsage,
             ]);
         }
 
@@ -39,8 +46,11 @@ final readonly class BillingHistoryController
             $billingHistory = [];
         }
 
+        $aiUsage = $this->getAiUsageForBilling->handle($user);
+
         return Inertia::render('billing/index', [
             'billingHistory' => $billingHistory,
+            'aiUsage' => $aiUsage,
         ]);
     }
 }
