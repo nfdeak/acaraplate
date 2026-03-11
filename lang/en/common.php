@@ -817,6 +817,17 @@ return [
         'title' => 'Billing history',
         'description' => 'View and download your past invoices',
         'no_history' => 'No billing history available yet.',
+        'usage' => [
+            'rolling' => 'Rolling Usage',
+            'weekly' => 'Weekly Usage',
+            'monthly' => 'Monthly Usage',
+            'resets_in' => 'Resets in {{time}}',
+            'credits_used' => '{{current}} / {{limit}} credits',
+        ],
+        'history' => [
+            'title' => 'Invoice History',
+            'description' => 'View and download your past invoices',
+        ],
         'table' => [
             'date' => 'Date',
             'amount' => 'Amount',
