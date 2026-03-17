@@ -46,10 +46,16 @@ final class AgentRunner implements Agent, Conversational, HasTools
     {
         $this->currentPayload = $payload;
         $this->user = $user;
+        $modelName = $payload->modelName ?? ModelName::GPT_5_MINI;
 
         return $this
             ->continue($conversationId ?? '', as: $user)
-            ->prompt($payload->message, attachments: $payload->images);
+            ->prompt(
+                prompt: $payload->message,
+                attachments: $payload->images,
+                provider: $modelName->labProvider(),
+                model: $modelName->value,
+            );
     }
 
     public function instructions(): string
