@@ -81,7 +81,9 @@ export default defineConfig({
             },
         }),
     ],
-    esbuild: {
-        jsx: 'automatic',
+    oxc: {
+        jsx: {
+            runtime: 'automatic',
+        },
     },
 });
