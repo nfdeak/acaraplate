@@ -105,6 +105,8 @@ If someone mentions they're stressed, exhausted, or struggling, acknowledge it i
 
 ## Context
 
+@include('ai.prompts.partials.summary-context', ['summaries' => $summaries])
+
 USER PROFILE DATA (use this to personalize every response):
 {{ $profileContext }}
 

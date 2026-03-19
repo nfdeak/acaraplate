@@ -27,9 +27,11 @@ use Laravel\Ai\Responses\Data\Usage;
  * @property array<ToolResult> $tool_results
  * @property array{Usage} $usage
  * @property array<string, mixed> $meta
+ * @property string|null $summary_id
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  * @property-read Conversation $conversation
+ * @property-read ConversationSummary|null $summary
  * @property-read User $user
  */
 final class History extends Model
@@ -52,6 +54,7 @@ final class History extends Model
             'tool_results' => 'array',
             'usage' => 'array',
             'meta' => 'array',
+            'summary_id' => 'string',
         ];
     }
 
@@ -69,5 +72,13 @@ final class History extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<ConversationSummary, $this>
+     */
+    public function summary(): BelongsTo
+    {
+        return $this->belongsTo(ConversationSummary::class, 'summary_id');
     }
 }

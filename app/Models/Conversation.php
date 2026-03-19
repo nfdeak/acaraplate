@@ -17,10 +17,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $id UUID primary key
  * @property int $user_id ID of the user who owns this conversation
  * @property string $title Conversation title/summary
+ * @property CarbonInterface|null $summarization_dispatched_at
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  * @property-read User $user
  * @property-read Collection<int, History> $messages
+ * @property-read Collection<int, ConversationSummary> $summaries
  */
 final class Conversation extends Model
 {
@@ -40,6 +42,7 @@ final class Conversation extends Model
     {
         return [
             'id' => 'string',
+            'summarization_dispatched_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
@@ -59,5 +62,13 @@ final class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(History::class, 'conversation_id')->oldest();
+    }
+
+    /**
+     * @return HasMany<ConversationSummary, $this>
+     */
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(ConversationSummary::class, 'conversation_id');
     }
 }

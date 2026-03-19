@@ -85,6 +85,11 @@ final class AgentRunner implements Agent, Conversational, HasTools
         return $this->agentBuilder->build($this->currentPayload, $this->user)['tools'];
     }
 
+    protected function maxConversationMessages(): int
+    {
+        return (int) config('altani.context.history_limit', 50);
+    }
+
     private function execute(AgentPayload $payload, User $user, string $conversationId): StreamableAgentResponse
     {
         $this->currentPayload = $payload;

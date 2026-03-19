@@ -120,13 +120,8 @@ export default function MealPlans({
                                         {t('meal_plans.create_with_altani')}
                                     </Link>
                                 </Button>
-                                <Form
-                                    {...mealPlans.store.form()}
-                                >
-                                    <Button
-                                        type="submit"
-                                        variant="outline"
-                                    >
+                                <Form {...mealPlans.store.form()}>
+                                    <Button type="submit" variant="outline">
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         {t('meal_plans.generate_now')}
                                     </Button>
@@ -287,7 +282,9 @@ export default function MealPlans({
                             <div className="mt-8 rounded-lg bg-muted/30 p-4 text-sm text-muted-foreground">
                                 <p>
                                     {t('meal_plans.created_on')}{' '}
-                                    {new Date(mealPlan.created_at).toLocaleDateString('en-US', {
+                                    {new Date(
+                                        mealPlan.created_at,
+                                    ).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric',
@@ -530,9 +527,7 @@ function RegenerateDayButton({
                 <Button
                     variant="outline"
                     size="sm"
-                    disabled={
-                        isRegenerating || regenerateForm.processing
-                    }
+                    disabled={isRegenerating || regenerateForm.processing}
                 >
                     {regenerateForm.processing || isRegenerating ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -549,10 +544,9 @@ function RegenerateDayButton({
                     </AlertDialogTitle>
                     <AlertDialogDescription
                         dangerouslySetInnerHTML={{
-                            __html: t(
-                                'meal_plans.regenerate_description',
-                                { dayName: currentDay.day_name },
-                            ),
+                            __html: t('meal_plans.regenerate_description', {
+                                dayName: currentDay.day_name,
+                            }),
                         }}
                     />
                 </AlertDialogHeader>

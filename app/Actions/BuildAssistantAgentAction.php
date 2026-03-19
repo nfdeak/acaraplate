@@ -7,6 +7,8 @@ namespace App\Actions;
 use App\Ai\AgentPayload;
 use App\Ai\Agents\AgentRunner;
 use App\Http\Requests\StreamChatRequest;
+use App\Jobs\SummarizeConversationJob;
+use App\Models\Conversation;
 use App\Models\User;
 use Laravel\Ai\Responses\StreamableAgentResponse;
 
@@ -24,8 +26,35 @@ final readonly class BuildAssistantAgentAction
             images: $request->userAttachments(),
             mode: $request->mode(),
             modelName: $request->modelName(),
+            conversationId: $conversationId,
         );
 
+        $this->dispatchSummarizationIfNeeded($conversationId);
+
         return $this->agentRunner->runWithConversation($agentPayload, $user, $conversationId);
+    }
+
+    private function dispatchSummarizationIfNeeded(string $conversationId): void
+    {
+        $conversation = Conversation::query()->find($conversationId);
+
+        if (! $conversation instanceof Conversation) {
+            return;
+        }
+
+        if ($conversation->summarization_dispatched_at?->isAfter(now()->subMinutes(5))) {
+            return;
+        }
+
+        $buffer = (int) config('altani.summarization.buffer', 25);
+        $threshold = (int) config('altani.summarization.threshold', 20);
+
+        if ($conversation->messages()->count() < ($buffer + $threshold)) {
+            return;
+        }
+
+        $conversation->update(['summarization_dispatched_at' => now()]);
+
+        dispatch(new SummarizeConversationJob($conversation));
     }
 }
