@@ -37,7 +37,7 @@ final readonly class ProcessAdvisorMessageAction implements ProcessesAdvisorMess
             message: $message,
             images: $attachments,
             mode: AgentMode::Ask,
-            modelName: ModelName::GPT_5_MINI,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $response = $this->agentRunner->runSync($payload, $user, $conversationId);

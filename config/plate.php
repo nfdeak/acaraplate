@@ -62,15 +62,15 @@ return [
     // Limits are stored as internal cost units; displayed as credits to users.
     'ai_usage_limits' => [
         'rolling' => [
-            'limit' => 1,
+            'limit' => 0.5,
             'period_hours' => 24,
         ],
         'weekly' => [
-            'limit' => 5,
+            'limit' => 2.5,
             'period_days' => 7,
         ],
         'monthly' => [
-            'limit' => 20,
+            'limit' => 5,
             'period_days' => 30,
         ],
     ],

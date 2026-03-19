@@ -46,7 +46,7 @@ final class AgentRunner implements Agent, Conversational, HasTools
     {
         $this->currentPayload = $payload;
         $this->user = $user;
-        $modelName = $payload->modelName ?? ModelName::GPT_5_MINI;
+        $modelName = $payload->modelName ?? ModelName::GPT_5_4_MINI;
 
         return $this
             ->continue($conversationId ?? '', as: $user)
@@ -89,7 +89,7 @@ final class AgentRunner implements Agent, Conversational, HasTools
     {
         $this->currentPayload = $payload;
         $this->user = $user;
-        $modelName = $payload->modelName ?? ModelName::GPT_5_MINI;
+        $modelName = $payload->modelName ?? ModelName::GPT_5_4_MINI;
 
         return $this
             ->continue($conversationId, as: $user)

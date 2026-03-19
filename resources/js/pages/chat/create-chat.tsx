@@ -29,7 +29,7 @@ export default function CreateChat() {
         initialConversationId,
     );
     const [mode, setMode] = useState<ChatMode>(initialMode ?? 'ask');
-    const [model, setModel] = useState<AIModel>('gpt-5-mini');
+    const [model, setModel] = useState<AIModel>('gpt-5.4-mini');
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 

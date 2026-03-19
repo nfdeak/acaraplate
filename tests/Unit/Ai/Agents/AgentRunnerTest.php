@@ -30,7 +30,7 @@ describe('instructions', function (): void {
             userId: $this->user->id,
             message: 'Hello',
             mode: AgentMode::Ask,
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $this->agent->run($payload, $this->user);
@@ -39,7 +39,7 @@ describe('instructions', function (): void {
         expect($instructions)
             ->toContain('You are Altani, a comprehensive AI wellness assistant')
             ->toContain('CHAT MODE: ask')
-            ->toContain('USER PROFILE CONTEXT:');
+            ->toContain('USER PROFILE DATA');
     });
 
     it('returns instructions with CreateMealPlan mode', function (): void {
@@ -47,7 +47,7 @@ describe('instructions', function (): void {
             userId: $this->user->id,
             message: 'Create a meal plan',
             mode: AgentMode::CreateMealPlan,
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $this->agent->run($payload, $this->user);
@@ -67,7 +67,7 @@ describe('tools', function (): void {
             userId: $this->user->id,
             message: 'Hello',
             mode: AgentMode::Ask,
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $this->agent->run($payload, $this->user);
@@ -89,7 +89,7 @@ describe('tools', function (): void {
             message: 'Analyze this',
             images: [$image],
             mode: AgentMode::Ask,
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $this->agent->run($payload, $this->user);
@@ -123,7 +123,7 @@ describe('messages', function (): void {
             userId: $this->user->id,
             message: 'Hello',
             mode: AgentMode::Ask,
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GPT_5_4_MINI,
         );
 
         $this->agent->run($payload, $this->user);

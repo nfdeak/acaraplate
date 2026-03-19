@@ -949,6 +949,7 @@ return [
             'meal_plan' => 'Meal Plan',
         ],
         'models' => [
+            'gpt_5_4_mini' => 'GPT-5.4 Mini',
             'gemini_3_flash' => 'Gemini 3 Flash',
             'gemini_3_1_pro' => 'Gemini 3.1 Pro',
             'gpt_5_mini' => 'GPT-5 Mini',

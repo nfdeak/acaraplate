@@ -9,8 +9,8 @@ use Laravel\Ai\Enums\Lab;
 enum ModelName: string
 {
     case GPT_5_MINI = 'gpt-5-mini';
+    case GPT_5_4_MINI = 'gpt-5.4-mini';
     case GPT_5_NANO = 'gpt-5-nano';
-    case GEMINI_2_5_FLASH = 'gemini-2.5-flash';
     case GEMINI_3_FLASH = 'gemini-3-flash-preview';
     case GEMINI_3_1_PRO = 'gemini-3.1-pro-preview';
 
@@ -29,8 +29,8 @@ enum ModelName: string
     {
         return match ($this) {
             self::GPT_5_MINI => 'GPT-5 mini',
+            self::GPT_5_4_MINI => 'GPT-5.4 mini',
             self::GPT_5_NANO => 'GPT-5 Nano',
-            self::GEMINI_2_5_FLASH => 'Gemini 2.5 Flash',
             self::GEMINI_3_FLASH => 'Gemini 3 Flash',
             self::GEMINI_3_1_PRO => 'Gemini 3.1 Pro',
         };
@@ -40,8 +40,8 @@ enum ModelName: string
     {
         return match ($this) {
             self::GPT_5_MINI => 'Cheapest model, best for smarter tasks',
+            self::GPT_5_4_MINI => 'Strongest mini model for coding, agents, and high-volume workloads',
             self::GPT_5_NANO => 'Cheapest model, best for simpler tasks',
-            self::GEMINI_2_5_FLASH => 'Fast and versatile performance across a variety of tasks',
             self::GEMINI_3_FLASH => 'Google\'s latest model with frontier intelligence built for speed that helps everyone learn, build, and plan anything — faster',
             self::GEMINI_3_1_PRO => "Google's latest Pro model with advanced reasoning and frontier capabilities",
         };
@@ -50,15 +50,15 @@ enum ModelName: string
     public function getProvider(): string
     {
         return match ($this) {
-            self::GPT_5_MINI, self::GPT_5_NANO => 'openai',
-            self::GEMINI_2_5_FLASH, self::GEMINI_3_FLASH, self::GEMINI_3_1_PRO => 'google',
+            self::GPT_5_MINI, self::GPT_5_4_MINI, self::GPT_5_NANO => 'openai',
+            self::GEMINI_3_FLASH, self::GEMINI_3_1_PRO => 'google',
         };
     }
 
     public function labProvider(): string
     {
         return match ($this) {
-            self::GPT_5_MINI, self::GPT_5_NANO => Lab::OpenAI->value,
+            self::GPT_5_MINI, self::GPT_5_4_MINI, self::GPT_5_NANO => Lab::OpenAI->value,
             default => Lab::Gemini->value,
         };
     }
@@ -66,7 +66,7 @@ enum ModelName: string
     public function supportsWebSearch(): bool
     {
         return match ($this) {
-            self::GPT_5_MINI, self::GPT_5_NANO => true,
+            self::GPT_5_MINI, self::GPT_5_4_MINI, self::GPT_5_NANO => true,
             default => false,
         };
     }
@@ -90,7 +90,7 @@ enum ModelName: string
     public function supportsTemperature(): bool
     {
         return match ($this) {
-            self::GPT_5_MINI, self::GPT_5_NANO => false,
+            self::GPT_5_MINI, self::GPT_5_4_MINI, self::GPT_5_NANO => false,
             default => true,
         };
     }
@@ -129,11 +129,11 @@ enum ModelName: string
                 'reasoning' => 0.0,
                 'cache_read' => 0.05,
             ],
-            self::GEMINI_2_5_FLASH => [
-                'input' => 0.30,
-                'output' => 2.50,
+            self::GPT_5_4_MINI => [
+                'input' => 0.75,
+                'output' => 4.50,
                 'reasoning' => 0.0,
-                'cache_read' => 0.03,
+                'cache_read' => 0.075,
             ],
             self::GEMINI_3_FLASH => [
                 'input' => 0.50,
