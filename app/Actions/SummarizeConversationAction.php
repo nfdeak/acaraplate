@@ -8,6 +8,7 @@ use App\Contracts\SummarizesConversation;
 use App\Models\Conversation;
 use App\Models\ConversationSummary;
 use App\Models\History;
+use App\Utilities\ConfigHelper;
 use App\Utilities\JsonCleaner;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ final readonly class SummarizeConversationAction
     public function shouldSummarize(Conversation $conversation): bool
     {
         $totalCount = History::query()->where('conversation_id', $conversation->id)->count();
-        $buffer = (int) config('altani.summarization.buffer', 25);
+        $buffer = ConfigHelper::int('altani.summarization.buffer', 25);
 
         if ($totalCount <= $buffer) {
             return false;
@@ -70,7 +71,7 @@ final readonly class SummarizeConversationAction
             ->whereNotIn('id', $bufferedIds)
             ->count();
 
-        return $unsummarizedOld >= (int) config('altani.summarization.threshold', 20);
+        return $unsummarizedOld >= ConfigHelper::int('altani.summarization.threshold', 20);
     }
 
     /**
@@ -78,7 +79,7 @@ final readonly class SummarizeConversationAction
      */
     private function getMessagesToSummarize(Conversation $conversation): Collection
     {
-        $buffer = (int) config('altani.summarization.buffer', 25);
+        $buffer = ConfigHelper::int('altani.summarization.buffer', 25);
 
         $bufferedIds = History::query()->where('conversation_id', $conversation->id)->latest()
             ->take($buffer)
@@ -112,6 +113,11 @@ final readonly class SummarizeConversationAction
         ?ConversationSummary $previousSummary,
     ): ConversationSummary {
         return DB::transaction(function () use ($conversation, $messages, $summaryData, $previousSummary): ConversationSummary {
+            $firstMessage = $messages->first();
+            $lastMessage = $messages->last();
+            assert($firstMessage !== null);
+            assert($lastMessage !== null);
+
             $summary = ConversationSummary::query()->create([
                 'conversation_id' => $conversation->id,
                 'sequence_number' => ConversationSummary::getNextSequenceNumber($conversation->id),
@@ -121,8 +127,8 @@ final readonly class SummarizeConversationAction
                 'key_facts' => $summaryData['key_facts'] ?? [],
                 'unresolved_threads' => $summaryData['unresolved_threads'] ?? [],
                 'resolved_threads' => $summaryData['resolved_threads'] ?? [],
-                'start_message_id' => $messages->first()->id,
-                'end_message_id' => $messages->last()->id,
+                'start_message_id' => $firstMessage->id,
+                'end_message_id' => $lastMessage->id,
                 'message_count' => $messages->count(),
             ]);
 

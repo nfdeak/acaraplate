@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Utilities\ConfigHelper;
 use Carbon\CarbonInterface;
+use Database\Factories\ConversationSummaryFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,7 +35,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 final class ConversationSummary extends Model
 {
+    /** @use HasFactory<ConversationSummaryFactory> */
     use HasFactory;
+
     use HasUuids;
 
     protected $table = 'conversation_summaries';
@@ -42,7 +46,9 @@ final class ConversationSummary extends Model
 
     public static function getNextSequenceNumber(string $conversationId): int
     {
-        return (int) self::query()->forConversation($conversationId)->max('sequence_number') + 1;
+        $max = self::query()->forConversation($conversationId)->max('sequence_number');
+
+        return is_numeric($max) ? ((int) $max + 1) : 1;
     }
 
     public static function getLatestForConversation(string $conversationId): ?self
@@ -57,7 +63,7 @@ final class ConversationSummary extends Model
      */
     public static function getRecentForContext(string $conversationId, ?int $count = null): Collection
     {
-        $count ??= (int) config('altani.context.recent_summaries', 3);
+        $count ??= ConfigHelper::int('altani.context.recent_summaries', 3);
 
         return self::query()->forConversation($conversationId)
             ->recent($count)

@@ -10,6 +10,7 @@ use App\Http\Requests\StreamChatRequest;
 use App\Jobs\SummarizeConversationJob;
 use App\Models\Conversation;
 use App\Models\User;
+use App\Utilities\ConfigHelper;
 use Laravel\Ai\Responses\StreamableAgentResponse;
 
 final readonly class BuildAssistantAgentAction
@@ -46,8 +47,8 @@ final readonly class BuildAssistantAgentAction
             return;
         }
 
-        $buffer = (int) config('altani.summarization.buffer', 25);
-        $threshold = (int) config('altani.summarization.threshold', 20);
+        $buffer = ConfigHelper::int('altani.summarization.buffer', 25);
+        $threshold = ConfigHelper::int('altani.summarization.threshold', 20);
 
         if ($conversation->messages()->count() < ($buffer + $threshold)) {
             return;
