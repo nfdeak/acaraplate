@@ -6,6 +6,7 @@ namespace App\Ai;
 
 use App\Actions\GetUserProfileContextAction;
 use App\Enums\AgentMode;
+use App\Models\ConversationSummary;
 use App\Models\User;
 use App\Services\ToolRegistry;
 use App\Utilities\LanguageUtil;
@@ -29,16 +30,20 @@ final readonly class AgentBuilder
         $webSearchEnabled = $payload->shouldEnableWebSearch();
 
         return [
-            'instructions' => $this->buildInstructions($user, $mode),
+            'instructions' => $this->buildInstructions($user, $mode, $payload->conversationId),
             'tools' => $this->buildTools($attachments, $webSearchEnabled),
         ];
     }
 
-    private function buildInstructions(?User $user, AgentMode $mode): string
+    private function buildInstructions(?User $user, AgentMode $mode, ?string $conversationId = null): string
     {
         $profileData = $this->getProfileData($user);
         $languageCode = $user instanceof User ? ($user->preferred_language ?? 'en') : 'en';
         $timezone = $this->resolveTimezone($user);
+
+        $summaries = $conversationId !== null
+            ? ConversationSummary::getRecentForContext($conversationId)
+            : collect();
 
         return view('ai.prompts.altani-static', [
             'profileContext' => $profileData['context'],
@@ -47,6 +52,7 @@ final readonly class AgentBuilder
             'languageLabel' => LanguageUtil::get($languageCode) ?? 'English',
             'languageCode' => $languageCode,
             'isCreateMealPlanMode' => $mode->value === 'create-meal-plan',
+            'summaries' => $summaries,
         ])->render();
     }
 

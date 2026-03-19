@@ -19,6 +19,7 @@ final readonly class AgentPayload
         public array $images = [],
         public AgentMode $mode = AgentMode::Ask,
         public ?ModelName $modelName = null,
+        public ?string $conversationId = null,
     ) {}
 
     public function hasImages(): bool

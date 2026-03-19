@@ -8,6 +8,7 @@ use App\Ai\AgentBuilder;
 use App\Ai\AgentPayload;
 use App\Enums\ModelName;
 use App\Models\User;
+use App\Utilities\ConfigHelper;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
@@ -83,6 +84,11 @@ final class AgentRunner implements Agent, Conversational, HasTools
         // @codeCoverageIgnoreEnd
 
         return $this->agentBuilder->build($this->currentPayload, $this->user)['tools'];
+    }
+
+    protected function maxConversationMessages(): int
+    {
+        return ConfigHelper::int('altani.context.history_limit', 50);
     }
 
     private function execute(AgentPayload $payload, User $user, string $conversationId): StreamableAgentResponse
