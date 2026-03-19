@@ -28,9 +28,7 @@ export default function Edit({
     householdContext: string | null;
 }) {
     const { t } = useTranslation('common');
-    const [charCount, setCharCount] = useState(
-        householdContext?.length ?? 0,
-    );
+    const [charCount, setCharCount] = useState(householdContext?.length ?? 0);
 
     return (
         <AppLayout breadcrumbs={getBreadcrumbs(t)}>
@@ -61,25 +59,17 @@ export default function Edit({
                                         id="household_context"
                                         name="household_context"
                                         className="mt-1 min-h-[160px]"
-                                        defaultValue={
-                                            householdContext ?? ''
-                                        }
+                                        defaultValue={householdContext ?? ''}
                                         maxLength={MAX_LENGTH}
-                                        placeholder={t(
-                                            'household.placeholder',
-                                        )}
+                                        placeholder={t('household.placeholder')}
                                         onChange={(e) =>
-                                            setCharCount(
-                                                e.target.value.length,
-                                            )
+                                            setCharCount(e.target.value.length)
                                         }
                                     />
 
                                     <div className="flex items-center justify-between">
                                         <InputError
-                                            message={
-                                                errors.household_context
-                                            }
+                                            message={errors.household_context}
                                         />
                                         <p className="text-xs text-muted-foreground">
                                             {charCount}/{MAX_LENGTH}

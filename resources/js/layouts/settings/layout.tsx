@@ -11,7 +11,15 @@ import { edit as editNotifications } from '@/routes/user-notifications';
 import { edit } from '@/routes/user-profile';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Bell, Home, Lock, Palette, Puzzle, ShieldCheck, User } from 'lucide-react';
+import {
+    Bell,
+    Home,
+    Lock,
+    Palette,
+    Puzzle,
+    ShieldCheck,
+    User,
+} from 'lucide-react';
 import { type PropsWithChildren, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 

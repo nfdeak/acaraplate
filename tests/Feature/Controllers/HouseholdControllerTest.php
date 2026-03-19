@@ -85,6 +85,7 @@ it('auto-creates profile when visiting household edit', function (): void {
         ->get(route('household.edit'));
 
     $response->assertOk();
+
     expect($user->profile()->exists())->toBeTrue();
 });
 

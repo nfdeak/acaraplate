@@ -110,7 +110,7 @@ it('truncates household context to 2000 characters', function (): void {
     $json = json_decode((string) $result, true);
 
     expect($json)->success->toBeTrue();
-    expect(mb_strlen($user->profile->refresh()->household_context))->toBe(2000);
+    expect(mb_strlen((string) $user->profile->refresh()->household_context))->toBe(2000);
 });
 
 it('returns error for unknown action', function (): void {
