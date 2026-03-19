@@ -106,11 +106,11 @@ it('extracts mode and model from request', function () use ($createRequest): voi
     $request = $createRequest([
         'messages' => [['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hi']]]],
         'mode' => AgentMode::CreateMealPlan->value,
-        'model' => ModelName::GEMINI_2_5_FLASH->value,
+        'model' => ModelName::GPT_5_4_MINI->value,
     ]);
 
     expect($request->mode())->toBe(AgentMode::CreateMealPlan)
-        ->and($request->modelName())->toBe(ModelName::GEMINI_2_5_FLASH);
+        ->and($request->modelName())->toBe(ModelName::GPT_5_4_MINI);
 });
 
 it('returns empty attachments when no file parts exist', function () use ($createRequest): void {

@@ -76,7 +76,7 @@ describe('shouldEnableWebSearch', function (): void {
         $payload = new AgentPayload(
             userId: 1,
             message: 'Hello',
-            modelName: ModelName::GEMINI_2_5_FLASH,
+            modelName: ModelName::GEMINI_3_FLASH,
         );
 
         expect($payload->shouldEnableWebSearch())->toBeFalse();

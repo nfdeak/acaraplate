@@ -37,8 +37,8 @@ it('calculates correct usage for user with AI usage', function (): void {
     $result = $action->handle($user);
 
     expect($result['rolling']['current'])->toBe(500)
-        ->and($result['rolling']['limit'])->toBe(1000)
-        ->and($result['rolling']['percentage'])->toBe(50);
+        ->and($result['rolling']['limit'])->toBe(500)
+        ->and($result['rolling']['percentage'])->toBe(100);
 });
 
 it('calculates percentage correctly for different limits', function (): void {
@@ -52,9 +52,9 @@ it('calculates percentage correctly for different limits', function (): void {
     $action = new GetAiUsageForBillingAction();
     $result = $action->handle($user);
 
-    expect($result['rolling']['percentage'])->toBe(25)
-        ->and($result['weekly']['percentage'])->toBe(5)
-        ->and($result['monthly']['percentage'])->toBe(1);
+    expect($result['rolling']['percentage'])->toBe(50)
+        ->and($result['weekly']['percentage'])->toBe(10)
+        ->and($result['monthly']['percentage'])->toBe(5);
 });
 
 it('caps percentage at 100', function (): void {
@@ -94,7 +94,7 @@ it('returns credits as integers using configured multiplier', function (): void 
     expect($result['rolling']['current'])->toBe(7)
         ->and($result['rolling']['current'])->toBeInt()
         ->and($result['rolling']['limit'])->toBeInt()
-        ->and($result['rolling']['limit'])->toBe(1000)
-        ->and($result['weekly']['limit'])->toBe(5000)
-        ->and($result['monthly']['limit'])->toBe(20000);
+        ->and($result['rolling']['limit'])->toBe(500)
+        ->and($result['weekly']['limit'])->toBe(2500)
+        ->and($result['monthly']['limit'])->toBe(5000);
 });

@@ -20,6 +20,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const AI_MODELS = {
+    'gpt-5.4-mini': 'chat.models.gpt_5_4_mini',
     'gemini-3-flash-preview': 'chat.models.gemini_3_flash',
     'gemini-3.1-pro-preview': 'chat.models.gemini_3_1_pro',
     'gpt-5-mini': 'chat.models.gpt_5_mini',
