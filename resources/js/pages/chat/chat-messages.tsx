@@ -11,20 +11,36 @@ interface ChatMessagesProps {
     isSubmitting?: boolean;
 }
 
-export function ChatErrorBanner({ error }: { error?: Error }) {
+export function ChatErrorBanner({
+    error,
+    onRetry,
+}: {
+    error?: Error;
+    onRetry?: () => void;
+}) {
     if (!error) {
         return null;
     }
+
     return (
         <div className="flex w-full items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/50">
             <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 space-y-2">
                 <p className="text-sm font-medium text-red-800 dark:text-red-200">
                     Something went wrong
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-300">
-                    {error.message}
+                    {error.message || 'An unexpected error occurred.'}
                 </p>
+                {onRetry && (
+                    <button
+                        type="button"
+                        onClick={onRetry}
+                        className="text-sm font-medium text-red-700 underline hover:text-red-900 dark:text-red-300 dark:hover:text-red-100"
+                    >
+                        Try again
+                    </button>
+                )}
             </div>
         </div>
     );

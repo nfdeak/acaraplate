@@ -80,6 +80,9 @@ Route::middleware(['auth', 'verified'])->prefix('onboarding')->name('onboarding.
     Route::get('/identity', [Web\OnboardingController::class, 'showIdentity'])->name('identity.show');
     Route::post('/identity', [Web\OnboardingController::class, 'storeIdentity'])->name('identity.store');
 
+    Route::get('/dietary-preferences', [Web\OnboardingController::class, 'showDietaryPreferences'])->name('dietary.show');
+    Route::post('/dietary-preferences', [Web\OnboardingController::class, 'storeDietaryPreferences'])->name('dietary.store');
+
     Route::get('/completion', [Web\OnboardingController::class, 'showCompletion'])->name('completion.show');
 });
 

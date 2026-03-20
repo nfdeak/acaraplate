@@ -4,7 +4,7 @@ import type { ChatStatus } from '@/types/chat';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import type { FileUIPart } from 'ai';
 import { DefaultChatTransport } from 'ai';
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 interface UseChatStreamOptions {
     conversationId: string;
@@ -16,6 +16,7 @@ interface UseChatStreamOptions {
 interface UseChatStreamReturn {
     messages: UIMessage[];
     sendMessage: (message: { text: string; files?: FileUIPart[] }) => void;
+    clearError: () => void;
     status: ChatStatus;
     error: Error | undefined;
     isStreaming: boolean;
@@ -31,6 +32,7 @@ export function useChatStream({
 }: UseChatStreamOptions): UseChatStreamReturn {
     const modelRef = useRef({ model, mode });
     modelRef.current = { model, mode };
+    const [networkError, setNetworkError] = useState<Error | undefined>();
 
     const transport = useMemo(
         () =>
@@ -41,11 +43,38 @@ export function useChatStream({
         [conversationId],
     );
 
-    const { messages, sendMessage, status, error } = useChat({
+    const {
+        messages,
+        sendMessage: originalSendMessage,
+        status,
+        error,
+    } = useChat({
         messages: initialMessages,
         transport,
     });
 
+    const sendMessage = useCallback(
+        (message: { text: string; files?: FileUIPart[] }) => {
+            setNetworkError(undefined);
+
+            try {
+                originalSendMessage(message);
+            } catch (e) {
+                const errorMessage =
+                    e instanceof Error
+                        ? e.message
+                        : 'Failed to send message. Please try again.';
+                setNetworkError(new Error(errorMessage));
+            }
+        },
+        [originalSendMessage],
+    );
+
+    const clearError = useCallback(() => {
+        setNetworkError(undefined);
+    }, []);
+
+    const combinedError = error ?? networkError;
     const isStreaming = status === 'streaming';
     const isSubmitting = status === 'submitted';
 
@@ -53,8 +82,9 @@ export function useChatStream({
         initialMessages,
         messages,
         sendMessage,
+        clearError,
         status: status as ChatStatus,
-        error,
+        error: combinedError,
         isStreaming,
         isSubmitting,
     };
