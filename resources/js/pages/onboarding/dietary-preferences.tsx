@@ -132,10 +132,10 @@ export default function DietaryPreferences({
                                     total: 3,
                                 })}
                             </span>
-                            <span>90%</span>
+                            <span>100%</span>
                         </div>
                         <div className="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                            <div className="relative h-2 w-[90%] overflow-hidden rounded-full bg-primary shadow-[0_0_12px_rgba(16,185,129,0.4)]">
+                            <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary shadow-[0_0_12px_rgba(16,185,129,0.4)]">
                                 <div className="absolute inset-0 bg-linear-to-r from-white/30 via-transparent to-transparent"></div>
                                 <div className="absolute inset-0 bg-linear-to-l from-black/10 via-transparent to-white/10"></div>
                             </div>
@@ -388,11 +388,9 @@ export default function DietaryPreferences({
                                             {processing && (
                                                 <LoaderCircle className="h-4 w-4 animate-spin" />
                                             )}
-                                            {attributes.length > 0
-                                                ? t(
-                                                      'onboarding.dietary_preferences.continue',
-                                                  )
-                                                : t('skip')}
+                                            {t(
+                                                'onboarding.dietary_preferences.complete',
+                                            )}
                                         </Button>
 
                                         <Link

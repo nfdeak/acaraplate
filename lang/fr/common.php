@@ -176,7 +176,7 @@ return [
 
     'onboarding' => [
         'biometrics' => [
-            'title' => 'Biométrie - Étape 1 sur 7',
+            'title' => 'Biométrie - Étape 1 sur 3',
             'step' => 'Étape {{current}} sur {{total}}',
             'heading' => 'Parlez-nous de vous',
             'description' => 'Nous utiliserons ces informations pour calculer vos besoins nutritionnels',
@@ -234,10 +234,10 @@ return [
                     'aggressive' => 'Agressif (Résultats rapides)',
                 ],
             ],
-            'submit' => 'Compléter le profil',
+            'submit' => 'Continuer',
         ],
         'dietary_preferences' => [
-            'title' => 'Préférences alimentaires - Étape 4 sur 7',
+            'title' => 'Préférences alimentaires - Étape 3 sur 3',
             'heading' => 'Préférences alimentaires',
             'description' => 'Sélectionnez vos habitudes alimentaires, allergies, intolérances ou aversions alimentaires',
             'patterns' => 'Habitudes alimentaires',
@@ -257,6 +257,7 @@ return [
             'notes_placeholder' => 'Détails supplémentaires sur cette allergie...',
             'exit' => 'Quitter',
             'continue' => 'Continuer',
+            'complete' => 'Compléter le profil',
             'selected' => '{{count}} préférence sélectionnée',
             'selected_plural' => '{{count}} préférences sélectionnées',
         ],

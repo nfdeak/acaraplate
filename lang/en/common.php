@@ -175,7 +175,7 @@ return [
 
     'onboarding' => [
         'biometrics' => [
-            'title' => 'Biometrics - Step 1 of 7',
+            'title' => 'Biometrics - Step 1 of 3',
             'step' => 'Step {{current}} of {{total}}',
             'heading' => 'Tell us about yourself',
             'description' => 'We\'ll use this information to calculate your nutritional needs',
@@ -202,7 +202,7 @@ return [
             'update_preferences' => 'You can always update your preferences and profile information in your settings.',
         ],
         'dietary_preferences' => [
-            'title' => 'Dietary Preferences - Step 4 of 7',
+            'title' => 'Dietary Preferences - Step 3 of 3',
             'heading' => 'Dietary preferences',
             'description' => 'Select any dietary patterns, allergies, intolerances, or food dislikes',
             'patterns' => 'Dietary Patterns',
@@ -222,6 +222,7 @@ return [
             'notes_placeholder' => 'Any additional details about this allergy...',
             'exit' => 'Exit',
             'continue' => 'Continue',
+            'complete' => 'Complete Profile',
             'selected' => '{{count}} preference selected',
             'selected_plural' => '{{count}} preferences selected',
         ],
@@ -369,7 +370,7 @@ return [
                     'aggressive' => 'Aggressive (Fast Results)',
                 ],
             ],
-            'submit' => 'Complete Profile',
+            'submit' => 'Continue',
         ],
     ],
 
