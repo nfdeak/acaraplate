@@ -44,6 +44,7 @@ export type ChatMode = keyof typeof CHAT_MODES;
 
 interface Props {
     onSubmit: (message: string, files?: FileUIPart[]) => void;
+    onInputChange?: () => void;
     onModeChange: (mode: ChatMode) => void;
     onModelChange: (model: AIModel) => void;
     className?: string;
@@ -72,6 +73,7 @@ function readFileAsDataURL(file: File): Promise<FileUIPart> {
 export default function ChatInput({
     className,
     onSubmit,
+    onInputChange,
     onModeChange,
     onModelChange,
     disabled = false,
@@ -160,7 +162,10 @@ export default function ChatInput({
                 <div className="p-2 sm:p-3">
                     <textarea
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={(e) => {
+                            setMessage(e.target.value);
+                            onInputChange?.();
+                        }}
                         onKeyDown={handleKeyDown}
                         placeholder={t('chat.placeholder')}
                         disabled={disabled}
@@ -178,9 +183,9 @@ export default function ChatInput({
                                     className="gap-1.5"
                                 >
                                     <SelectedModeIcon className="size-4" />
-                                    {mode !== 'create-meal-plan' && (
-                                        <span>{t(CHAT_MODES[mode].label)}</span>
-                                    )}
+                                    <span className="hidden sm:inline">
+                                        {t(CHAT_MODES[mode].label)}
+                                    </span>
                                     <ChevronDown className="size-3.5 opacity-60" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -225,7 +230,7 @@ export default function ChatInput({
                         </Button>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
@@ -259,12 +264,14 @@ export default function ChatInput({
                             </DropdownMenuContent>
                         </DropdownMenu>
 
+                        <div className="mx-0.5 h-5 w-px bg-border" />
+
                         <Button
                             variant={
                                 hasContent && !disabled ? 'default' : 'ghost'
                             }
                             size="icon"
-                            className={`size-8 transition-all duration-200 ${
+                            className={`size-9 transition-all duration-200 ${
                                 hasContent && !disabled
                                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                     : 'text-muted-foreground hover:text-foreground'

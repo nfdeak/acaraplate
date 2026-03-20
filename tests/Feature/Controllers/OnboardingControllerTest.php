@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Enums\AllergySeverity;
 use App\Enums\AnimalProductChoice;
 use App\Enums\DietType;
 use App\Enums\GoalChoice;
 use App\Enums\IntensityChoice;
 use App\Enums\Sex;
+use App\Enums\UserProfileAttributeCategory;
 use App\Models\User;
 
 it('renders biometrics page', function (): void {
@@ -230,7 +232,7 @@ it('identity page displays existing profile choices', function (): void {
             ->where('profile.intensity_choice', IntensityChoice::Balanced->value));
 });
 
-it('may store identity data and complete onboarding', function (): void {
+it('may store identity data and redirect to dietary preferences', function (): void {
     $user = User::factory()->create();
     $user->profile()->create([
         'age' => 30,
@@ -246,7 +248,7 @@ it('may store identity data and complete onboarding', function (): void {
             'intensity_choice' => IntensityChoice::Balanced->value,
         ]);
 
-    $response->assertRedirectToRoute('dashboard');
+    $response->assertRedirectToRoute('onboarding.dietary.show');
 
     $profile = $user->profile()->first();
 
@@ -255,9 +257,7 @@ it('may store identity data and complete onboarding', function (): void {
         ->animal_product_choice->toBe(AnimalProductChoice::Omnivore)
         ->intensity_choice->toBe(IntensityChoice::Balanced)
         ->calculated_diet_type->toBe(DietType::Mediterranean)
-        ->derived_activity_multiplier->toBe(1.3)
-        ->onboarding_completed->toBeTrue()
-        ->onboarding_completed_at->not->toBeNull();
+        ->derived_activity_multiplier->toBe(1.3);
 });
 
 it('requires goal_choice', function (): void {
@@ -297,6 +297,76 @@ it('requires intensity_choice', function (): void {
         ]);
 
     $response->assertSessionHasErrors('intensity_choice');
+});
+
+it('renders dietary preferences page', function (): void {
+    $user = User::factory()->create();
+    $user->profile()->create([]);
+
+    $response = $this->actingAs($user)
+        ->get(route('onboarding.dietary.show'));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('onboarding/dietary-preferences')
+            ->has('categories')
+            ->has('severityOptions')
+        );
+});
+
+it('may store dietary preferences with allergies and complete onboarding', function (): void {
+    $user = User::factory()->create();
+    $user->profile()->create([]);
+
+    $response = $this->actingAs($user)
+        ->post(route('onboarding.dietary.store'), [
+            'attributes' => [
+                [
+                    'category' => UserProfileAttributeCategory::Allergy->value,
+                    'value' => 'Peanuts',
+                    'severity' => AllergySeverity::Severe->value,
+                    'notes' => 'Anaphylactic reaction',
+                ],
+                [
+                    'category' => UserProfileAttributeCategory::Intolerance->value,
+                    'value' => 'Lactose',
+                    'severity' => null,
+                    'notes' => null,
+                ],
+            ],
+        ]);
+
+    $response->assertRedirectToRoute('dashboard');
+
+    $profile = $user->profile()->first();
+
+    expect($profile)
+        ->onboarding_completed->toBeTrue()
+        ->onboarding_completed_at->not->toBeNull();
+
+    expect($profile->attributes)->toHaveCount(2);
+    expect($profile->attributes->first()->value)->toBe('Peanuts');
+    expect($profile->attributes->first()->severity)->toBe(AllergySeverity::Severe);
+});
+
+it('may skip dietary preferences and complete onboarding', function (): void {
+    $user = User::factory()->create();
+    $user->profile()->create([]);
+
+    $response = $this->actingAs($user)
+        ->post(route('onboarding.dietary.store'), [
+            'attributes' => [],
+        ]);
+
+    $response->assertRedirectToRoute('dashboard');
+
+    $profile = $user->profile()->first();
+
+    expect($profile)
+        ->onboarding_completed->toBeTrue()
+        ->onboarding_completed_at->not->toBeNull();
+
+    expect($profile->attributes)->toHaveCount(0);
 });
 
 it('renders completion page', function (): void {

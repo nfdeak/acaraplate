@@ -6,7 +6,7 @@ import type { BreadcrumbItem } from '@/types';
 import type { ChatPageProps, UIMessage } from '@/types/chat';
 import { Head, router, usePage } from '@inertiajs/react';
 import type { FileUIPart } from 'ai';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ChatInput, { type AIModel, type ChatMode } from './chat-input';
 
 import ChatMessages, { ChatErrorBanner } from './chat-messages';
@@ -32,16 +32,27 @@ export default function CreateChat() {
     const [model, setModel] = useState<AIModel>('gpt-5.4-mini');
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const lastMessageRef = useRef<{
+        text: string;
+        files?: FileUIPart[];
+    } | null>(null);
 
     const initialMessages = (messageHistories ?? []) as UIMessage[];
 
-    const { messages, sendMessage, status, error, isStreaming, isSubmitting } =
-        useChatStream({
-            conversationId,
-            mode,
-            model,
-            initialMessages,
-        });
+    const {
+        messages,
+        sendMessage,
+        clearError,
+        status,
+        error,
+        isStreaming,
+        isSubmitting,
+    } = useChatStream({
+        conversationId,
+        mode,
+        model,
+        initialMessages,
+    });
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -54,6 +65,8 @@ export default function CreateChat() {
             return;
         }
 
+        lastMessageRef.current = { text: message, files };
+
         const id = conversationId ?? generateUUID();
         if (!conversationId) {
             setConversationId(id);
@@ -65,6 +78,21 @@ export default function CreateChat() {
 
         sendMessage({ text: message, files });
     }
+
+    const handleRetry = useCallback(() => {
+        if (lastMessageRef.current) {
+            sendMessage(lastMessageRef.current);
+        }
+    }, [sendMessage]);
+
+    const handleInputChange = useCallback(() => {
+        if (lastMessageRef.current) {
+            lastMessageRef.current = null;
+        }
+        if (error) {
+            clearError();
+        }
+    }, [error, clearError]);
 
     const showThinkingIndicator = isSubmitting && messages.length > 0;
 
@@ -79,7 +107,12 @@ export default function CreateChat() {
                             status={status}
                             isSubmitting={showThinkingIndicator}
                         />
-                        <ChatErrorBanner error={error} />
+                        <ChatErrorBanner
+                            error={error}
+                            onRetry={
+                                lastMessageRef.current ? handleRetry : undefined
+                            }
+                        />
                         <div ref={messagesEndRef} />
                     </div>
                 </div>
@@ -88,6 +121,7 @@ export default function CreateChat() {
                     <ChatInput
                         className="w-full"
                         onSubmit={handleSubmit}
+                        onInputChange={handleInputChange}
                         onModeChange={setMode}
                         onModelChange={setModel}
                         disabled={isStreaming || isSubmitting}

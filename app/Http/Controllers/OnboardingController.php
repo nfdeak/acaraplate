@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\DataObjects\DietIdentityData;
+use App\Enums\AllergySeverity;
 use App\Enums\AnimalProductChoice;
 use App\Enums\GoalChoice;
 use App\Enums\IntensityChoice;
 use App\Enums\Sex;
+use App\Enums\UserProfileAttributeCategory;
 use App\Http\Requests\StoreBiometricsRequest;
+use App\Http\Requests\StoreDietaryPreferencesRequest;
 use App\Http\Requests\StoreIdentityRequest;
 use App\Models\User;
 use App\Services\DietMapper;
@@ -86,13 +89,64 @@ final readonly class OnboardingController
 
         $user->profile()->updateOrCreate(['user_id' => $user->id], $profileData);
 
-        $profile = $user->profile()->first();
-        if ($profile) {
-            $profile->update([
-                'onboarding_completed' => true,
-                'onboarding_completed_at' => now(),
+        return to_route('onboarding.dietary.show');
+    }
+
+    public function showDietaryPreferences(): Response
+    {
+        $profile = $this->user->profile;
+        $existingAttributes = $profile
+            ? $profile->dietaryAttributes
+            : collect();
+
+        return Inertia::render('onboarding/dietary-preferences', [
+            'existingAttributes' => $existingAttributes,
+            'categories' => collect([
+                UserProfileAttributeCategory::Allergy,
+                UserProfileAttributeCategory::Intolerance,
+                UserProfileAttributeCategory::Dislike,
+                UserProfileAttributeCategory::Restriction,
+            ])->map(fn (UserProfileAttributeCategory $cat): array => [
+                'value' => $cat->value,
+                'label' => $cat->label(),
+            ]),
+            'severityOptions' => collect(AllergySeverity::cases())->map(fn (AllergySeverity $s): array => [
+                'value' => $s->value,
+                'label' => $s->label(),
+            ]),
+        ]);
+    }
+
+    public function storeDietaryPreferences(StoreDietaryPreferencesRequest $request): RedirectResponse
+    {
+        $user = $this->user;
+        $profile = $user->profile()->firstOrFail();
+
+        $profile->attributes()
+            ->whereIn('category', [
+                UserProfileAttributeCategory::Allergy,
+                UserProfileAttributeCategory::Intolerance,
+                UserProfileAttributeCategory::Dislike,
+                UserProfileAttributeCategory::Restriction,
+            ])
+            ->delete();
+
+        /** @var array<int, array{category: string, value: string, severity?: string|null, notes?: string|null}> $attributes */
+        $attributes = $request->validated('attributes', []);
+
+        foreach ($attributes as $attr) {
+            $profile->attributes()->create([
+                'category' => $attr['category'],
+                'value' => $attr['value'],
+                'severity' => $attr['severity'] ?? null,
+                'notes' => $attr['notes'] ?? null,
             ]);
         }
+
+        $profile->update([
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
+        ]);
 
         return to_route('dashboard');
     }
