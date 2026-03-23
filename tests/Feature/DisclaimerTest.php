@@ -8,6 +8,16 @@ use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\post;
 
+it('renders disclaimer page for user who has not accepted', function (): void {
+    $this->withoutVite();
+
+    $user = User::factory()->withoutDisclaimer()->create();
+
+    actingAs($user)
+        ->get(route('disclaimer.show'))
+        ->assertOk();
+});
+
 it('requires accepted_disclaimer checkbox during registration', function (): void {
     post(route('register.store'), [
         'name' => 'Test User',

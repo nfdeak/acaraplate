@@ -32,6 +32,10 @@ it('falls back to international number for unknown country', function (): void {
     expect(EmergencyNumberUtil::emergencyNumber('Pacific/Kiritimati'))->toBe('112 (international)');
 });
 
+it('falls back to US for invalid timezone', function (): void {
+    expect(EmergencyNumberUtil::countryFromTimezone('Invalid/Timezone'))->toBe('US');
+});
+
 it('derives correct country code from timezone', function (string $timezone, string $expected): void {
     expect(EmergencyNumberUtil::countryFromTimezone($timezone))->toBe($expected);
 })->with([

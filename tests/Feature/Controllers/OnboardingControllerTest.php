@@ -299,6 +299,14 @@ it('requires intensity_choice', function (): void {
     $response->assertSessionHasErrors('intensity_choice');
 });
 
+it('renders dietary preferences page without a profile', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('onboarding.dietary.show'))
+        ->assertOk();
+});
+
 it('renders dietary preferences page', function (): void {
     $user = User::factory()->create();
     $user->profile()->create([]);
