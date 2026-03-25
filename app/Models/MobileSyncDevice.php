@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -83,14 +84,23 @@ final class MobileSyncDevice extends Model
 
     public function markAsPaired(string $deviceName, ?string $deviceIdentifier = null): void
     {
-        $this->update([
-            'is_active' => true,
-            'paired_at' => now(),
-            'device_name' => $deviceName,
-            'device_identifier' => $deviceIdentifier,
-            'linking_token' => null,
-            'token_expires_at' => null,
-        ]);
+        DB::transaction(function () use ($deviceName, $deviceIdentifier): void {
+            if ($deviceIdentifier !== null) {
+                self::query()
+                    ->where('device_identifier', $deviceIdentifier)
+                    ->where('id', '!=', $this->id)
+                    ->delete();
+            }
+
+            $this->update([
+                'is_active' => true,
+                'paired_at' => now(),
+                'device_name' => $deviceName,
+                'device_identifier' => $deviceIdentifier,
+                'linking_token' => null,
+                'token_expires_at' => null,
+            ]);
+        });
     }
 
     /**
