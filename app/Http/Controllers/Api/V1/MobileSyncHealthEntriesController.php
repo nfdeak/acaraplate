@@ -6,13 +6,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\SyncMobileHealthEntriesAction;
 use App\Http\Requests\Api\V1\StoreMobileSyncHealthEntriesRequest;
+use App\Models\MobileSyncDevice;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
-final class MobileSyncHealthEntriesController
+final readonly class MobileSyncHealthEntriesController
 {
     public function __construct(
-        private readonly SyncMobileHealthEntriesAction $syncHealthEntriesAction,
+        private SyncMobileHealthEntriesAction $syncHealthEntriesAction,
     ) {}
 
     public function __invoke(StoreMobileSyncHealthEntriesRequest $request): JsonResponse
@@ -20,15 +21,21 @@ final class MobileSyncHealthEntriesController
         /** @var User $user */
         $user = $request->user();
 
-        /** @var array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}> $entries */
-        $entries = $request->validated('entries');
-
         /** @var string $deviceIdentifier */
         $deviceIdentifier = $request->validated('device_identifier');
 
+        $device = MobileSyncDevice::query()
+            ->where('user_id', $user->id)
+            ->where('device_identifier', $deviceIdentifier)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        /** @var array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}> $entries */
+        $entries = $request->validated('entries');
+
         $result = $this->syncHealthEntriesAction->handle(
             user: $user,
-            deviceIdentifier: $deviceIdentifier,
+            device: $device,
             entries: $entries,
         );
 

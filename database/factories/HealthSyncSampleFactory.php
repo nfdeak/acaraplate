@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\HealthSyncType;
 use App\Models\HealthSyncSample;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,11 +23,11 @@ final class HealthSyncSampleFactory extends Factory
             'mobile_sync_device_id' => null,
             'type_identifier' => fake()->randomElement([
                 'heartRate',
-                'bloodGlucose',
-                'weight',
+                HealthSyncType::BloodGlucose->value,
+                HealthSyncType::Weight->value,
                 'stepCount',
-                'bloodPressureSystolic',
-                'bloodPressureDiastolic',
+                HealthSyncType::BloodPressureSystolic->value,
+                HealthSyncType::BloodPressureDiastolic->value,
             ]),
             'value' => fake()->randomFloat(2, 0, 200),
             'unit' => fake()->randomElement(['bpm', 'mmol/L', 'kg', 'count', 'mmHg']),
@@ -39,7 +40,7 @@ final class HealthSyncSampleFactory extends Factory
     public function bloodGlucose(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'type_identifier' => 'bloodGlucose',
+            'type_identifier' => HealthSyncType::BloodGlucose->value,
             'value' => fake()->randomFloat(1, 4.0, 10.0),
             'unit' => 'mmol/L',
         ]);
@@ -57,7 +58,7 @@ final class HealthSyncSampleFactory extends Factory
     public function weight(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'type_identifier' => 'weight',
+            'type_identifier' => HealthSyncType::Weight->value,
             'value' => fake()->randomFloat(1, 60.0, 100.0),
             'unit' => 'kg',
         ]);

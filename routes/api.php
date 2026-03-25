@@ -10,8 +10,9 @@ Route::prefix('v1/sync')->group(function (): void {
         ->middleware('throttle:5,1')
         ->name('api.v1.sync.pair');
 
-    Route::middleware('auth:sanctum')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'abilities:sync:push'])->group(function (): void {
         Route::post('health-entries', ApiV1\MobileSyncHealthEntriesController::class)
+            ->middleware('throttle:60,1')
             ->name('api.v1.sync.health-entries');
     });
 });

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 use App\Enums\GlucoseReadingType;
 use App\Enums\HealthEntrySource;
+use App\Enums\HealthSyncType;
 use App\Models\HealthEntry;
 use App\Models\HealthSyncSample;
 use App\Models\MobileSyncDevice;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Date;
 
 it('requires authentication', function (): void {
     $this->postJson('/api/v1/sync/health-entries', [
@@ -100,7 +101,7 @@ it('syncs blood glucose to health entry with random reading type', function (): 
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'bloodGlucose',
+                    'type' => HealthSyncType::BloodGlucose->value,
                     'value' => 5.5,
                     'unit' => 'mmol/L',
                     'date' => '2026-03-25T10:30:00Z',
@@ -117,13 +118,13 @@ it('syncs blood glucose to health entry with random reading type', function (): 
             'samples_updated' => 0,
         ]);
 
-    expect(HealthEntry::where('user_id', $user->id)->first())
+    expect(HealthEntry::query()->where('user_id', $user->id)->first())
         ->glucose_value->toBe(5.5)
         ->glucose_reading_type->toBe(GlucoseReadingType::Random)
         ->source->toBe(HealthEntrySource::MobileSync);
 });
 
-it('syncs blood pressure to health entry', function (): void {
+it('syncs blood pressure to a single health entry row', function (): void {
     $user = User::factory()->create();
     $device = MobileSyncDevice::factory()->for($user)->paired()->create([
         'device_identifier' => 'test-uuid',
@@ -135,13 +136,13 @@ it('syncs blood pressure to health entry', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'bloodPressureSystolic',
+                    'type' => HealthSyncType::BloodPressureSystolic->value,
                     'value' => 120,
                     'unit' => 'mmHg',
                     'date' => '2026-03-25T10:30:00Z',
                 ],
                 [
-                    'type' => 'bloodPressureDiastolic',
+                    'type' => HealthSyncType::BloodPressureDiastolic->value,
                     'value' => 80,
                     'unit' => 'mmHg',
                     'date' => '2026-03-25T10:30:00Z',
@@ -150,9 +151,19 @@ it('syncs blood pressure to health entry', function (): void {
         ])
         ->assertOk()
         ->assertJson([
-            'health_entries_created' => 2,
-            'health_entries_updated' => 0,
+            'health_entries_created' => 1,
+            'health_entries_updated' => 1,
         ]);
+
+    expect(HealthEntry::query()->where('user_id', $user->id)->count())->toBe(1);
+
+    $bp = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::BloodPressure->value)
+        ->first();
+
+    expect($bp->blood_pressure_systolic)->toBe(120)
+        ->and($bp->blood_pressure_diastolic)->toBe(80)
+        ->and($bp->source)->toBe(HealthEntrySource::MobileSync);
 });
 
 it('syncs weight to health entry', function (): void {
@@ -167,7 +178,7 @@ it('syncs weight to health entry', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'weight',
+                    'type' => HealthSyncType::Weight->value,
                     'value' => 75.5,
                     'unit' => 'kg',
                     'date' => '2026-03-25T10:30:00Z',
@@ -177,7 +188,7 @@ it('syncs weight to health entry', function (): void {
         ->assertOk()
         ->assertJson(['health_entries_created' => 1]);
 
-    expect(HealthEntry::where('user_id', $user->id)->first())
+    expect(HealthEntry::query()->where('user_id', $user->id)->first())
         ->weight->toBe(75.5);
 });
 
@@ -193,25 +204,25 @@ it('syncs macros to health entry', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'carbohydrates',
+                    'type' => HealthSyncType::Carbohydrates->value,
                     'value' => 50.0,
                     'unit' => 'g',
                     'date' => '2026-03-25T12:00:00Z',
                 ],
                 [
-                    'type' => 'protein',
+                    'type' => HealthSyncType::Protein->value,
                     'value' => 25.0,
                     'unit' => 'g',
                     'date' => '2026-03-25T12:00:00Z',
                 ],
                 [
-                    'type' => 'totalFat',
+                    'type' => HealthSyncType::TotalFat->value,
                     'value' => 15.0,
                     'unit' => 'g',
                     'date' => '2026-03-25T12:00:00Z',
                 ],
                 [
-                    'type' => 'dietaryEnergy',
+                    'type' => HealthSyncType::DietaryEnergy->value,
                     'value' => 450,
                     'unit' => 'kcal',
                     'date' => '2026-03-25T12:00:00Z',
@@ -220,23 +231,23 @@ it('syncs macros to health entry', function (): void {
         ])
         ->assertOk();
 
-    $carbsEntry = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'carbohydrates')
+    $carbsEntry = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::Carbohydrates->value)
         ->where('measured_at', '2026-03-25 12:00:00')
         ->first();
 
-    $proteinEntry = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'protein')
+    $proteinEntry = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::Protein->value)
         ->where('measured_at', '2026-03-25 12:00:00')
         ->first();
 
-    $fatEntry = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'totalFat')
+    $fatEntry = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::TotalFat->value)
         ->where('measured_at', '2026-03-25 12:00:00')
         ->first();
 
-    $caloriesEntry = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'dietaryEnergy')
+    $caloriesEntry = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::DietaryEnergy->value)
         ->where('measured_at', '2026-03-25 12:00:00')
         ->first();
 
@@ -258,13 +269,13 @@ it('syncs exercise minutes to health entry', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'exerciseMinutes',
+                    'type' => HealthSyncType::ExerciseMinutes->value,
                     'value' => 30,
                     'unit' => 'min',
                     'date' => '2026-03-25T14:00:00Z',
                 ],
                 [
-                    'type' => 'workouts',
+                    'type' => HealthSyncType::Workouts->value,
                     'value' => 45,
                     'unit' => 'min',
                     'date' => '2026-03-25T15:00:00Z',
@@ -273,13 +284,13 @@ it('syncs exercise minutes to health entry', function (): void {
         ])
         ->assertOk();
 
-    $exercise = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'exerciseMinutes')
+    $exercise = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::ExerciseMinutes->value)
         ->where('measured_at', '2026-03-25 14:00:00')
         ->first();
 
-    $workout = HealthEntry::where('user_id', $user->id)
-        ->where('sync_type', 'workouts')
+    $workout = HealthEntry::query()->where('user_id', $user->id)
+        ->where('sync_type', HealthSyncType::Workouts->value)
         ->where('measured_at', '2026-03-25 15:00:00')
         ->first();
 
@@ -324,9 +335,9 @@ it('syncs unmapped types to health sync samples table', function (): void {
             'samples_updated' => 0,
         ]);
 
-    expect(HealthSyncSample::where('user_id', $user->id)->count())->toBe(2);
+    expect(HealthSyncSample::query()->where('user_id', $user->id)->count())->toBe(2);
 
-    $heartRate = HealthSyncSample::where('user_id', $user->id)
+    $heartRate = HealthSyncSample::query()->where('user_id', $user->id)
         ->where('type_identifier', 'heartRate')
         ->first();
 
@@ -358,7 +369,7 @@ it('syncs sleep stages to health sync samples', function (): void {
         ->assertOk()
         ->assertJson(['samples_created' => 6]);
 
-    expect(HealthSyncSample::where('user_id', $user->id)->count())->toBe(6);
+    expect(HealthSyncSample::query()->where('user_id', $user->id)->count())->toBe(6);
 });
 
 it('upserts on duplicate user type measured_at', function (): void {
@@ -373,7 +384,7 @@ it('upserts on duplicate user type measured_at', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'bloodGlucose',
+                    'type' => HealthSyncType::BloodGlucose->value,
                     'value' => 5.5,
                     'unit' => 'mmol/L',
                     'date' => '2026-03-25T10:30:00Z',
@@ -388,7 +399,7 @@ it('upserts on duplicate user type measured_at', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'bloodGlucose',
+                    'type' => HealthSyncType::BloodGlucose->value,
                     'value' => 6.0,
                     'unit' => 'mmol/L',
                     'date' => '2026-03-25T10:30:00Z',
@@ -401,12 +412,12 @@ it('upserts on duplicate user type measured_at', function (): void {
             'health_entries_updated' => 1,
         ]);
 
-    expect(HealthEntry::where('user_id', $user->id)->count())->toBe(1)
-        ->and(HealthEntry::where('user_id', $user->id)->first()->glucose_value)->toBe(6.0);
+    expect(HealthEntry::query()->where('user_id', $user->id)->count())->toBe(1)
+        ->and(HealthEntry::query()->where('user_id', $user->id)->first()->glucose_value)->toBe(6.0);
 });
 
 it('updates mobile sync device last_synced_at', function (): void {
-    Carbon::setTestNow('2026-03-25 12:00:00');
+    Date::setTestNow('2026-03-25 12:00:00');
 
     $user = User::factory()->create();
     $device = MobileSyncDevice::factory()->for($user)->paired()->create([
@@ -431,7 +442,7 @@ it('updates mobile sync device last_synced_at', function (): void {
 
     expect($device->fresh()->last_synced_at->toDateTimeString())->toBe('2026-03-25 12:00:00');
 
-    Carbon::setTestNow();
+    Date::setTestNow();
 });
 
 it('handles mixed health entries and sync samples', function (): void {
@@ -446,7 +457,7 @@ it('handles mixed health entries and sync samples', function (): void {
             'device_identifier' => 'test-uuid',
             'entries' => [
                 [
-                    'type' => 'bloodGlucose',
+                    'type' => HealthSyncType::BloodGlucose->value,
                     'value' => 5.5,
                     'unit' => 'mmol/L',
                     'date' => '2026-03-25T10:30:00Z',
@@ -458,7 +469,7 @@ it('handles mixed health entries and sync samples', function (): void {
                     'date' => '2026-03-25T10:30:00Z',
                 ],
                 [
-                    'type' => 'weight',
+                    'type' => HealthSyncType::Weight->value,
                     'value' => 75.5,
                     'unit' => 'kg',
                     'date' => '2026-03-25T10:30:00Z',

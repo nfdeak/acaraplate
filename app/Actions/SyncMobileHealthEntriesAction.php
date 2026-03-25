@@ -6,43 +6,22 @@ namespace App\Actions;
 
 use App\Enums\GlucoseReadingType;
 use App\Enums\HealthEntrySource;
+use App\Enums\HealthSyncType;
 use App\Models\HealthEntry;
 use App\Models\HealthSyncSample;
 use App\Models\MobileSyncDevice;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 final readonly class SyncMobileHealthEntriesAction
 {
     /**
-     * @var array<string, string>
-     */
-    private const array HEALTH_ENTRY_MAPPING = [
-        'bloodGlucose' => 'glucose_value',
-        'bloodPressureSystolic' => 'blood_pressure_systolic',
-        'bloodPressureDiastolic' => 'blood_pressure_diastolic',
-        'weight' => 'weight',
-        'carbohydrates' => 'carbs_grams',
-        'protein' => 'protein_grams',
-        'totalFat' => 'fat_grams',
-        'dietaryEnergy' => 'calories',
-        'exerciseMinutes' => 'exercise_duration_minutes',
-        'workouts' => 'exercise_duration_minutes',
-    ];
-
-    /**
      * @param  array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}>  $entries
      * @return array{health_entries_created: int, health_entries_updated: int, samples_created: int, samples_updated: int}
      */
-    public function handle(User $user, string $deviceIdentifier, array $entries): array
+    public function handle(User $user, MobileSyncDevice $device, array $entries): array
     {
-        $device = MobileSyncDevice::query()
-            ->where('user_id', $user->id)
-            ->where('device_identifier', $deviceIdentifier)
-            ->where('is_active', true)
-            ->firstOrFail();
-
         return DB::transaction(function () use ($user, $device, $entries): array {
             $healthEntryCounts = $this->syncHealthEntries($user, $entries);
             $sampleCounts = $this->syncHealthSyncSamples($user, $device, $entries);
@@ -67,44 +46,91 @@ final readonly class SyncMobileHealthEntriesAction
         $created = 0;
         $updated = 0;
 
-        foreach ($entries as $entry) {
-            $type = $entry['type'];
+        $cache = $this->preloadHealthEntries($user, $entries);
 
-            if ($type === 'bloodGlucose') {
-                [$wasCreated, $wasUpdated] = $this->syncGlucoseEntry($user, $entry);
-                $created += $wasCreated ? 1 : 0;
-                $updated += $wasUpdated ? 1 : 0;
-            } elseif (isset(self::HEALTH_ENTRY_MAPPING[$type])) {
-                [$wasCreated, $wasUpdated] = $this->syncVitalEntry($user, $entry);
-                $created += $wasCreated ? 1 : 0;
-                $updated += $wasUpdated ? 1 : 0;
+        foreach ($entries as $entry) {
+            $syncType = HealthSyncType::tryFrom($entry['type']);
+
+            if ($syncType === HealthSyncType::BloodGlucose) {
+                [$wasCreated, $wasUpdated] = $this->syncGlucoseEntry($user, $entry, $cache);
+            } elseif ($syncType === HealthSyncType::BloodPressureSystolic || $syncType === HealthSyncType::BloodPressureDiastolic) {
+                [$wasCreated, $wasUpdated] = $this->syncBloodPressureEntry($user, $entry, $syncType, $cache);
+            } elseif ($syncType?->healthEntryColumn() !== null) {
+                [$wasCreated, $wasUpdated] = $this->syncVitalEntry($user, $entry, $syncType, $cache);
+            } else {
+                continue;
             }
+
+            $created += $wasCreated ? 1 : 0;
+            $updated += $wasUpdated ? 1 : 0;
         }
 
         return ['created' => $created, 'updated' => $updated];
     }
 
     /**
+     * @param  array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}>  $entries
+     * @return array<string, HealthEntry> Keyed by "sync_type|measured_at"
+     */
+    private function preloadHealthEntries(User $user, array $entries): array
+    {
+        $syncTypes = [];
+        $dates = [];
+
+        foreach ($entries as $entry) {
+            $syncType = HealthSyncType::tryFrom($entry['type']);
+
+            if ($syncType === HealthSyncType::BloodGlucose) {
+                $syncTypes[] = HealthSyncType::BloodGlucose->value;
+            } elseif ($syncType === HealthSyncType::BloodPressureSystolic || $syncType === HealthSyncType::BloodPressureDiastolic) {
+                $syncTypes[] = HealthSyncType::BloodPressure->value;
+            } elseif ($syncType?->healthEntryColumn() !== null) {
+                $syncTypes[] = $syncType->value;
+            } else {
+                continue;
+            }
+
+            $dates[] = Date::parse($entry['date'])->toDateTimeString();
+        }
+
+        if ($syncTypes === []) {
+            return [];
+        }
+
+        $existing = HealthEntry::query()
+            ->where('user_id', $user->id)
+            ->whereIn('sync_type', array_unique($syncTypes))
+            ->whereIn('measured_at', array_unique($dates))
+            ->get();
+
+        $keyed = [];
+
+        foreach ($existing as $entry) {
+            /** @var HealthEntry $entry */
+            $key = $entry->sync_type.'|'.$entry->measured_at->toDateTimeString();
+            $keyed[$key] = $entry;
+        }
+
+        return $keyed;
+    }
+
+    /**
      * @param  array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}  $entry
+     * @param  array<string, HealthEntry>  $cache
      * @return array{bool, bool}
      */
-    private function syncGlucoseEntry(User $user, array $entry): array
+    private function syncGlucoseEntry(User $user, array $entry, array &$cache): array
     {
         /** @var string $date */
         $date = $entry['date'];
-        $measuredAt = Carbon::parse($date);
+        $measuredAt = Date::parse($date);
+        $key = HealthSyncType::BloodGlucose->value.'|'.$measuredAt->toDateTimeString();
 
         /** @var float|int|string $value */
         $value = $entry['value'];
 
-        $existing = HealthEntry::query()
-            ->where('user_id', $user->id)
-            ->where('sync_type', 'bloodGlucose')
-            ->where('measured_at', $measuredAt)
-            ->first();
-
-        if ($existing !== null) {
-            $existing->update([
+        if (isset($cache[$key])) {
+            $cache[$key]->update([
                 'glucose_value' => (float) $value,
                 'glucose_reading_type' => GlucoseReadingType::Random->value,
                 'source' => HealthEntrySource::MobileSync->value,
@@ -113,9 +139,9 @@ final readonly class SyncMobileHealthEntriesAction
             return [false, true];
         }
 
-        HealthEntry::create([
+        $cache[$key] = HealthEntry::query()->create([
             'user_id' => $user->id,
-            'sync_type' => 'bloodGlucose',
+            'sync_type' => HealthSyncType::BloodGlucose->value,
             'glucose_value' => (float) $value,
             'glucose_reading_type' => GlucoseReadingType::Random->value,
             'measured_at' => $measuredAt,
@@ -127,28 +153,63 @@ final readonly class SyncMobileHealthEntriesAction
 
     /**
      * @param  array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}  $entry
+     * @param  array<string, HealthEntry>  $cache
      * @return array{bool, bool}
      */
-    private function syncVitalEntry(User $user, array $entry): array
+    private function syncBloodPressureEntry(User $user, array $entry, HealthSyncType $syncType, array &$cache): array
     {
-        $type = $entry['type'];
-        $column = self::HEALTH_ENTRY_MAPPING[$type];
+        $column = $syncType === HealthSyncType::BloodPressureSystolic
+            ? 'blood_pressure_systolic'
+            : 'blood_pressure_diastolic';
 
         /** @var string $date */
         $date = $entry['date'];
-        $measuredAt = Carbon::parse($date);
+        $measuredAt = Date::parse($date);
+        $key = HealthSyncType::BloodPressure->value.'|'.$measuredAt->toDateTimeString();
 
         /** @var float|int|string $value */
         $value = $entry['value'];
 
-        $existing = HealthEntry::query()
-            ->where('user_id', $user->id)
-            ->where('sync_type', $type)
-            ->where('measured_at', $measuredAt)
-            ->first();
+        if (isset($cache[$key])) {
+            $cache[$key]->update([
+                $column => (int) $value,
+                'source' => HealthEntrySource::MobileSync->value,
+            ]);
 
-        if ($existing !== null) {
-            $existing->update([
+            return [false, true];
+        }
+
+        $cache[$key] = HealthEntry::query()->create([
+            'user_id' => $user->id,
+            'sync_type' => HealthSyncType::BloodPressure->value,
+            $column => (int) $value,
+            'measured_at' => $measuredAt,
+            'source' => HealthEntrySource::MobileSync->value,
+        ]);
+
+        return [true, false];
+    }
+
+    /**
+     * @param  array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}  $entry
+     * @param  array<string, HealthEntry>  $cache
+     * @return array{bool, bool}
+     */
+    private function syncVitalEntry(User $user, array $entry, HealthSyncType $syncType, array &$cache): array
+    {
+        /** @var string $column */
+        $column = $syncType->healthEntryColumn();
+
+        /** @var string $date */
+        $date = $entry['date'];
+        $measuredAt = Date::parse($date);
+        $key = $syncType->value.'|'.$measuredAt->toDateTimeString();
+
+        /** @var float|int|string $value */
+        $value = $entry['value'];
+
+        if (isset($cache[$key])) {
+            $cache[$key]->update([
                 $column => (float) $value,
                 'source' => HealthEntrySource::MobileSync->value,
             ]);
@@ -158,21 +219,21 @@ final readonly class SyncMobileHealthEntriesAction
 
         $data = [
             'user_id' => $user->id,
-            'sync_type' => $type,
+            'sync_type' => $syncType->value,
             'measured_at' => $measuredAt,
             'source' => HealthEntrySource::MobileSync->value,
             $column => (float) $value,
         ];
 
-        if ($type === 'exerciseMinutes') {
+        if ($syncType === HealthSyncType::ExerciseMinutes) {
             $data['exercise_type'] = 'exercise';
             $data['exercise_duration_minutes'] = (int) $value;
-        } elseif ($type === 'workouts') {
+        } elseif ($syncType === HealthSyncType::Workouts) {
             $data['exercise_type'] = 'workout';
             $data['exercise_duration_minutes'] = (int) $value;
         }
 
-        HealthEntry::create($data);
+        $cache[$key] = HealthEntry::query()->create($data);
 
         return [true, false];
     }
@@ -183,59 +244,54 @@ final readonly class SyncMobileHealthEntriesAction
      */
     private function syncHealthSyncSamples(User $user, MobileSyncDevice $device, array $entries): array
     {
-        $unmappedTypes = $this->getUnmappedTypes($entries);
+        $unmappedEntries = [];
 
-        if ($unmappedTypes === []) {
+        foreach ($entries as $entry) {
+            $syncType = HealthSyncType::tryFrom($entry['type']);
+
+            if ($syncType !== null && $syncType->isMappedToHealthEntry()) {
+                continue;
+            }
+
+            $unmappedEntries[] = $entry;
+        }
+
+        if ($unmappedEntries === []) {
             return ['created' => 0, 'updated' => 0];
         }
+
+        $cache = $this->preloadSamples($user, $unmappedEntries);
 
         $created = 0;
         $updated = 0;
 
-        foreach ($unmappedTypes as $type) {
-            foreach ($entries as $entry) {
-                if ($entry['type'] !== $type) {
-                    continue;
-                }
+        foreach ($unmappedEntries as $entry) {
+            /** @var string $date */
+            $date = $entry['date'];
+            $measuredAt = Date::parse($date);
+            $key = $entry['type'].'|'.$measuredAt->toDateTimeString();
 
-                /** @var string $date */
-                $date = $entry['date'];
-                $measuredAt = Carbon::parse($date);
+            /** @var string|null $source */
+            $source = $entry['source'] ?? null;
 
-                /** @var float|int|string $value */
-                $value = $entry['value'];
-
-                /** @var string $unit */
-                $unit = $entry['unit'];
-
-                /** @var string|null $source */
-                $source = $entry['source'] ?? null;
-
-                $existing = HealthSyncSample::query()
-                    ->where('user_id', $user->id)
-                    ->where('type_identifier', $type)
-                    ->where('measured_at', $measuredAt)
-                    ->first();
-
-                if ($existing !== null) {
-                    $existing->update([
-                        'value' => (float) $value,
-                        'unit' => $unit,
-                        'source' => $source,
-                    ]);
-                    $updated++;
-                } else {
-                    HealthSyncSample::create([
-                        'user_id' => $user->id,
-                        'mobile_sync_device_id' => $device->id,
-                        'type_identifier' => $type,
-                        'value' => (float) $value,
-                        'unit' => $unit,
-                        'measured_at' => $measuredAt,
-                        'source' => $source,
-                    ]);
-                    $created++;
-                }
+            if (isset($cache[$key])) {
+                $cache[$key]->update([
+                    'value' => (float) $entry['value'],
+                    'unit' => $entry['unit'],
+                    'source' => $source,
+                ]);
+                $updated++;
+            } else {
+                $cache[$key] = HealthSyncSample::query()->create([
+                    'user_id' => $user->id,
+                    'mobile_sync_device_id' => $device->id,
+                    'type_identifier' => $entry['type'],
+                    'value' => (float) $entry['value'],
+                    'unit' => $entry['unit'],
+                    'measured_at' => $measuredAt,
+                    'source' => $source,
+                ]);
+                $created++;
             }
         }
 
@@ -244,21 +300,33 @@ final readonly class SyncMobileHealthEntriesAction
 
     /**
      * @param  array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}>  $entries
-     * @return array<string>
+     * @return array<string, HealthSyncSample> Keyed by "type_identifier|measured_at"
      */
-    private function getUnmappedTypes(array $entries): array
+    private function preloadSamples(User $user, array $entries): array
     {
-        $unmapped = [];
+        /** @var array<string> $types */
+        $types = array_unique(array_column($entries, 'type'));
 
-        foreach ($entries as $entry) {
-            $type = $entry['type'];
-            if (! isset(self::HEALTH_ENTRY_MAPPING[$type]) && $type !== 'bloodGlucose') {
-                /** @var string $type */
-                $unmapped[] = $type;
-            }
+        /** @var array<string> $dates */
+        $dates = array_unique(array_map(
+            fn (array $entry): string => Date::parse($entry['date'])->toDateTimeString(),
+            $entries,
+        ));
+
+        $existing = HealthSyncSample::query()
+            ->where('user_id', $user->id)
+            ->whereIn('type_identifier', $types)
+            ->whereIn('measured_at', $dates)
+            ->get();
+
+        $keyed = [];
+
+        foreach ($existing as $sample) {
+            /** @var HealthSyncSample $sample */
+            $key = $sample->type_identifier.'|'.$sample->measured_at->toDateTimeString();
+            $keyed[$key] = $sample;
         }
 
-        /** @var array<string> */
-        return array_unique($unmapped);
+        return $keyed;
     }
 }
