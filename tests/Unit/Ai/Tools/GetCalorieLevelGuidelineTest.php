@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Ai\Tools\GetCalorieLevelGuideline;
 use Laravel\Ai\Tools\Request;
+use Tests\Helpers\TestJsonSchema;
 
 it('returns dietary guidelines content', function (): void {
     $tool = new GetCalorieLevelGuideline;
@@ -23,5 +24,5 @@ it('has correct tool metadata', function (): void {
 
     expect($tool->name())->toBe('get_calorie_level_guideline')
         ->and($tool->description())->toContain('USDA Dietary Guidelines')
-        ->and($tool->schema(new Tests\Helpers\TestJsonSchema))->toBeArray()->not->toBeEmpty();
+        ->and($tool->schema(new TestJsonSchema))->toBeArray()->not->toBeEmpty();
 });

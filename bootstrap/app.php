@@ -50,7 +50,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->shouldRenderJsonWhen(function (Request $request): bool {
-            return $request->is('api/*') || $request->expectsJson();
+            if ($request->is('api/*')) {
+                return true;
+            }
+
+            return $request->expectsJson();
         });
 
         $exceptions->report(function (RequestException $e): void {

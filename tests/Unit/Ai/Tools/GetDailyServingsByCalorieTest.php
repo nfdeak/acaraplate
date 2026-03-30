@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Ai\Tools\GetDailyServingsByCalorie;
 use Laravel\Ai\Tools\Request;
+use Tests\Helpers\TestJsonSchema;
 
 it('returns daily servings content', function (): void {
     $tool = new GetDailyServingsByCalorie;
@@ -23,5 +24,5 @@ it('has correct tool metadata', function (): void {
 
     expect($tool->name())->toBe('get_daily_servings_by_calorie')
         ->and($tool->description())->toContain('USDA daily serving')
-        ->and($tool->schema(new Tests\Helpers\TestJsonSchema))->toBeArray()->not->toBeEmpty();
+        ->and($tool->schema(new TestJsonSchema))->toBeArray()->not->toBeEmpty();
 });

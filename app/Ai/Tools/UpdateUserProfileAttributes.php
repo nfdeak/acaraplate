@@ -69,7 +69,7 @@ final readonly class UpdateUserProfileAttributes implements Tool
                 ->description('Severity level for allergies only: mild, moderate, severe.'),
             'notes' => $schema->string()->required()->nullable()
                 ->description('Additional notes about this attribute.'),
-            'metadata' => $schema->object(fn (JsonSchema $s) => [
+            'metadata' => $schema->object(fn (JsonSchema $s): array => [
                 'dosage' => $s->string()->required()->nullable()->description('Medication dosage (e.g., "500mg").'),
                 'frequency' => $s->string()->required()->nullable()->description('Medication frequency (e.g., "twice daily").'),
                 'purpose' => $s->string()->required()->nullable()->description('Purpose of the medication (e.g., "Blood sugar control").'),
