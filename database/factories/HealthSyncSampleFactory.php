@@ -33,6 +33,7 @@ final class HealthSyncSampleFactory extends Factory
             'unit' => fake()->randomElement(['bpm', 'mmol/L', 'kg', 'count', 'mmHg']),
             'measured_at' => fake()->dateTimeBetween('-7 days', 'now'),
             'source' => fake()->randomElement(['Apple Watch', 'iPhone', null]),
+            'timezone' => null,
             'metadata' => null,
         ];
     }

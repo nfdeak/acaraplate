@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\SyncMobileHealthEntriesAction;
+use App\Actions\UpdateUserTimezoneAction;
 use App\Http\Requests\Api\V1\StoreMobileSyncHealthEntriesRequest;
 use App\Models\MobileSyncDevice;
 use App\Models\User;
@@ -16,6 +17,7 @@ final readonly class MobileSyncHealthEntriesController
 {
     public function __construct(
         private SyncMobileHealthEntriesAction $syncHealthEntriesAction,
+        private UpdateUserTimezoneAction $updateTimezoneAction,
     ) {}
 
     public function __invoke(StoreMobileSyncHealthEntriesRequest $request): JsonResponse
@@ -25,6 +27,9 @@ final readonly class MobileSyncHealthEntriesController
 
         /** @var string $deviceIdentifier */
         $deviceIdentifier = $request->validated('device_identifier');
+
+        /** @var string|null $timezone */
+        $timezone = $request->validated('timezone');
 
         $device = MobileSyncDevice::query()
             ->where('user_id', $user->id)
@@ -47,7 +52,12 @@ final readonly class MobileSyncHealthEntriesController
             user: $user,
             device: $device,
             entries: $entries,
+            timezone: $timezone,
         );
+
+        if (is_string($timezone)) {
+            $this->updateTimezoneAction->handle($user, $timezone);
+        }
 
         return response()->json([
             'message' => 'Synced successfully.',

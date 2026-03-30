@@ -723,3 +723,63 @@ it('handles mixed health entries and sync samples', function (): void {
             'samples_updated' => 0,
         ]);
 });
+
+it('stores timezone on health sync samples and updates user timezone', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'timezone' => 'Asia/Ulaanbaatar',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'heartRate',
+                    'value' => 72,
+                    'unit' => 'bpm',
+                    'date' => '2026-03-25T10:30:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk();
+
+    $sample = HealthSyncSample::query()->where('user_id', $user->id)->first();
+
+    expect($sample->timezone)->toBe('Asia/Ulaanbaatar');
+    expect($user->fresh()->timezone)->toBe('Asia/Ulaanbaatar');
+});
+
+it('syncs without timezone for backward compatibility', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'heartRate',
+                    'value' => 72,
+                    'unit' => 'bpm',
+                    'date' => '2026-03-25T10:30:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk();
+
+    $sample = HealthSyncSample::query()->where('user_id', $user->id)->first();
+
+    expect($sample->timezone)->toBeNull();
+});
