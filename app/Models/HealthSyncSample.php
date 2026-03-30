@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $unit
  * @property CarbonInterface $measured_at
  * @property string|null $source
+ * @property string|null $timezone
  * @property array<string, mixed>|null $metadata
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
@@ -38,6 +39,7 @@ final class HealthSyncSample extends Model
         'unit',
         'measured_at',
         'source',
+        'timezone',
         'metadata',
     ];
 

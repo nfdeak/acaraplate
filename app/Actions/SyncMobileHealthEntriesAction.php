@@ -20,11 +20,11 @@ final readonly class SyncMobileHealthEntriesAction
      * @param  array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}>  $entries
      * @return array{health_entries_created: int, health_entries_updated: int, samples_created: int, samples_updated: int}
      */
-    public function handle(User $user, MobileSyncDevice $device, array $entries): array
+    public function handle(User $user, MobileSyncDevice $device, array $entries, ?string $timezone = null): array
     {
-        return DB::transaction(function () use ($user, $device, $entries): array {
+        return DB::transaction(function () use ($user, $device, $entries, $timezone): array {
             $healthEntryCounts = $this->syncHealthEntries($user, $entries);
-            $sampleCounts = $this->syncHealthSyncSamples($user, $device, $entries);
+            $sampleCounts = $this->syncHealthSyncSamples($user, $device, $entries, $timezone);
 
             $device->update(['last_synced_at' => now()]);
 
@@ -242,7 +242,7 @@ final readonly class SyncMobileHealthEntriesAction
      * @param  array<int, array{type: string, value: float|int|string, unit: string, date: string, source?: string|null}>  $entries
      * @return array{created: int, updated: int}
      */
-    private function syncHealthSyncSamples(User $user, MobileSyncDevice $device, array $entries): array
+    private function syncHealthSyncSamples(User $user, MobileSyncDevice $device, array $entries, ?string $timezone): array
     {
         $unmappedEntries = [];
 
@@ -279,6 +279,7 @@ final readonly class SyncMobileHealthEntriesAction
                     'value' => (float) $entry['value'],
                     'unit' => $entry['unit'],
                     'source' => $source,
+                    'timezone' => $timezone,
                 ]);
                 $updated++;
             } else {
@@ -290,6 +291,7 @@ final readonly class SyncMobileHealthEntriesAction
                     'unit' => $entry['unit'],
                     'measured_at' => $measuredAt,
                     'source' => $source,
+                    'timezone' => $timezone,
                 ]);
                 $created++;
             }
