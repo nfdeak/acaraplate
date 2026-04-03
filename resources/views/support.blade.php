@@ -24,17 +24,17 @@
                     Choose the best contact method for your situation:
                 </p>
 
-                <h3>📧 Email Support (Recommended)</h3>
+                <h3>Email Support (Recommended)</h3>
                 <p>
-                    <strong>team@acara.app</strong>
+                    <strong><a href="mailto:support@acara.app">support@acara.app</a></strong> or <strong><a href="mailto:team@acara.app">team@acara.app</a></strong>
                 </p>
                 <ul>
                     <li>Response time: 24-48 hours</li>
-                    <li>Best for: account problems, billing questions, personal health data concerns</li>
-                    <li>I respond personally to every email</li>
+                    <li>Best for: account problems, iOS app issues, personal health data concerns</li>
+                    <li>We respond personally to every email</li>
                 </ul>
 
-                <h3>🐛 GitHub Issues</h3>
+                <h3>GitHub Issues</h3>
                 <p>
                     <strong><a href="https://github.com/acara-app/plate/issues" target="_blank" rel="noopener">Report on GitHub</a></strong>
                 </p>
@@ -43,6 +43,11 @@
                     <li>Transparent tracking: see what others have reported</li>
                     <li>Helps improve the platform for everyone</li>
                 </ul>
+
+                <h2>Acara Health Sync (iOS)</h2>
+                <p>
+                    Acara Health Sync is the companion iOS app that bridges your Apple Health data to your Plate instance. If you need help with the iOS app, including pairing, health data syncing, or HealthKit permissions, contact us at <a href="mailto:support@acara.app">support@acara.app</a>.
+                </p>
 
                 <h2>Frequently Asked Questions</h2>
 
