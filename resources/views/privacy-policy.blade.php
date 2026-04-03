@@ -14,12 +14,12 @@
         <div class="mt-6">
             <div class="prose prose-slate dark:prose-invert mx-auto max-w-4xl">
                 <h1>Privacy Policy</h1>
-                <p><strong>Effective Date: November 19, 2025</strong></p>
+                <p><strong>Effective Date: April 3, 2026</strong></p>
                 <p>
                     At Acara Plate, we value your privacy and are committed to protecting your personal data. This
                     Privacy Policy explains how we collect, use, store, and protect the information you provide through
                     our website, applications, and services (collectively, the “Services”), including our personalized
-                    nutrition questionnaire. By using the Services, you agree to this Privacy Policy.
+                    nutrition questionnaire and the Acara Health Sync companion app for iOS. By using the Services, you agree to this Privacy Policy.
                 </p>
 
                 <h2>1. Information We Collect</h2>
@@ -40,12 +40,26 @@
                 </ul>
                 </p>
                 <p>
-                    <strong>b. Non-Personal Data:</strong>
+                    <strong>b. Apple Health Data (via Acara Health Sync):</strong>
+                    If you use the Acara Health Sync companion app for iOS, we may collect health and fitness data from Apple Health with your explicit permission. This includes:
+                <ul>
+                    <li><strong>Glucose:</strong> Blood glucose readings from continuous glucose monitors and manual entries.</li>
+                    <li><strong>Vitals:</strong> Heart rate, heart rate variability, blood pressure, blood oxygen saturation, respiratory rate.</li>
+                    <li><strong>Body Measurements:</strong> Weight, BMI, body fat percentage, height.</li>
+                    <li><strong>Activity:</strong> Steps, active energy burned, workouts, cycling, swimming.</li>
+                    <li><strong>Sleep:</strong> Sleep stages (REM, Core, Deep), time in bed.</li>
+                    <li><strong>Nutrition:</strong> Caloric intake, macronutrients, vitamins, minerals, water intake.</li>
+                    <li><strong>Other:</strong> Mobility, reproductive health, hearing, mindfulness, and medications data.</li>
+                </ul>
+                This data is collected on a read-only basis. Acara Health Sync does not write any data to Apple Health. All Apple Health data is encrypted on your device before transmission and sent directly to your Acara Plate instance. Apple Health data is used solely for the purpose of providing personalized nutrition guidance and health insights through Altani, your AI health coach. We do not use Apple Health data for advertising, marketing, or data mining purposes.
+                </p>
+                <p>
+                    <strong>c. Non-Personal Data:</strong>
                     We may collect anonymized or aggregated data, such as usage statistics (e.g., pages visited, time
                     spent on the Services), to improve the platform.
                 </p>
                 <p>
-                    <strong>c. Cookies and Tracking:</strong>
+                    <strong>d. Cookies and Tracking:</strong>
                     We use cookies and similar technologies to enhance your experience, analyze usage, and improve our
                     Services. You can manage cookie preferences through your browser settings.
                 </p>
@@ -139,7 +153,8 @@
                 <h2>12. Contact Us</h2>
                 <p>
                     If you have questions about this Privacy Policy or your data, contact us at
-                    <a href="mailto:team@acara.app">team@acara.app</a>.
+                    <a href="mailto:team@acara.app">team@acara.app</a> or
+                    <a href="mailto:support@acara.app">support@acara.app</a>.
                 </p>
             </div>
         </div>
