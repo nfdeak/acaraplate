@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Enums\BloodType;
 use App\Enums\GlucoseReadingType;
 use App\Enums\HealthEntrySource;
 use App\Enums\HealthSyncType;
+use App\Enums\Sex;
 use App\Models\HealthEntry;
 use App\Models\HealthSyncSample;
 use App\Models\MobileSyncDevice;
@@ -673,6 +675,233 @@ it('updates existing unmapped samples on duplicate sync', function (): void {
 
     expect($sample->value)->toBe(80.0)
         ->and($sample->source)->toBe('iPhone');
+});
+
+it('syncs biologicalSex to user profile', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'biologicalSex',
+                    'value' => 2,
+                    'unit' => 'enum',
+                    'date' => '2026-04-04T00:00:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson([
+            'profile_updated' => true,
+            'health_entries_created' => 0,
+            'samples_created' => 0,
+        ]);
+
+    expect($user->profile->fresh()->sex)->toBe(Sex::Male);
+});
+
+it('syncs dateOfBirth to user profile', function (): void {
+    Date::setTestNow('2026-04-04 12:00:00');
+
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'dateOfBirth',
+                    'value' => 19850315.0,
+                    'unit' => 'yyyyMMdd',
+                    'date' => '2026-04-04T00:00:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => true]);
+
+    $profile = $user->profile->fresh();
+
+    expect($profile->date_of_birth->format('Y-m-d'))->toBe('1985-03-15')
+        ->and($profile->age)->toBe(41);
+
+    Date::setTestNow();
+});
+
+it('syncs bloodType to user profile', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'bloodType',
+                    'value' => 7,
+                    'unit' => 'enum',
+                    'date' => '2026-04-04T00:00:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => true]);
+
+    expect($user->profile->fresh()->blood_type)->toBe(BloodType::OPositive);
+});
+
+it('does not leak user characteristics to health entries or samples', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                ['type' => 'biologicalSex', 'value' => 1, 'unit' => 'enum', 'date' => '2026-04-04T00:00:00Z'],
+                ['type' => 'dateOfBirth', 'value' => 19900101.0, 'unit' => 'yyyyMMdd', 'date' => '2026-04-04T00:00:00Z'],
+                ['type' => 'bloodType', 'value' => 3, 'unit' => 'enum', 'date' => '2026-04-04T00:00:00Z'],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson([
+            'health_entries_created' => 0,
+            'health_entries_updated' => 0,
+            'samples_created' => 0,
+            'samples_updated' => 0,
+            'profile_updated' => true,
+        ]);
+
+    expect(HealthEntry::query()->where('user_id', $user->id)->count())->toBe(0)
+        ->and(HealthSyncSample::query()->where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('syncs biologicalSex other to user profile', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                ['type' => 'biologicalSex', 'value' => 3, 'unit' => 'enum', 'date' => '2026-04-04T00:00:00Z'],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => true]);
+
+    expect($user->profile->fresh()->sex)->toBe(Sex::Other);
+});
+
+it('syncs all bloodType values to user profile', function (int $value, BloodType $expected): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                ['type' => 'bloodType', 'value' => $value, 'unit' => 'enum', 'date' => '2026-04-04T00:00:00Z'],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => true]);
+
+    expect($user->profile->fresh()->blood_type)->toBe($expected);
+})->with([
+    'A+' => [1, BloodType::APositive],
+    'A-' => [2, BloodType::ANegative],
+    'B-' => [4, BloodType::BNegative],
+    'AB+' => [5, BloodType::ABPositive],
+    'AB-' => [6, BloodType::ABNegative],
+    'O-' => [8, BloodType::ONegative],
+]);
+
+it('ignores dateOfBirth with invalid length', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                ['type' => 'dateOfBirth', 'value' => 123.0, 'unit' => 'yyyyMMdd', 'date' => '2026-04-04T00:00:00Z'],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => false]);
+});
+
+it('ignores invalid HealthKit characteristic values', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->paired()->create([
+        'device_identifier' => 'test-uuid',
+    ]);
+    $token = $user->createToken('test', ['sync:push'])->plainTextToken;
+
+    /** @var string $encryptionKey */
+    $encryptionKey = $device->encryption_key;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(route('api.v1.sync.health-entries'), [
+            'device_identifier' => 'test-uuid',
+            'encrypted_payload' => encryptSyncPayload([
+                [
+                    'type' => 'biologicalSex',
+                    'value' => 99,
+                    'unit' => 'enum',
+                    'date' => '2026-04-04T00:00:00Z',
+                ],
+            ], $encryptionKey),
+        ])
+        ->assertOk()
+        ->assertJson(['profile_updated' => false]);
 });
 
 it('handles mixed health entries and sync samples', function (): void {
