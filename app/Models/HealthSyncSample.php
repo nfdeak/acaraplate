@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\HealthEntrySource;
+use App\Enums\HealthSyncType;
 use Carbon\CarbonInterface;
 use Database\Factories\HealthSyncSampleFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,8 +23,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $unit
  * @property CarbonInterface $measured_at
  * @property string|null $source
+ * @property HealthEntrySource|null $entry_source
  * @property string|null $timezone
  * @property array<string, mixed>|null $metadata
+ * @property string|null $notes
+ * @property string|null $group_id
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  * @property-read User $user
@@ -39,8 +46,11 @@ final class HealthSyncSample extends Model
         'unit',
         'measured_at',
         'source',
+        'entry_source',
         'timezone',
         'metadata',
+        'notes',
+        'group_id',
     ];
 
     /**
@@ -52,6 +62,7 @@ final class HealthSyncSample extends Model
             'value' => 'float',
             'measured_at' => 'datetime',
             'metadata' => 'array',
+            'entry_source' => HealthEntrySource::class,
         ];
     }
 
@@ -69,5 +80,23 @@ final class HealthSyncSample extends Model
     public function mobileSyncDevice(): BelongsTo
     {
         return $this->belongsTo(MobileSyncDevice::class);
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function ofType(Builder $query, HealthSyncType $type): void
+    {
+        $query->where('type_identifier', $type->value);
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function forEntrySource(Builder $query, HealthEntrySource $source): void
+    {
+        $query->where('entry_source', $source->value);
     }
 }

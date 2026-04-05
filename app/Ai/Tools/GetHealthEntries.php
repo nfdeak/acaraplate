@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
-use App\Models\HealthEntry;
+use App\Enums\HealthSyncType;
+use App\Models\HealthSyncSample;
 use App\Models\User;
+use App\Services\HealthEntryAssembler;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Laravel\Ai\Contracts\Tool;
@@ -46,73 +49,77 @@ final readonly class GetHealthEntries implements Tool
         $endDate = $date ? Date::parse($date)->endOfDay() : Date::now()->endOfDay();
         $startDate = $endDate->copy()->subDays($days - 1)->startOfDay();
 
-        $query = HealthEntry::query()
+        $query = HealthSyncSample::query()
             ->where('user_id', $user->id)
             ->whereBetween('measured_at', [$startDate, $endDate])
             ->latest('measured_at');
 
         $query = $this->applyTypeFilter($query, $type);
 
-        $entries = $query->limit(100)->get();
+        $samples = $query->limit(200)->get();
 
-        $formatted = $entries->map(function (HealthEntry $entry): array {
+        $assembler = resolve(HealthEntryAssembler::class);
+        $assembled = $assembler->assemble($samples);
+
+        /** @var Collection<int, array{id: int, group_id: string|null, glucose_value: float|null, glucose_reading_type: string|null, measured_at: string, notes: string|null, insulin_units: float|null, insulin_type: string|null, medication_name: string|null, medication_dosage: string|null, weight: float|null, blood_pressure_systolic: int|null, blood_pressure_diastolic: int|null, a1c_value: float|null, carbs_grams: float|null, protein_grams: float|null, fat_grams: float|null, calories: int|null, exercise_type: string|null, exercise_duration_minutes: int|null, source: string|null, created_at: string}> $assembled */
+        $formatted = $assembled->take(100)->map(function (array $entry): array {
             $data = [
-                'measured_at' => $entry->measured_at->toIso8601String(),
-                'source' => $entry->source?->value,
+                'measured_at' => $entry['measured_at'],
+                'source' => $entry['source'],
             ];
 
-            if ($entry->glucose_value !== null) {
-                $data['glucose_value'] = $entry->glucose_value;
-                $data['glucose_reading_type'] = $entry->glucose_reading_type?->value;
+            if ($entry['glucose_value'] !== null) {
+                $data['glucose_value'] = $entry['glucose_value'];
+                $data['glucose_reading_type'] = $entry['glucose_reading_type'];
             }
 
-            if ($entry->carbs_grams !== null) {
-                $data['carbs_grams'] = $entry->carbs_grams;
-                if ($entry->protein_grams !== null) {
-                    $data['protein_grams'] = $entry->protein_grams;
+            if ($entry['carbs_grams'] !== null) {
+                $data['carbs_grams'] = $entry['carbs_grams'];
+                if ($entry['protein_grams'] !== null) {
+                    $data['protein_grams'] = $entry['protein_grams'];
                 }
 
-                if ($entry->fat_grams !== null) {
-                    $data['fat_grams'] = $entry->fat_grams;
+                if ($entry['fat_grams'] !== null) {
+                    $data['fat_grams'] = $entry['fat_grams'];
                 }
 
-                if ($entry->calories !== null) {
-                    $data['calories'] = $entry->calories;
+                if ($entry['calories'] !== null) {
+                    $data['calories'] = $entry['calories'];
                 }
 
-                if ($entry->notes !== null) {
-                    $data['food_name'] = $entry->notes;
+                if ($entry['notes'] !== null) {
+                    $data['food_name'] = $entry['notes'];
                 }
             }
 
-            if ($entry->weight !== null) {
-                $data['weight_kg'] = $entry->weight;
+            if ($entry['weight'] !== null) {
+                $data['weight_kg'] = $entry['weight'];
             }
 
-            if ($entry->blood_pressure_systolic !== null) {
-                $data['blood_pressure'] = $entry->blood_pressure_systolic.'/'.$entry->blood_pressure_diastolic;
+            if ($entry['blood_pressure_systolic'] !== null) {
+                $data['blood_pressure'] = ($entry['blood_pressure_systolic']).'/'.((int) $entry['blood_pressure_diastolic']);
             }
 
-            if ($entry->insulin_units !== null) {
-                $data['insulin_units'] = $entry->insulin_units;
-                $data['insulin_type'] = $entry->insulin_type?->value;
+            if ($entry['insulin_units'] !== null) {
+                $data['insulin_units'] = $entry['insulin_units'];
+                $data['insulin_type'] = $entry['insulin_type'];
             }
 
-            if ($entry->medication_name !== null) {
-                $data['medication'] = $entry->medication_name.' '.$entry->medication_dosage;
+            if ($entry['medication_name'] !== null) {
+                $data['medication'] = ($entry['medication_name']).' '.($entry['medication_dosage']);
             }
 
-            if ($entry->exercise_type !== null) {
-                $data['exercise'] = $entry->exercise_type;
-                $data['exercise_duration_minutes'] = $entry->exercise_duration_minutes;
+            if ($entry['exercise_type'] !== null) {
+                $data['exercise'] = $entry['exercise_type'];
+                $data['exercise_duration_minutes'] = $entry['exercise_duration_minutes'];
             }
 
-            if ($entry->a1c_value !== null) {
-                $data['a1c_value'] = $entry->a1c_value;
+            if ($entry['a1c_value'] !== null) {
+                $data['a1c_value'] = $entry['a1c_value'];
             }
 
-            if ($entry->notes !== null) {
-                $data['notes'] = $entry->notes;
+            if ($entry['notes'] !== null) {
+                $data['notes'] = $entry['notes'];
             }
 
             return $data;
@@ -146,21 +153,34 @@ final readonly class GetHealthEntries implements Tool
     }
 
     /**
-     * @param  Builder<HealthEntry>  $query
-     * @return Builder<HealthEntry>
+     * @param  Builder<HealthSyncSample>  $query
+     * @return Builder<HealthSyncSample>
      */
     private function applyTypeFilter(Builder $query, string $type): Builder
     {
         return match ($type) {
-            'food' => $query->whereNotNull('carbs_grams'),
-            'glucose' => $query->whereNotNull('glucose_value'),
-            'vitals' => $query->whereNotNull('weight')
-                ->orWhereNotNull('blood_pressure_systolic')
-                ->orWhereNotNull('a1c_value'),
-            'exercise' => $query->whereNotNull('exercise_type'),
-            'medication' => $query->whereNotNull('insulin_units')
-                ->orWhereNotNull('medication_name'),
-            default => $query,
+            'food' => $query->whereIn('type_identifier', [
+                HealthSyncType::Carbohydrates->value,
+                HealthSyncType::Protein->value,
+                HealthSyncType::TotalFat->value,
+                HealthSyncType::DietaryEnergy->value,
+            ]),
+            'glucose' => $query->where('type_identifier', HealthSyncType::BloodGlucose->value),
+            'vitals' => $query->whereIn('type_identifier', [
+                HealthSyncType::Weight->value,
+                HealthSyncType::BloodPressureSystolic->value,
+                HealthSyncType::BloodPressureDiastolic->value,
+                HealthSyncType::A1c->value,
+            ]),
+            'exercise' => $query->whereIn('type_identifier', [
+                HealthSyncType::ExerciseMinutes->value,
+                HealthSyncType::Workouts->value,
+            ]),
+            'medication' => $query->whereIn('type_identifier', [
+                HealthSyncType::Insulin->value,
+                HealthSyncType::Medication->value,
+            ]),
+            default => $query->whereIn('type_identifier', HealthSyncType::entryTypeValues()),
         };
     }
 }

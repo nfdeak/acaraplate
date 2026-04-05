@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use App\Ai\Tools\GetHealthEntries;
 use App\Enums\HealthEntrySource;
-use App\Models\HealthEntry;
+use App\Models\HealthSyncSample;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Laravel\Ai\Tools\Request;
 use Tests\Helpers\TestJsonSchema;
 
@@ -39,18 +40,24 @@ it('returns entries for today', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    $groupId = (string) Str::uuid();
+
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 27,
+        'value' => 27,
         'measured_at' => now(),
-        'source' => HealthEntrySource::Telegram,
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId,
     ]);
 
-    HealthEntry::factory()->create([
+    $groupId2 = (string) Str::uuid();
+
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 21,
+        'value' => 21,
         'measured_at' => now(),
-        'source' => HealthEntrySource::Telegram,
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId2,
     ]);
 
     $request = new Request;
@@ -67,15 +74,15 @@ it('returns entries filtered by food type', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 27,
+        'value' => 27,
         'measured_at' => now(),
     ]);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->bloodGlucose()->create([
         'user_id' => $user->id,
-        'glucose_value' => 140.0,
+        'value' => 140.0,
         'measured_at' => now(),
     ]);
 
@@ -85,22 +92,22 @@ it('returns entries filtered by food type', function (): void {
 
     expect($json)->toHaveKey('success', true)
         ->and($json['total_entries'])->toBe(1)
-        ->and($json['entries'][0])->toHaveKey('carbs_grams', 27);
+        ->and($json['entries'][0])->toHaveKey('carbs_grams', 27.0);
 });
 
 it('returns entries for a date range', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 50,
+        'value' => 50,
         'measured_at' => now()->subDays(2),
     ]);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 30,
+        'value' => 30,
         'measured_at' => now(),
     ]);
 
@@ -130,9 +137,9 @@ it('does not return entries from other users', function (): void {
     $otherUser = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $otherUser->id,
-        'carbs_grams' => 50,
+        'value' => 50,
         'measured_at' => now(),
     ]);
 
@@ -148,10 +155,10 @@ it('formats glucose entries correctly', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->bloodGlucose()->create([
         'user_id' => $user->id,
-        'glucose_value' => 140.5,
-        'glucose_reading_type' => 'post-meal',
+        'value' => 140.5,
+        'metadata' => ['glucose_reading_type' => 'post-meal'],
         'measured_at' => now(),
     ]);
 
@@ -167,9 +174,9 @@ it('formats vitals entries correctly - weight', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->weight()->create([
         'user_id' => $user->id,
-        'weight' => 84.5,
+        'value' => 84.5,
         'measured_at' => now(),
     ]);
 
@@ -184,11 +191,21 @@ it('formats vitals entries correctly - blood pressure', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    $groupId = (string) Str::uuid();
+
+    HealthSyncSample::factory()->bloodPressure(120)->create([
         'user_id' => $user->id,
-        'blood_pressure_systolic' => 120,
-        'blood_pressure_diastolic' => 80,
         'measured_at' => now(),
+        'group_id' => $groupId,
+    ]);
+
+    HealthSyncSample::factory()->create([
+        'user_id' => $user->id,
+        'type_identifier' => 'bloodPressureDiastolic',
+        'value' => 80,
+        'unit' => 'mmHg',
+        'measured_at' => now(),
+        'group_id' => $groupId,
     ]);
 
     $request = new Request(['type' => 'vitals']);
@@ -202,9 +219,9 @@ it('formats vitals entries correctly - a1c', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->a1c()->create([
         'user_id' => $user->id,
-        'a1c_value' => 7.5,
+        'value' => 7.5,
         'measured_at' => now(),
     ]);
 
@@ -219,10 +236,10 @@ it('formats exercise entries correctly', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->exercise()->create([
         'user_id' => $user->id,
-        'exercise_type' => 'running',
-        'exercise_duration_minutes' => 30,
+        'value' => 30,
+        'metadata' => ['exercise_type' => 'running'],
         'measured_at' => now(),
     ]);
 
@@ -238,10 +255,10 @@ it('formats medication entries correctly - insulin', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->insulin()->create([
         'user_id' => $user->id,
-        'insulin_units' => 10.5,
-        'insulin_type' => 'bolus',
+        'value' => 10.5,
+        'metadata' => ['insulin_type' => 'bolus'],
         'measured_at' => now(),
     ]);
 
@@ -257,10 +274,12 @@ it('formats medication entries correctly - oral medication', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->medication()->create([
         'user_id' => $user->id,
-        'medication_name' => 'Metformin',
-        'medication_dosage' => '500mg',
+        'metadata' => [
+            'medication_name' => 'Metformin',
+            'medication_dosage' => '500mg',
+        ],
         'measured_at' => now(),
     ]);
 
@@ -275,7 +294,7 @@ it('formats notes correctly', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
         'notes' => 'Felt dizzy after lunch',
         'measured_at' => now(),
@@ -292,15 +311,45 @@ it('returns food entries with all macros', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    HealthEntry::factory()->create([
+    $groupId = (string) Str::uuid();
+
+    HealthSyncSample::factory()->carbohydrates()->create([
         'user_id' => $user->id,
-        'carbs_grams' => 50.0,
-        'protein_grams' => 20.0,
-        'fat_grams' => 15.0,
-        'calories' => 400,
+        'value' => 50.0,
         'notes' => 'tsuivan',
         'measured_at' => now(),
-        'source' => HealthEntrySource::Telegram,
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId,
+    ]);
+
+    HealthSyncSample::factory()->create([
+        'user_id' => $user->id,
+        'type_identifier' => 'protein',
+        'value' => 20.0,
+        'unit' => 'g',
+        'measured_at' => now(),
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId,
+    ]);
+
+    HealthSyncSample::factory()->create([
+        'user_id' => $user->id,
+        'type_identifier' => 'totalFat',
+        'value' => 15.0,
+        'unit' => 'g',
+        'measured_at' => now(),
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId,
+    ]);
+
+    HealthSyncSample::factory()->create([
+        'user_id' => $user->id,
+        'type_identifier' => 'dietaryEnergy',
+        'value' => 400,
+        'unit' => 'kcal',
+        'measured_at' => now(),
+        'entry_source' => HealthEntrySource::Telegram,
+        'group_id' => $groupId,
     ]);
 
     $request = new Request(['type' => 'food']);
