@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Actions\GetMostRecentHealthSyncSamplesByTypeAction;
+use App\Enums\HealthSyncType;
 use App\Models\HealthSyncSample;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -49,7 +51,7 @@ final readonly class GetHealthData implements Tool
 
         $query = $user->healthSyncSamples()
             ->whereBetween('measured_at', [$startDate, $endDate])
-            ->whereNotIn('type_identifier', HealthSyncSample::USER_CHARACTERISTICS)
+            ->whereNotIn('type_identifier', HealthSyncType::userCharacteristicValues())
             ->latest('measured_at');
 
         if ($typeFilter !== null) {
@@ -67,7 +69,7 @@ final readonly class GetHealthData implements Tool
             'metadata' => $sample->metadata,
         ])->all();
 
-        return (string) json_encode([
+        $response = [
             'success' => true,
             'date_range' => [
                 'from' => $startDate->toDateString(),
@@ -75,7 +77,23 @@ final readonly class GetHealthData implements Tool
             ],
             'total' => count($records),
             'records' => array_values($records),
-        ]);
+        ];
+
+        if ($samples->isEmpty()) {
+            $recentSamples = resolve(GetMostRecentHealthSyncSamplesByTypeAction::class)
+                ->handle($user, $typeFilter);
+
+            $response['data_availability'] = [
+                'message' => 'No entries found in the requested date range. Here is the most recent data available.',
+                'most_recent_by_type' => $recentSamples->map(fn (HealthSyncSample $sample): array => [
+                    'type' => $sample->type_identifier,
+                    'latest_measured_at' => $sample->measured_at->toIso8601String(),
+                    'days_ago' => (int) $sample->measured_at->diffInDays(now()),
+                ])->values()->all(),
+            ];
+        }
+
+        return (string) json_encode($response);
     }
 
     /**

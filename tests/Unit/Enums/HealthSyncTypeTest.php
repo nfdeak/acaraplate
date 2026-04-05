@@ -48,13 +48,50 @@ it('returns correct labels for all types', function (HealthSyncType $type, strin
     [HealthSyncType::BloodType, 'Blood Type'],
 ]);
 
-it('returns entry type values with all health entry types', function (): void {
+it('returns entry type values with all syncable types', function (): void {
     $values = HealthSyncType::entryTypeValues();
 
-    expect($values)->toHaveCount(13)
+    expect($values)
         ->toContain(HealthSyncType::BloodGlucose->value)
         ->toContain(HealthSyncType::Medication->value)
         ->not->toContain(HealthSyncType::BiologicalSex->value)
         ->not->toContain(HealthSyncType::DateOfBirth->value)
-        ->not->toContain(HealthSyncType::BloodType->value);
+        ->not->toContain(HealthSyncType::BloodType->value)
+        ->not->toContain(HealthSyncType::BloodPressure->value);
+
+    foreach (HealthSyncType::cases() as $case) {
+        if ($case->isSyncable()) {
+            expect($values)->toContain($case->value);
+        }
+    }
 });
+
+it('returns user characteristic values', function (): void {
+    $values = HealthSyncType::userCharacteristicValues();
+
+    expect($values)
+        ->toContain(HealthSyncType::BiologicalSex->value)
+        ->toContain(HealthSyncType::DateOfBirth->value)
+        ->toContain(HealthSyncType::BloodType->value)
+        ->not->toContain(HealthSyncType::BloodGlucose->value)
+        ->not->toContain(HealthSyncType::Weight->value);
+});
+
+it('identifies syncable types correctly', function (): void {
+    expect(HealthSyncType::BloodGlucose->isSyncable())->toBeTrue()
+        ->and(HealthSyncType::Weight->isSyncable())->toBeTrue()
+        ->and(HealthSyncType::BiologicalSex->isSyncable())->toBeFalse()
+        ->and(HealthSyncType::BloodPressure->isSyncable())->toBeFalse();
+});
+
+it('returns correct category for each type', function (HealthSyncType $type, string $expectedCategory): void {
+    expect($type->category())->toBe($expectedCategory);
+})->with([
+    [HealthSyncType::BloodGlucose, 'glucose'],
+    [HealthSyncType::Weight, 'vitals'],
+    [HealthSyncType::Carbohydrates, 'food'],
+    [HealthSyncType::Insulin, 'medication'],
+    [HealthSyncType::ExerciseMinutes, 'exercise'],
+    [HealthSyncType::BiologicalSex, 'profile'],
+    [HealthSyncType::BloodPressure, 'vitals'],
+]);

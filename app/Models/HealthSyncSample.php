@@ -38,9 +38,6 @@ final class HealthSyncSample extends Model
     /** @use HasFactory<HealthSyncSampleFactory> */
     use HasFactory;
 
-    /** @var array<int, string> */
-    public const array USER_CHARACTERISTICS = ['biologicalSex', 'dateOfBirth', 'bloodType'];
-
     protected $fillable = [
         'user_id',
         'mobile_sync_device_id',
@@ -58,12 +55,13 @@ final class HealthSyncSample extends Model
 
     public static function categoryFor(string $typeIdentifier): string
     {
+        $syncType = HealthSyncType::tryFrom($typeIdentifier);
+
+        if ($syncType !== null) {
+            return $syncType->category();
+        }
+
         return match ($typeIdentifier) {
-            'carbohydrates', 'protein', 'totalFat', 'dietaryEnergy' => 'food',
-            'bloodGlucose' => 'glucose',
-            'weight', 'bloodPressureSystolic', 'bloodPressureDiastolic', 'a1c' => 'vitals',
-            'insulin', 'medication' => 'medication',
-            'exerciseMinutes', 'workouts' => 'exercise',
             'heartRate', 'restingHeartRate', 'walkingHeartRateAverage', 'heartRateVariability' => 'heart_rate',
             'stepCount' => 'steps',
             'activeEnergy', 'basalEnergyBurned' => 'active_energy',

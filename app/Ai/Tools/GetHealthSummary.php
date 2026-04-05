@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Enums\HealthSyncType;
 use App\Models\HealthSyncSample;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -50,7 +51,7 @@ final readonly class GetHealthSummary implements Tool
 
         $query = $user->healthSyncSamples()
             ->whereBetween('measured_at', [$startDate, $endDate])
-            ->whereNotIn('type_identifier', HealthSyncSample::USER_CHARACTERISTICS)
+            ->whereNotIn('type_identifier', HealthSyncType::userCharacteristicValues())
             ->select([
                 DB::raw('DATE(measured_at) as date'),
                 'type_identifier',

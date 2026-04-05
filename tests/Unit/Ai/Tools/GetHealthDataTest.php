@@ -177,7 +177,7 @@ it('filters by date range', function (): void {
     expect($json['total'])->toBe(2);
 });
 
-it('returns empty result when no data exists', function (): void {
+it('returns empty result with data_availability when no data exists', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -187,7 +187,9 @@ it('returns empty result when no data exists', function (): void {
 
     expect($json)->toHaveKey('success', true)
         ->and($json['total'])->toBe(0)
-        ->and($json['records'])->toBeEmpty();
+        ->and($json['records'])->toBeEmpty()
+        ->and($json)->toHaveKey('data_availability')
+        ->and($json['data_availability']['most_recent_by_type'])->toBeEmpty();
 });
 
 it('returns all types including healthkit data when type is all', function (): void {
@@ -232,4 +234,67 @@ it('includes metadata in records', function (): void {
     $json = json_decode((string) $result, true);
 
     expect($json['records'][0]['metadata'])->toBe(['glucose_reading_type' => 'fasting']);
+});
+
+it('includes data_availability with recent sync data when entries exist outside queried range', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    HealthSyncSample::factory()->bloodGlucose()->create([
+        'user_id' => $user->id,
+        'value' => 110,
+        'measured_at' => now()->subDays(5),
+    ]);
+
+    $request = new Request(['type' => 'glucose', 'days' => 1]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['total'])->toBe(0)
+        ->and($json)->toHaveKey('data_availability')
+        ->and($json['data_availability']['most_recent_by_type'])->toHaveCount(1)
+        ->and($json['data_availability']['most_recent_by_type'][0]['type'])->toBe('bloodGlucose')
+        ->and($json['data_availability']['most_recent_by_type'][0]['days_ago'])->toBe(5);
+});
+
+it('data_availability respects type filter', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    HealthSyncSample::factory()->bloodGlucose()->create([
+        'user_id' => $user->id,
+        'measured_at' => now()->subDays(3),
+    ]);
+
+    HealthSyncSample::factory()->weight()->create([
+        'user_id' => $user->id,
+        'measured_at' => now()->subDays(2),
+    ]);
+
+    $request = new Request(['type' => 'glucose', 'days' => 1]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    $types = array_column($json['data_availability']['most_recent_by_type'], 'type');
+
+    expect($types)->toContain('bloodGlucose')
+        ->and($types)->not->toContain('weight');
+});
+
+it('does not include data_availability when entries are found', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    HealthSyncSample::factory()->stepCount()->create([
+        'user_id' => $user->id,
+        'value' => 5000,
+        'measured_at' => now(),
+    ]);
+
+    $request = new Request;
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['total'])->toBe(1)
+        ->and($json)->not->toHaveKey('data_availability');
 });

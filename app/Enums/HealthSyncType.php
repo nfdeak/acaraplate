@@ -31,21 +31,26 @@ enum HealthSyncType: string
      */
     public static function entryTypeValues(): array
     {
-        return [
-            self::BloodGlucose->value,
-            self::Weight->value,
-            self::BloodPressureSystolic->value,
-            self::BloodPressureDiastolic->value,
-            self::Carbohydrates->value,
-            self::Protein->value,
-            self::TotalFat->value,
-            self::DietaryEnergy->value,
-            self::ExerciseMinutes->value,
-            self::Workouts->value,
-            self::A1c->value,
-            self::Insulin->value,
-            self::Medication->value,
-        ];
+        return array_values(array_map(
+            fn (self $case): string => $case->value,
+            array_filter(self::cases(), fn (self $case): bool => $case->isSyncable()),
+        ));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function userCharacteristicValues(): array
+    {
+        return array_values(array_map(
+            fn (self $case): string => $case->value,
+            array_filter(self::cases(), fn (self $case): bool => $case->isUserCharacteristic()),
+        ));
+    }
+
+    public function isSyncable(): bool
+    {
+        return ! $this->isUserCharacteristic() && $this !== self::BloodPressure;
     }
 
     public function isUserCharacteristic(): bool
@@ -55,6 +60,18 @@ enum HealthSyncType: string
             self::DateOfBirth,
             self::BloodType,
         ], true);
+    }
+
+    public function category(): string
+    {
+        return match ($this) {
+            self::Carbohydrates, self::Protein, self::TotalFat, self::DietaryEnergy => 'food',
+            self::BloodGlucose => 'glucose',
+            self::Weight, self::BloodPressureSystolic, self::BloodPressureDiastolic, self::BloodPressure, self::A1c => 'vitals',
+            self::Insulin, self::Medication => 'medication',
+            self::ExerciseMinutes, self::Workouts => 'exercise',
+            self::BiologicalSex, self::DateOfBirth, self::BloodType => 'profile',
+        };
     }
 
     public function unit(): string
