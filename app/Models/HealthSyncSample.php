@@ -38,6 +38,9 @@ final class HealthSyncSample extends Model
     /** @use HasFactory<HealthSyncSampleFactory> */
     use HasFactory;
 
+    /** @var array<int, string> */
+    public const array USER_CHARACTERISTICS = ['biologicalSex', 'dateOfBirth', 'bloodType'];
+
     protected $fillable = [
         'user_id',
         'mobile_sync_device_id',
@@ -52,6 +55,56 @@ final class HealthSyncSample extends Model
         'notes',
         'group_id',
     ];
+
+    public static function categoryFor(string $typeIdentifier): string
+    {
+        return match ($typeIdentifier) {
+            'carbohydrates', 'protein', 'totalFat', 'dietaryEnergy' => 'food',
+            'bloodGlucose' => 'glucose',
+            'weight', 'bloodPressureSystolic', 'bloodPressureDiastolic', 'a1c' => 'vitals',
+            'insulin', 'medication' => 'medication',
+            'exerciseMinutes', 'workouts' => 'exercise',
+            'heartRate', 'restingHeartRate', 'walkingHeartRateAverage', 'heartRateVariability' => 'heart_rate',
+            'stepCount' => 'steps',
+            'activeEnergy', 'basalEnergyBurned' => 'active_energy',
+            'walkingRunningDistance' => 'distance',
+            'flightsClimbed' => 'flights_climbed',
+            'standMinutes', 'standHours' => 'stand_time',
+            'walkingSpeed', 'walkingStepLength', 'walkingDoubleSupportPercentage', 'walkingAsymmetry' => 'mobility',
+            'environmentalAudioExposure' => 'environment',
+            default => 'other',
+        };
+    }
+
+    /**
+     * @return array<int, string>|null null means no filter
+     */
+    public static function resolveTypeFilter(string $type, int $userId): ?array
+    {
+        if ($type === 'all') {
+            return null;
+        }
+
+        $existsAsRaw = self::query()
+            ->where('user_id', $userId)
+            ->where('type_identifier', $type)
+            ->exists();
+
+        if ($existsAsRaw) {
+            return [$type];
+        }
+
+        $userTypes = self::query()
+            ->where('user_id', $userId)
+            ->select('type_identifier')
+            ->distinct()
+            ->pluck('type_identifier')
+            ->filter(fn (string $ti): bool => self::categoryFor($ti) === $type)
+            ->values()
+            ->all();
+
+        return $userTypes !== [] ? $userTypes : [$type];
+    }
 
     /**
      * @return array<string, string>

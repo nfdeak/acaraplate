@@ -89,6 +89,24 @@ final class HealthSyncSampleFactory extends Factory
         ]);
     }
 
+    public function stepCount(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type_identifier' => 'stepCount',
+            'value' => fake()->numberBetween(100, 5000),
+            'unit' => 'steps',
+        ]);
+    }
+
+    public function activeEnergy(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type_identifier' => 'activeEnergy',
+            'value' => fake()->randomFloat(1, 50, 500),
+            'unit' => 'kcal',
+        ]);
+    }
+
     public function weight(): static
     {
         return $this->state(fn (array $attributes): array => [

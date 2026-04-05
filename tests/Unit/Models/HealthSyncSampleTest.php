@@ -39,3 +39,54 @@ it('belongs to a mobile sync device', function (): void {
         ->toBeInstanceOf(MobileSyncDevice::class)
         ->id->toBe($device->id);
 });
+
+it('returns correct category for known type identifiers', function (string $typeIdentifier, string $expectedCategory): void {
+    expect(HealthSyncSample::categoryFor($typeIdentifier))->toBe($expectedCategory);
+})->with([
+    ['carbohydrates', 'food'],
+    ['protein', 'food'],
+    ['totalFat', 'food'],
+    ['dietaryEnergy', 'food'],
+    ['bloodGlucose', 'glucose'],
+    ['weight', 'vitals'],
+    ['heartRate', 'heart_rate'],
+    ['stepCount', 'steps'],
+    ['activeEnergy', 'active_energy'],
+    ['walkingRunningDistance', 'distance'],
+    ['flightsClimbed', 'flights_climbed'],
+    ['standMinutes', 'stand_time'],
+    ['walkingSpeed', 'mobility'],
+    ['environmentalAudioExposure', 'environment'],
+]);
+
+it('returns other category for unknown type identifiers', function (): void {
+    expect(HealthSyncSample::categoryFor('bloodOxygen'))->toBe('other');
+});
+
+it('resolves type filter to null for all', function (): void {
+    $user = User::factory()->create();
+
+    expect(HealthSyncSample::resolveTypeFilter('all', $user->id))->toBeNull();
+});
+
+it('resolves type filter by raw type identifier', function (): void {
+    $user = User::factory()->create();
+    HealthSyncSample::factory()->heartRate()->for($user)->create();
+
+    expect(HealthSyncSample::resolveTypeFilter('heartRate', $user->id))->toBe(['heartRate']);
+});
+
+it('resolves type filter by category', function (): void {
+    $user = User::factory()->create();
+    HealthSyncSample::factory()->heartRate()->for($user)->create();
+
+    $result = HealthSyncSample::resolveTypeFilter('heart_rate', $user->id);
+
+    expect($result)->toContain('heartRate');
+});
+
+it('falls back to raw type when no category matches', function (): void {
+    $user = User::factory()->create();
+
+    expect(HealthSyncSample::resolveTypeFilter('unknownType', $user->id))->toBe(['unknownType']);
+});
