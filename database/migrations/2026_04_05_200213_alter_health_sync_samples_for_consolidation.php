@@ -30,18 +30,4 @@ return new class extends Migration
 
         Schema::dropIfExists('health_entries');
     }
-
-    public function down(): void
-    {
-        DB::statement('DROP INDEX IF EXISTS health_sync_samples_mobile_unique');
-
-        Schema::table('health_sync_samples', function (Blueprint $table): void {
-            $table->dropIndex(['user_id', 'entry_source', 'measured_at']);
-            $table->dropIndex(['user_id', 'group_id']);
-
-            $table->unique(['user_id', 'type_identifier', 'measured_at'], 'health_sync_samples_unique');
-
-            $table->dropColumn(['entry_source', 'notes', 'group_id']);
-        });
-    }
 };
