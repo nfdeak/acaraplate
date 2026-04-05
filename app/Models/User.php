@@ -42,6 +42,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read Collection<int, MealPlan> $mealPlans
  * @property-read bool $is_onboarded
  * @property-read CarbonInterface|null $accepted_disclaimer_at
+ * @property-read Collection<int, HealthSyncSample> $healthSyncSamples
  * @property-read bool $has_meal_plan
  */
 final class User extends Authenticatable implements MustVerifyEmail
@@ -151,6 +152,14 @@ final class User extends Authenticatable implements MustVerifyEmail
     public function mobileSyncDevices(): HasMany
     {
         return $this->hasMany(MobileSyncDevice::class);
+    }
+
+    /**
+     * @return HasMany<HealthSyncSample, $this>
+     */
+    public function healthSyncSamples(): HasMany
+    {
+        return $this->hasMany(HealthSyncSample::class);
     }
 
     public function hasActiveSubscription(): bool

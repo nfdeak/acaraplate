@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\HealthSyncSample;
+use App\Models\MobileSyncDevice;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -255,6 +257,16 @@ test('active subscription returns trialing subscription', function (): void {
 
     expect($user->fresh()->activeSubscription())->not->toBeNull()
         ->and($user->fresh()->activeSubscription()->stripe_status)->toBe('trialing');
+});
+
+test('health sync samples relation returns related samples', function (): void {
+    $user = User::factory()->create();
+    $device = MobileSyncDevice::factory()->for($user)->create();
+    $sample = HealthSyncSample::factory()->for($user)->for($device)->create();
+
+    expect($user->healthSyncSamples)
+        ->toHaveCount(1)
+        ->first()->id->toBe($sample->id);
 });
 
 test('preferred_language returns null when not set', function (): void {
