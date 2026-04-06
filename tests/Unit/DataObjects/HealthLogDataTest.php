@@ -420,6 +420,64 @@ test('toSampleArrays returns glucose samples', function (): void {
         ->and($samples[0]['metadata'])->toBe(['glucose_reading_type' => 'fasting']);
 });
 
+test('fromParsedArray maps blood_pressure_systolic key to bpSystolic', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'vitals',
+        'blood_pressure_systolic' => '120',
+        'blood_pressure_diastolic' => '80',
+    ]);
+
+    expect($data)
+        ->bpSystolic->toBe(120)
+        ->bpDiastolic->toBe(80);
+});
+
+test('fromParsedArray maps legacy bp_systolic key to bpSystolic', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'vitals',
+        'bp_systolic' => '130',
+        'bp_diastolic' => '85',
+    ]);
+
+    expect($data)
+        ->bpSystolic->toBe(130)
+        ->bpDiastolic->toBe(85);
+});
+
+test('fromParsedArray prefers blood_pressure_systolic over bp_systolic', function (): void {
+    $data = HealthLogData::fromParsedArray([
+        'is_health_data' => true,
+        'log_type' => 'vitals',
+        'blood_pressure_systolic' => '120',
+        'bp_systolic' => '999',
+        'blood_pressure_diastolic' => '80',
+        'bp_diastolic' => '999',
+    ]);
+
+    expect($data)
+        ->bpSystolic->toBe(120)
+        ->bpDiastolic->toBe(80);
+});
+
+test('toSampleArrays returns only BP samples when only blood pressure is provided', function (): void {
+    $data = new HealthLogData(
+        isHealthData: true,
+        logType: HealthEntryType::Vitals,
+        bpSystolic: 120,
+        bpDiastolic: 80,
+    );
+
+    $samples = $data->toSampleArrays();
+
+    expect($samples)->toHaveCount(2)
+        ->and($samples[0]['type_identifier'])->toBe('bloodPressureSystolic')
+        ->and($samples[0]['value'])->toBe(120)
+        ->and($samples[1]['type_identifier'])->toBe('bloodPressureDiastolic')
+        ->and($samples[1]['value'])->toBe(80);
+});
+
 test('fromParsedArray handles null string values', function (): void {
     $data = HealthLogData::fromParsedArray([
         'is_health_data' => true,

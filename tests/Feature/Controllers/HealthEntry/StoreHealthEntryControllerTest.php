@@ -267,6 +267,36 @@ it('can store vitals log with at least one vital sign', function (): void {
     ]);
 });
 
+it('can store vitals log with only blood pressure', function (): void {
+    $user = User::factory()->create();
+
+    $data = [
+        'log_type' => 'vitals',
+        'blood_pressure_systolic' => 120,
+        'blood_pressure_diastolic' => 80,
+        'measured_at' => now()->toDateTimeString(),
+    ];
+
+    $response = $this->actingAs($user)
+        ->post(route('health-entries.store'), $data);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('health_sync_samples', [
+        'user_id' => $user->id,
+        'type_identifier' => 'bloodPressureSystolic',
+        'value' => 120,
+        'unit' => 'mmHg',
+    ]);
+
+    $this->assertDatabaseHas('health_sync_samples', [
+        'user_id' => $user->id,
+        'type_identifier' => 'bloodPressureDiastolic',
+        'value' => 80,
+        'unit' => 'mmHg',
+    ]);
+});
+
 it('can store exercise log', function (): void {
     $user = User::factory()->create();
 

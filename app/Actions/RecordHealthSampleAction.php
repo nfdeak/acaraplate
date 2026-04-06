@@ -10,6 +10,7 @@ use App\Models\HealthSyncSample;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 final readonly class RecordHealthSampleAction
 {
@@ -17,6 +18,9 @@ final readonly class RecordHealthSampleAction
     {
         return DB::transaction(function () use ($data, $user, $source): HealthSyncSample {
             $samples = $data->toSampleArrays();
+
+            throw_if($samples === [], InvalidArgumentException::class, 'No health samples to record.');
+
             $groupId = count($samples) > 1 ? (string) Str::uuid() : null;
             $measuredAt = $data->measuredAt ?? now();
             $primary = null;
