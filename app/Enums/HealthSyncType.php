@@ -19,6 +19,7 @@ enum HealthSyncType: string
     case A1c = 'a1c';
     case Insulin = 'insulin';
     case Medication = 'medication';
+    case MedicationDoseEvent = 'medicationDoseEvent';
 
     case BiologicalSex = 'biologicalSex';
     case DateOfBirth = 'dateOfBirth';
@@ -68,7 +69,7 @@ enum HealthSyncType: string
             self::Carbohydrates, self::Protein, self::TotalFat, self::DietaryEnergy => 'food',
             self::BloodGlucose => 'glucose',
             self::Weight, self::BloodPressureSystolic, self::BloodPressureDiastolic, self::BloodPressure, self::A1c => 'vitals',
-            self::Insulin, self::Medication => 'medication',
+            self::Insulin, self::Medication, self::MedicationDoseEvent => 'medication',
             self::ExerciseMinutes, self::Workouts => 'exercise',
             self::BiologicalSex, self::DateOfBirth, self::BloodType => 'profile',
         };
@@ -85,7 +86,7 @@ enum HealthSyncType: string
             self::ExerciseMinutes, self::Workouts => 'min',
             self::A1c => '%',
             self::Insulin => 'IU',
-            self::Medication => 'dose',
+            self::Medication, self::MedicationDoseEvent => 'dose',
             self::BiologicalSex, self::DateOfBirth, self::BloodType => '',
         };
     }
@@ -107,6 +108,7 @@ enum HealthSyncType: string
             self::A1c => 'A1C',
             self::Insulin => 'Insulin',
             self::Medication => 'Medication',
+            self::MedicationDoseEvent => 'Medication Dose',
             self::BiologicalSex => 'Biological Sex',
             self::DateOfBirth => 'Date of Birth',
             self::BloodType => 'Blood Type',
