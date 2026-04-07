@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\DataObjects\MobileSync\BloodGlucoseMetadata;
+use App\DataObjects\MobileSync\MedicationDoseEventMetadata;
+
 enum HealthSyncType: string
 {
     case BloodGlucose = 'bloodGlucose';
@@ -88,6 +91,19 @@ enum HealthSyncType: string
             self::Insulin => 'IU',
             self::Medication, self::MedicationDoseEvent => 'dose',
             self::BiologicalSex, self::DateOfBirth, self::BloodType => '',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $metadata
+     * @return array<string, mixed>|null
+     */
+    public function normalizeMetadata(?array $metadata): ?array
+    {
+        return match ($this) {
+            self::BloodGlucose => BloodGlucoseMetadata::normalize($metadata),
+            self::MedicationDoseEvent => MedicationDoseEventMetadata::normalize($metadata),
+            default => $metadata,
         };
     }
 

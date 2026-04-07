@@ -83,22 +83,11 @@ final readonly class SyncMobileHealthEntriesAction
             /** @var string|null $source */
             $source = $entry['source'] ?? null;
 
-            $metadata = isset($entry['metadata']) && is_array($entry['metadata']) ? $entry['metadata'] : null;
+            $metadata = $entry['metadata'] ?? null;
             $syncType = HealthSyncType::tryFrom($entry['type']);
 
-            if ($syncType === HealthSyncType::BloodGlucose) {
-                $metadata = array_merge($metadata ?? [], ['glucose_reading_type' => 'random']);
-            }
-
-            if ($syncType === HealthSyncType::MedicationDoseEvent && $metadata !== null) {
-                $mapped = [];
-                if (isset($metadata['medicationName'])) {
-                    $mapped['medication_name'] = $metadata['medicationName'];
-                }
-                if (isset($metadata['logStatus'])) {
-                    $mapped['log_status'] = $metadata['logStatus'];
-                }
-                $metadata = $mapped !== [] ? array_merge($metadata, $mapped) : $metadata;
+            if ($syncType !== null) {
+                $metadata = $syncType->normalizeMetadata($metadata);
             }
 
             if (isset($cache[$key])) {
