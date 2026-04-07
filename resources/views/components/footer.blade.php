@@ -66,7 +66,12 @@
                     <li>
                         <a href="{{ route('install-app') }}" class="text-sm leading-6 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" title="Install Acara Plate as an App">Install App</a>
                     </li>
-                    {{-- Health Sync link hidden until App Store launch --}}
+                    <li>
+                        <a href="{{ route('health-sync') }}" class="inline-flex items-center gap-2 text-sm leading-6 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" title="Acara Health Sync — Apple Health companion for iPhone">
+                            Health Sync (iOS)
+                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">New</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

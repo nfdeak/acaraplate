@@ -1,5 +1,5 @@
-@section('title', 'Acara Health Sync — Your Apple Health Data, On Your Dashboard')
-@section('meta_description', 'Securely sync Apple Health data to Acara Plate with AES-256-GCM end-to-end encryption. Glucose, weight, vitals, activity, sleep — all automatic, all encrypted.')
+@section('title', 'Acara Health Sync — Apple Health to Your Plate Dashboard | Now on the App Store')
+@section('meta_description', 'Now on the App Store. Acara Health Sync pipes your Apple Health data into Plate with AES-256-GCM end-to-end encryption — glucose, weight, sleep, activity, and 100+ other types, all automatic.')
 @section('meta_keywords', 'apple health sync, ios health companion, encrypted health data, health data sync, glucose sync, acara plate')
 
 @section('head')
@@ -37,11 +37,12 @@
     <div class="mx-auto my-8 max-w-6xl px-4 sm:px-6 lg:px-8">
         {{-- Hero Section --}}
         <header class="mb-16 text-center">
-            <div class="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                iOS Companion App
+            <div class="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                <span class="relative flex h-2 w-2" aria-hidden="true">
+                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                </span>
+                Now on the App Store
             </div>
             <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl speakable-intro dark:text-white">
                 Your Health Data. Your Dashboard.<br class="hidden sm:block"> Zero Manual Entry.
@@ -70,15 +71,16 @@
                 </span>
             </div>
             <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <x-app-store-badge size="lg" />
                 <a href="{{ route('health-sync.setup') }}"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 py-4 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:bg-slate-800 hover:shadow-xl dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
-                    See How to Set It Up
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-4 text-base font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                    See the 5-minute setup
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                 </a>
             </div>
-            <p class="mt-3 text-sm text-slate-500 dark:text-slate-500">Coming soon to the App Store.</p>
+            <p class="mt-3 text-sm text-slate-500 dark:text-slate-500">Free. Requires iPhone on iOS {{ config('plate.health_sync.minimum_ios_version') }} or later.</p>
         </header>
 
         {{-- Data Flow Visualization --}}
@@ -339,18 +341,12 @@
         <section class="mb-16 text-center">
             <div class="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Ready to stop typing in your glucose readings?</h2>
-                <p class="mt-2 text-slate-600 dark:text-slate-400">Set up Health Sync once and your data flows automatically from that point on.</p>
+                <p class="mt-2 text-slate-600 dark:text-slate-400">Install the app, scan one QR code, and your data flows automatically from that point on.</p>
                 <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <x-app-store-badge size="lg" />
                     <a href="{{ route('health-sync.setup') }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 py-4 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:bg-slate-800 hover:shadow-xl dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
-                        See the Setup Guide
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                    </a>
-                    <a href="{{ route('register') }}"
                         class="inline-flex items-center px-6 py-4 text-sm font-medium text-slate-600 transition-all duration-200 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-                        Create a Free Account
+                        Read the 5-minute setup guide →
                     </a>
                 </div>
             </div>

@@ -20,7 +20,7 @@
             "name": "Is a digital diabetes tracker better than a paper log book?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "Both methods are effective for tracking blood sugar. Paper log books are simple and require no technology, while digital trackers like Acara Plate offer automatic A1C estimation, trend analysis, food-glucose correlation, and secure cloud backup. Many users combine both methods for maximum benefit."
+                "text": "Three options work well. (1) Digital trackers like Acara Plate offer automatic A1C estimation, trend analysis, food-glucose correlation, and secure cloud backup — you tap in your readings and the app does the math. (2) For iPhone users, fully automatic tracking with Acara Health Sync ({{ config('plate.health_sync.app_store_url') }}) reads glucose data directly from Apple Health, so if your meter is HealthKit-compatible you never type a number. (3) Paper log books require no technology and work for people who prefer writing by hand. Many users combine methods for maximum benefit."
             }
         },
         {
@@ -116,9 +116,53 @@
                     </div>
                 </div>
 
-                {{-- Secondary CTA: The Paper PDF (The Legacy SEO Catch) --}}
+                {{-- Option 3: Fully automatic via Apple Health (iOS launch) --}}
+                <div class="my-10 bg-linear-to-br from-blue-50 via-white to-blue-50/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950 border border-blue-100 dark:border-blue-900/50 rounded-2xl p-8 shadow-sm">
+                    <div class="flex flex-col md:flex-row items-start gap-6">
+                        <div class="flex-1">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 not-prose">
+                                <span class="relative flex h-1.5 w-1.5" aria-hidden="true">
+                                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+                                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                </span>
+                                New for iPhone users
+                            </span>
+                            <h2 class="text-blue-900 dark:text-blue-100 mt-2! text-2xl!">Option 2: Fully Automatic via Apple Health</h2>
+                            <p class="text-slate-600 dark:text-slate-300 mb-4!">
+                                If your glucose meter already talks to Apple Health, you don't have to type a single number. <strong>Acara Health Sync</strong> reads every reading from HealthKit and ships it straight to your Plate logbook — encrypted end-to-end, no middleman, no cloud relay.
+                            </p>
+                            <ul class="list-none pl-0! space-y-2 text-sm text-blue-900 dark:text-blue-200 mb-6">
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Glucose imports automatically from Apple Health
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Works with any HealthKit-compatible meter
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    End-to-end AES-256-GCM encryption
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Free and open source
+                                </li>
+                            </ul>
+                            <div class="not-prose flex flex-wrap items-center gap-3">
+                                <x-app-store-badge size="md" />
+                                <a href="{{ route('health-sync') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+                                    How it works →
+                                </a>
+                            </div>
+                            <p class="mt-3 text-xs text-slate-500 dark:text-slate-500 mb-0!">Requires iPhone on iOS {{ config('plate.health_sync.minimum_ios_version') }} or later. Android users, stick with Option 1 for now.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tertiary CTA: The Paper PDF (The Legacy SEO Catch) --}}
                 <div class="border-t border-slate-200 dark:border-slate-800 pt-8">
-                    <h2>Option 2: The Classic Printable Log Book</h2>
+                    <h2>Option 3: The Classic Printable Log Book</h2>
                     <p>
                         Sometimes you just want to write it down. Our free PDF template is designed by diabetics for clear, distraction-free logging.
                     </p>

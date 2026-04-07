@@ -24,16 +24,19 @@
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
-    "@@type": "SoftwareApplication",
+    "@@type": "MobileApplication",
     "name": "Acara Health Sync",
     "description": "A native iOS companion app that securely syncs Apple Health data to your Acara Plate instance using AES-256-GCM end-to-end encryption.",
     "url": "{{ $currentUrl }}",
+    "downloadUrl": "{{ config('plate.health_sync.app_store_url') }}",
+    "installUrl": "{{ config('plate.health_sync.app_store_url') }}",
     "applicationCategory": "HealthApplication",
-    "operatingSystem": "iOS 18.0+",
+    "operatingSystem": "iOS {{ config('plate.health_sync.minimum_ios_version') }}+",
     "offers": {
         "@@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
     },
     "author": {
         "@@type": "Organization",

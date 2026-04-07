@@ -27,6 +27,11 @@ return [
     'enable_premium_upgrades' => env('PLATE_ENABLE_PREMIUM_UPGRADES', false),
     'telegram_bot_username' => env('TELEGRAM_BOT_USERNAME', 'AcaraPlate_bot'),
 
+    'health_sync' => [
+        'app_store_url' => env('HEALTH_SYNC_APP_STORE_URL', 'https://apps.apple.com/us/app/acara-health-sync/id6761504525'),
+        'minimum_ios_version' => env('HEALTH_SYNC_MIN_IOS_VERSION', '18.0'),
+    ],
+
     'tools' => [
         SuggestSingleMeal::class,
         GetUserProfile::class,

@@ -705,6 +705,15 @@
     </section>
 </div>
 
+<section class="mx-auto max-w-6xl px-4 pt-16 sm:px-6 lg:px-8">
+    <x-ios-app-promo
+        eyebrow="New — Meal plans that learn from your numbers"
+        headline="The planner gets better when it sees what your body actually did"
+        body="A meal plan is a hypothesis. Post-meal glucose is the answer. Acara Health Sync quietly ships your Apple Health numbers over — glucose, weight, activity — so next week's plan is tuned to how your body really responded, not how it was supposed to."
+        :features="['Post-meal glucose context', 'Weight &amp; activity sync', 'Automatic week-over-week tuning', 'Encrypted end-to-end']"
+    />
+</section>
+
 <section class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
     <x-cta-block
         title="Your AI Health Coach is Here to Help"

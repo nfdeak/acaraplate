@@ -368,6 +368,14 @@
         </section>
 
     </div>
+    <div class="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <x-ios-app-promo
+            eyebrow="New — Apple Health integration"
+            headline="Your coach, backed by your actual sleep and stress data"
+            body="Sleep, HRV, hydration, and activity sync from Apple Health automatically. The coach recommends based on your real patterns — not what you remembered to type in yesterday. Because telling your coach you slept fine when you didn't isn't helping anyone."
+            :features="['Sleep &amp; HRV tracking', 'Hydration &amp; activity sync', 'Stress trend context', 'Private by design']"
+        />
+    </div>
     <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <x-cta-block
             title="Get to Know Altani Better"

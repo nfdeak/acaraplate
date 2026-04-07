@@ -1,5 +1,5 @@
-@section('title', 'Install Acara Plate PWA | Native App Experience on iOS & Android')
-@section('meta_description', 'Learn how to install Acara Plate as a Progressive Web App (PWA) on your iPhone or Android device for faster access, offline support, and a more immersive experience.')
+@section('title', 'Install Acara Plate on Your Phone | iOS App + PWA')
+@section('meta_description', 'Two ways to put Plate on your iPhone: Acara Health Sync on the App Store for automatic Apple Health syncing, or our Progressive Web App (PWA) that installs straight from Safari or Chrome.')
 
 @section('head')
 <script type="application/ld+json">
@@ -12,7 +12,7 @@
             "name": "How do I install Acara Plate on my phone?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "On iPhone, open Safari, navigate to the site, tap the Share button, and select 'Add to Home Screen'. On Android, open Chrome, navigate to the site, tap the menu (three dots), and select 'Install app' or 'Add to Home screen'. The app will appear on your home screen like a native app."
+                "text": "There are two options. (1) iPhone users who want Apple Health data to sync automatically can install Acara Health Sync from the App Store at {{ config('plate.health_sync.app_store_url') }}. (2) Anyone who just wants the Plate dashboard on their home screen can install our Progressive Web App: on iPhone, open Safari and tap Share then 'Add to Home Screen'; on Android, open Chrome and tap the menu then 'Install app'."
             }
         },
         {
@@ -28,7 +28,7 @@
             "name": "Do I need to download anything from the App Store?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "No, Acara Plate is a Progressive Web App that installs directly from your browser. There's no app store download required. Simply visit the website in Safari (iOS) or Chrome (Android) and add it to your home screen for instant access."
+                "text": "Only if you want Apple Health data to sync automatically. Acara Health Sync is our iOS companion app on the App Store ({{ config('plate.health_sync.app_store_url') }}) that reads Apple Health data and sends it to your Plate dashboard. If you just want the Plate dashboard on your home screen, our Progressive Web App installs directly from your browser — no App Store download required."
             }
         }
     ]
@@ -67,10 +67,93 @@
             <div class="prose prose-slate dark:prose-invert mx-auto max-w-4xl speakable-intro">
                 <h1>Install Acara Plate</h1>
                 <p>
-                    For the best experience, use this app with your device's native web browser. Installing Acara Plate as a Progressive Web App (PWA) allows you to access it directly from your home screen, just like a native app, with faster load times and a more immersive experience.
+                    There are two ways to put Plate on your iPhone, and they do different jobs. Pick whichever fits what you need — or grab both, most people do.
                 </p>
+            </div>
 
-                <h2>iOS (Safari)</h2>
+            {{-- Two-way comparison: native iOS vs PWA --}}
+            <div class="mx-auto mt-10 grid max-w-4xl gap-6 not-prose md:grid-cols-2">
+                {{-- Native iOS app --}}
+                <div class="relative overflow-hidden rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 via-white to-white p-6 shadow-sm dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-950 dark:to-slate-950">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        <span class="relative flex h-1.5 w-1.5" aria-hidden="true">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        </span>
+                        Native iOS — Now available
+                    </span>
+                    <h2 class="mt-3 text-xl font-bold text-slate-900 dark:text-white">Acara Health Sync</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        If you want Apple Health data — glucose, weight, sleep, activity — to flow into Plate automatically, this is what you want. The iPhone-only companion reads HealthKit, encrypts everything on your device, and ships it straight to your dashboard.
+                    </p>
+                    <ul class="mt-4 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Automatic Apple Health sync
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            End-to-end AES-256-GCM encryption
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Free &amp; open source
+                        </li>
+                    </ul>
+                    <div class="mt-5 flex flex-col items-start gap-2">
+                        <x-app-store-badge size="md" />
+                        <p class="text-[11px] text-slate-500 dark:text-slate-500">Requires iPhone on iOS {{ config('plate.health_sync.minimum_ios_version') }} or later</p>
+                    </div>
+                </div>
+
+                {{-- Progressive Web App --}}
+                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        Any device — Browser install
+                    </span>
+                    <h2 class="mt-3 text-xl font-bold text-slate-900 dark:text-white">Progressive Web App</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        Want the Plate dashboard on your home screen without an App Store download? The PWA installs straight from Safari or Chrome in under 30 seconds. Works on iPhone, iPad, Android, and desktop.
+                    </p>
+                    <ul class="mt-4 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            No App Store required
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Works on any device
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Full-screen, home-screen icon
+                        </li>
+                    </ul>
+                    <div class="mt-5">
+                        <a href="#pwa-instructions" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                            See install steps
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pwa-instructions" class="prose prose-slate dark:prose-invert mx-auto max-w-4xl mt-12 scroll-mt-24">
+                <h2>Install the PWA on iOS (Safari)</h2>
                 <ol>
                     <li>Open <strong>Safari</strong> on your iPhone or iPad.</li>
                     <li>Navigate to <a href="{{ url('/') }}">{{ url('/') }}</a>.</li>

@@ -86,7 +86,7 @@
             "name": "Is there a mobile app?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "Yes! Acara Plate is a Progressive Web App (PWA), which means you can install it directly on your device without visiting an app store. Visit our installation guide to learn how to add it to your home screen for a native app-like experience."
+                "text": "Yes — two of them, and they do different jobs. If you use an iPhone and want Apple Health data (glucose, weight, sleep, activity) to flow into Plate automatically, install Acara Health Sync on the App Store at {{ config('plate.health_sync.app_store_url') }}. If you just want the Plate dashboard on your home screen, our Progressive Web App installs directly from your browser in Safari or Chrome — no store required. Most iPhone users end up using both."
             }
         }
         ]
@@ -280,6 +280,62 @@
                     buttonText="Chat with Altani"
                     buttonUrl="{{ route('meet-altani') }}"
                 />
+            </section>
+
+            {{-- Acara Health Sync Launch Announcement --}}
+            <section aria-labelledby="health-sync-launch-heading" class="w-full max-w-6xl">
+                <div class="relative overflow-hidden rounded-3xl border border-emerald-100 bg-linear-to-br from-emerald-50 via-white to-emerald-50/40 p-8 shadow-sm sm:p-12">
+                    <div aria-hidden="true" class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl"></div>
+                    <div aria-hidden="true" class="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-emerald-300/10 blur-3xl"></div>
+
+                    <div class="relative grid gap-10 lg:grid-cols-5 lg:items-center">
+                        <div class="lg:col-span-3">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                                <span class="relative flex h-2 w-2" aria-hidden="true">
+                                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                                </span>
+                                Just launched on iPhone
+                            </span>
+                            <h2 id="health-sync-launch-heading" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                                Your Apple Health data, where you actually use it.
+                            </h2>
+                            <p class="mt-4 text-lg leading-relaxed text-slate-600">
+                                <strong class="text-slate-900">Acara Health Sync</strong> reads glucose, weight, sleep, and 100+ other health types from Apple Health, encrypts them on your phone, and sends them straight to your Plate dashboard. No middleman, no manual entry, no cloud storage in between.
+                            </p>
+                            <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    End-to-end encrypted
+                                </span>
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    100+ health types
+                                </span>
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Open source
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-start gap-4 lg:col-span-2 lg:items-end">
+                            <x-app-store-badge size="lg" />
+                            <a href="{{ route('health-sync') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:underline">
+                                See how it works
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </a>
+                            <p class="text-xs text-slate-500">Requires iOS {{ config('plate.health_sync.minimum_ios_version') }} or later. Free.</p>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="w-full max-w-6xl">
