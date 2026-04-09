@@ -53,8 +53,8 @@ describe('instructions', function (): void {
         expect($instructions)
             ->toContain('You are Altani, a comprehensive AI wellness assistant')
             ->toContain('CHAT MODE: create-meal-plan')
-            ->toContain('The user has explicitly selected "Create Meal Plan" mode')
-            ->toContain('Use the create_meal_plan tool');
+            ->toContain('Create Meal Plan mode')
+            ->toContain('create_meal_plan');
     });
 });
 

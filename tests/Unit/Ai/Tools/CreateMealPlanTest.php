@@ -15,9 +15,9 @@ beforeEach(function (): void {
 
         public array $calls = [];
 
-        public function handle(User $user, int $totalDays = 7): void
+        public function handle(User $user, int $totalDays = 7, ?string $customPrompt = null): void
         {
-            $this->calls[] = ['user' => $user, 'totalDays' => $totalDays];
+            $this->calls[] = ['user' => $user, 'totalDays' => $totalDays, 'customPrompt' => $customPrompt];
 
             if ($this->exception instanceof Exception) {
                 throw $this->exception;
@@ -60,11 +60,60 @@ it('generates meal plan successfully', function (): void {
     $json = json_decode((string) $result, true);
 
     expect($json)->toHaveKey('success', true)
-        ->and($json['total_days'])->toBe(3);
+        ->and($json['total_days'])->toBe(3)
+        ->and($json['requested_days'])->toBe(3)
+        ->and($json['was_capped'])->toBeFalse()
+        ->and($json['max_allowed_days'])->toBe(7)
+        ->and($json['redirect_url'])->toStartWith('http');
 
     expect($this->agent->calls)->toHaveCount(1);
     expect($this->agent->calls[0]['user']->id)->toBe($user->id);
     expect($this->agent->calls[0]['totalDays'])->toBe(3);
+});
+
+it('caps days to maximum of 7 and reports capping', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $request = new Request(['total_days' => 30]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['success'])->toBeTrue()
+        ->and($json['total_days'])->toBe(7)
+        ->and($json['requested_days'])->toBe(30)
+        ->and($json['was_capped'])->toBeTrue()
+        ->and($json['max_allowed_days'])->toBe(7);
+
+    expect($this->agent->calls[0]['totalDays'])->toBe(7);
+});
+
+it('enforces minimum of 1 day', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $request = new Request(['total_days' => -5]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['success'])->toBeTrue()
+        ->and($json['total_days'])->toBe(1)
+        ->and($json['requested_days'])->toBe(-5)
+        ->and($json['was_capped'])->toBeTrue();
+});
+
+it('passes custom prompt to agent', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $request = new Request(['total_days' => 3, 'custom_prompt' => 'Focus on Mediterranean diet']);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['success'])->toBeTrue()
+        ->and($json['custom_prompt'])->toBe('Focus on Mediterranean diet');
+
+    expect($this->agent->calls[0]['customPrompt'])->toBe('Focus on Mediterranean diet');
 });
 
 it('handles exceptions during generation', function (): void {
