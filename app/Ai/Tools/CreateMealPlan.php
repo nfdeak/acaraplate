@@ -14,6 +14,10 @@ use Laravel\Ai\Tools\Request;
 
 final readonly class CreateMealPlan implements Tool
 {
+    private const int MIN_DAYS = 1;
+
+    private const int MAX_DAYS = 7;
+
     public function name(): string
     {
         return 'create_meal_plan';
@@ -36,20 +40,26 @@ final readonly class CreateMealPlan implements Tool
         }
 
         $totalDaysValue = $request['total_days'] ?? 1;
-        /** @var int $totalDays */
-        $totalDays = min(is_numeric($totalDaysValue) ? (int) $totalDaysValue : 1, 7);
+        $requestedDays = is_numeric($totalDaysValue) ? (int) $totalDaysValue : 1;
+        $totalDays = max(self::MIN_DAYS, min($requestedDays, self::MAX_DAYS));
+        $wasCapped = $requestedDays !== $totalDays;
         /** @var string|null $customPrompt */
         $customPrompt = $request['custom_prompt'] ?? null;
 
         try {
-            resolve(GeneratesMealPlans::class)->handle($user, $totalDays);
+            resolve(GeneratesMealPlans::class)->handle($user, $totalDays, $customPrompt);
+
+            $mealPlansUrl = route('meal-plans.index');
 
             return (string) json_encode([
                 'success' => true,
-                'message' => sprintf("I've started generating your %d-day meal plan! You can view it in your [Meal Plans](/meal-plans) section once it's ready.", $totalDays),
+                'message' => sprintf('Your %d-day meal plan is now being generated. View it here: [Meal Plans](%s)', $totalDays, $mealPlansUrl),
                 'total_days' => $totalDays,
+                'requested_days' => $requestedDays,
+                'was_capped' => $wasCapped,
+                'max_allowed_days' => self::MAX_DAYS,
                 'custom_prompt' => $customPrompt,
-                'redirect_url' => '/meal-plans',
+                'redirect_url' => $mealPlansUrl,
             ]);
         } catch (Exception $exception) {
             return (string) json_encode([
@@ -66,7 +76,7 @@ final readonly class CreateMealPlan implements Tool
     {
         return [
             'total_days' => $schema->integer()
-                ->description('Number of days for the meal plan (default: 1, max: 7)')
+                ->description('Number of days for the meal plan (minimum: 1, maximum: 7). If user requests more than 7, the system caps it to 7.')
                 ->required(),
             'custom_prompt' => $schema->string()->required()->nullable()
                 ->description('Optional custom instructions or preferences for the meal plan (e.g., "focus on Mediterranean diet", "high protein for muscle building")'),

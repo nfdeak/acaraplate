@@ -67,13 +67,19 @@ final class MealPlanAgent implements Agent, GeneratesMealPlans, HasTools
         return $this->toolRegistry->getMealPlanTools();
     }
 
-    public function handle(User $user, int $totalDays = 7): void
+    public function handle(User $user, int $totalDays = 7, ?string $customPrompt = null): void
     {
         $glucoseAnalysis = $this->analyzeGlucose->handle($user);
 
         $dietType = $user->profile->calculated_diet_type ?? DietType::Balanced;
 
         $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, $totalDays, $dietType);
+
+        if ($customPrompt !== null && $customPrompt !== '') {
+            $mealPlan->update([
+                'metadata->custom_prompt' => $customPrompt,
+            ]);
+        }
 
         WorkflowStub::make(MealPlanInitializeWorkflow::class)
             ->start($user, $mealPlan, $glucoseAnalysis->analysisData);

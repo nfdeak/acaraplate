@@ -11,5 +11,5 @@ use Illuminate\Container\Attributes\Bind;
 #[Bind(MealPlanAgent::class)]
 interface GeneratesMealPlans
 {
-    public function handle(User $user, int $totalDays = 7): void;
+    public function handle(User $user, int $totalDays = 7, ?string $customPrompt = null): void;
 }

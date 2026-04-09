@@ -153,6 +153,28 @@ it('starts workflow when handle is called', function (): void {
     expect($mealPlan->metadata['status'])->toBe('generating');
 });
 
+it('stores custom prompt in meal plan metadata when provided', function (): void {
+    WorkflowStub::fake();
+
+    $user = User::factory()->create();
+
+    $user->profile()->create([
+        'age' => 30,
+        'height' => 175.0,
+        'weight' => 80.0,
+        'sex' => Sex::Male,
+        'goal_choice' => GoalChoice::WeightLoss->value,
+        'derived_activity_multiplier' => 1.5,
+    ]);
+
+    $action = resolve(MealPlanAgent::class);
+    $action->handle($user, 7, 'No spicy food please');
+
+    $mealPlan = $user->mealPlans()->first();
+    expect($mealPlan)->not->toBeNull()
+        ->and($mealPlan->metadata['custom_prompt'])->toBe('No spicy food please');
+});
+
 it('handles meals with no ingredients', function (): void {
     $user = User::factory()->create();
 

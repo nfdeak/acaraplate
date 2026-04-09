@@ -244,6 +244,15 @@ You have access to a comprehensive database of USDA-verified whole food nutritio
 - For branded products, use actual product data when available
 - Cross-reference all nutritional calculations with the database to ensure accuracy
 
+@if($prompt)
+## User's Custom Instructions
+
+The user provided these additional instructions for this meal plan:
+{{ $prompt }}
+
+You MUST incorporate these instructions into the meals you generate for this day.
+@endif
+
 ## Task
 
 **You are generating meals for Day {{ $dayNumber }} of a {{ $totalDays }}-day meal plan.**
