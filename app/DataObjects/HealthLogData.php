@@ -10,7 +10,6 @@ use App\Enums\HealthEntryType;
 use App\Enums\HealthSyncType;
 use App\Enums\InsulinType;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Date;
 use Spatie\LaravelData\Data;
 
 final class HealthLogData extends Data
@@ -134,7 +133,7 @@ final class HealthLogData extends Data
     {
         $string = self::toNullableString($value);
 
-        return $string !== null ? Date::parse($string) : null;
+        return $string !== null ? Carbon::parse($string) : null;
     }
 
     private function formatGlucoseLog(): string
