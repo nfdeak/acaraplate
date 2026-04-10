@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\ContentType;
 use App\Models\Content;
 use Illuminate\Http\Response;
 use Spatie\Sitemap\Sitemap;
@@ -14,11 +13,7 @@ final class FoodSitemapXmlController
 {
     public function food(): Response
     {
-        $foods = Content::query()
-            ->where('type', ContentType::Food)
-            ->where('is_published', true)
-            ->orderBy('slug')
-            ->get();
+        $foods = Content::query()->published()->food()->orderBy('slug')->get();
 
         $sitemap = Sitemap::create();
 
