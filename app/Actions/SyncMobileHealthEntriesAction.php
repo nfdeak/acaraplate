@@ -15,7 +15,6 @@ use App\Services\HealthKitCharacteristicMapper;
 use App\Services\HealthMetricUnitConverter;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /** @codeCoverageIgnore */
@@ -100,14 +99,7 @@ final readonly class SyncMobileHealthEntriesAction
                     value: $entry->value,
                     unit: $entry->unit,
                 );
-            } catch (HealthUnitConversionException $e) {
-                Log::warning('health_aggregate.unit_mismatch_dropped', [
-                    'user_id' => $user->id,
-                    'type_identifier' => $e->typeIdentifier,
-                    'from_unit' => $e->fromUnit,
-                    'canonical_unit' => $e->canonicalUnit,
-                ]);
-
+            } catch (HealthUnitConversionException) {
                 $dropped++;
 
                 continue;

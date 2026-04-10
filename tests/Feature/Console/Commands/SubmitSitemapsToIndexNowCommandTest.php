@@ -46,9 +46,6 @@ it('extracts and submits URLs from sitemap fixtures', function (): void {
         '--file' => ['test_temp/sitemap1.xml', 'test_temp/sitemap2.xml'],
     ])
         ->assertSuccessful()
-        ->expectsOutputToContain('Found 2 URLs in test_temp/sitemap1.xml')
-        ->expectsOutputToContain('Found 1 URLs in test_temp/sitemap2.xml')
-        ->expectsOutputToContain('Submitting 3 unique URLs to IndexNow')
         ->expectsOutputToContain('Successfully submitted 3 URLs to IndexNow');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.indexnow.org/IndexNow' &&
@@ -105,9 +102,7 @@ it('uses default files when no file option is provided', function (): void {
     $this->artisan('sitemap:indexnow', [
         '--file' => ['test_temp/sitemap.xml', 'test_temp/food_sitemap.xml'],
     ])
-        ->assertSuccessful()
-        ->expectsOutputToContain('Processing test_temp/sitemap.xml')
-        ->expectsOutputToContain('Processing test_temp/food_sitemap.xml');
+        ->assertSuccessful();
 
     Http::assertSent(fn (Request $request): bool => count($request->data()['urlList']) === 3);
 });

@@ -17,8 +17,6 @@ final class SubmitSitemapsToIndexNowCommand extends Command
 
     public function handle(IndexNowServiceContract $indexNowService): int
     {
-        $this->info('Starting IndexNow submission...');
-
         $files = $this->option('file');
         if (empty($files)) {
             $files = ['sitemap.xml', 'food_sitemap.xml'];
@@ -43,11 +41,7 @@ final class SubmitSitemapsToIndexNowCommand extends Command
                 continue;
             }
 
-            $this->info(sprintf('Processing %s...', $file));
-            $urls = $this->extractUrlsFromSitemap($path);
-            $this->info('Found '.count($urls).sprintf(' URLs in %s.', $file));
-
-            $allUrls = array_merge($allUrls, $urls);
+            $allUrls = array_merge($allUrls, $this->extractUrlsFromSitemap($path));
         }
 
         $allUrls = array_unique($allUrls);
@@ -57,8 +51,6 @@ final class SubmitSitemapsToIndexNowCommand extends Command
 
             return self::SUCCESS;
         }
-
-        $this->info('Submitting '.count($allUrls).' unique URLs to IndexNow...');
 
         $result = $indexNowService->submit($allUrls);
 
