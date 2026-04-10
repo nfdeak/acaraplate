@@ -10,6 +10,9 @@ use App\Models\User;
 use App\Services\HealthMetricRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 final class RevalidateHealthAggregatesCommand extends Command
 {
@@ -23,12 +26,15 @@ final class RevalidateHealthAggregatesCommand extends Command
     public function handle(AggregateHealthDailySamplesAction $action): int
     {
         $minVersion = (int) ($this->option('min-version') ?? HealthMetricRegistry::CURRENT_AGGREGATION_VERSION);
+        /** @var string|null $userId */
         $userId = $this->option('user');
+        /** @var string|null $since */
         $since = $this->option('since');
 
+        /** @var Builder<HealthDailyAggregate> $query */
         $query = HealthDailyAggregate::query()
             ->select('user_id', 'local_date')
-            ->where(function ($q) use ($minVersion): void {
+            ->where(function (Builder $q) use ($minVersion): void {
                 $q->where('aggregation_version', '<', $minVersion)
                     ->orWhereNull('aggregation_version');
             })
@@ -42,6 +48,7 @@ final class RevalidateHealthAggregatesCommand extends Command
             $query->where('local_date', '>=', $since);
         }
 
+        /** @var Collection<int, object{user_id: int, local_date: string}> $tuples */
         $tuples = $query->get();
 
         if ($tuples->isEmpty()) {
@@ -52,19 +59,21 @@ final class RevalidateHealthAggregatesCommand extends Command
 
         $this->info(sprintf('Found %d (user, date) tuples to revalidate.', $tuples->count()));
 
+        /** @var ProgressBar $bar */
         $bar = $this->output->createProgressBar($tuples->count());
         $bar->start();
 
         $total = 0;
 
         foreach ($tuples as $tuple) {
+            /** @var User|null $user */
             $user = User::query()->find($tuple->user_id);
 
-            if ($user === null) {
+            if ($user === null) { // @codeCoverageIgnoreStart
                 $bar->advance();
 
                 continue;
-            }
+            } // @codeCoverageIgnoreEnd
 
             $localDate = CarbonImmutable::parse($tuple->local_date);
             $total += $action->handle($user, $localDate);

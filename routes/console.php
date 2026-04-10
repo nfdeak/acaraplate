@@ -13,4 +13,4 @@ Schedule::command(ProcessGlucoseNotificationsCommand::class)->dailyAt('08:00');
 
 Schedule::command(PurgeDeletedUserDataCommand::class)->daily();
 
-Schedule::command(AggregateHealthDailyCommand::class)->everyFifteenMinutes();
+Schedule::command(AggregateHealthDailyCommand::class)->dailyAt('02:00');
