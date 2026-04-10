@@ -12,8 +12,6 @@ use App\Utilities\ConfigHelper;
 use App\Utilities\JsonCleaner;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Throwable;
 
 final readonly class SummarizeConversationAction
@@ -42,13 +40,7 @@ final readonly class SummarizeConversationAction
             $summaryData = json_decode($cleanedJson, true, 512, JSON_THROW_ON_ERROR);
 
             return $this->createSummary($conversation, $messages, $summaryData, $previousSummary);
-        } catch (Throwable $throwable) {
-            Log::error('Conversation summarization failed', [
-                'conversation_id' => $conversation->id,
-                'error' => $throwable->getMessage(),
-                'trace' => Str::limit($throwable->getTraceAsString(), 1000),
-            ]);
-
+        } catch (Throwable) {
             return null;
         }
     }

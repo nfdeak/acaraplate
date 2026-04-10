@@ -81,8 +81,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
     {
         $displayName = $this->option('display-name') ?? 'FoodData Central Foundation Food';
 
-        $this->info('Uploading file...');
-
         $apiKey = config('gemini.api_key');
         $uploadUrl = 'https://generativelanguage.googleapis.com/upload/v1beta/files';
 
@@ -159,8 +157,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
             return $storeName;
         }
 
-        $this->info('Creating File Search store...');
-
         $storeDisplayName = $this->option('store-name') ?? 'FoodData Central Store';
 
         $response = Http::withHeaders([
@@ -215,8 +211,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
 
     private function importFile(string $apiKey, string $baseUrl, string $storeName, string $fileName): bool
     {
-        $this->info('Importing file into File Search store...');
-
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'x-goog-api-key' => $apiKey,
@@ -242,8 +236,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
 
     private function waitForOperation(string $apiKey, string $baseUrl, string $operationName): bool
     {
-        $this->info('Waiting for import operation to complete...');
-
         $attempts = 0;
 
         while (true) {
@@ -261,7 +253,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
             $isDone = $response->json('done', false);
 
             if (! $isDone) {
-                $this->info(sprintf('Operation still in progress (attempt %d)...', $attempts));
                 /** @var int $pollingInterval */
                 $pollingInterval = config('gemini.polling_interval', 10);
                 Sleep::sleep($pollingInterval);
@@ -285,9 +276,6 @@ final class UploadDocumentToGeminiFileSearchCommand extends Command
 
     private function verifyImport(string $apiKey, string $baseUrl, string $storeName): void
     {
-        $this->newLine();
-        $this->info('Verifying import...');
-
         $storeData = $this->checkStoreStatus($apiKey, $baseUrl, $storeName);
 
         if (! $storeData instanceof GeminiFileSearchStoreData) {

@@ -189,7 +189,7 @@ describe('handle', function (): void {
         expect($result)->toBeNull();
     });
 
-    it('logs error when summarization fails', function (): void {
+    it('returns null when summarization fails', function (): void {
         $user = User::factory()->create();
         $conversation = createConversationWithMessages($user, 50);
 

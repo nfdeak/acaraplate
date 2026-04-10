@@ -10,7 +10,6 @@ use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 final readonly class IndexNowService implements IndexNowServiceContract
 {
@@ -80,18 +79,15 @@ final readonly class IndexNowService implements IndexNowServiceContract
                     $chunkNumber = $index + 1;
                     $errorMessage = sprintf('Chunk %d: HTTP %d - %s', $chunkNumber, $response->status(), $response->body());
                     $errors[] = $errorMessage;
-                    Log::error('IndexNow: '.$errorMessage);
                 }
-            } catch (ConnectionException $e) {
+            } catch (ConnectionException) {
                 $chunkNumber = $index + 1;
                 $errorMessage = sprintf('Chunk %d: Connection timeout - the request took too long to complete.', $chunkNumber);
                 $errors[] = $errorMessage;
-                Log::error('IndexNow: Connection timeout during submission: '.$e->getMessage());
             } catch (Exception $e) {
                 $chunkNumber = $index + 1;
                 $errorMessage = sprintf('Chunk %d: %s', $chunkNumber, $e->getMessage());
                 $errors[] = $errorMessage;
-                Log::error('IndexNow: Exception during submission: '.$e->getMessage());
             }
         }
 

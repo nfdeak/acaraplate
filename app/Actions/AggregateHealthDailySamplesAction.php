@@ -14,7 +14,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 final readonly class AggregateHealthDailySamplesAction
 {
@@ -171,12 +170,6 @@ final readonly class AggregateHealthDailySamplesAction
         string $fallbackTz,
     ): ?array {
         if ($descriptor->function === HealthAggregationFunction::None) {
-            Log::channel($this->logChannel())->info('health_aggregate.unknown_type_identifier', [
-                'user_id' => $user->id,
-                'type_identifier' => $descriptor->identifier,
-                'local_date' => $localDateString,
-            ]);
-
             $lastSample = $samples->sortByDesc(
                 static fn (HealthSyncSample $s): int => $s->measured_at->getTimestamp()
             )->first();
@@ -392,10 +385,5 @@ final readonly class AggregateHealthDailySamplesAction
             'created_at' => $now,
             'updated_at' => $now,
         ];
-    }
-
-    private function logChannel(): string
-    {
-        return config()->has('logging.channels.health_aggregate') ? 'health_aggregate' : 'stack';
     }
 }

@@ -10,8 +10,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /** @codeCoverageIgnore */
 final class AggregateUserDayJob implements ShouldBeUnique, ShouldQueue
@@ -54,22 +52,7 @@ final class AggregateUserDayJob implements ShouldBeUnique, ShouldQueue
 
         $localDate = $this->resolveLocalDate($user);
 
-        $upserted = $action->handle($user, $localDate);
-
-        Log::channel($this->logChannel())->info('health_aggregate.user_day_completed', [
-            'user_id' => $this->userId,
-            'local_date' => $localDate->toDateString(),
-            'upserted' => $upserted,
-        ]);
-    }
-
-    public function failed(Throwable $exception): void
-    {
-        Log::channel($this->logChannel())->error('health_aggregate.user_day_failed', [
-            'user_id' => $this->userId,
-            'override_date' => $this->overrideDate,
-            'error' => $exception->getMessage(),
-        ]);
+        $action->handle($user, $localDate);
     }
 
     private function resolveLocalDate(User $user): CarbonImmutable
@@ -79,10 +62,5 @@ final class AggregateUserDayJob implements ShouldBeUnique, ShouldQueue
         }
 
         return CarbonImmutable::now($user->resolveTimezone())->subDay()->startOfDay();
-    }
-
-    private function logChannel(): string
-    {
-        return config()->has('logging.channels.health_aggregate') ? 'health_aggregate' : 'stack';
     }
 }
