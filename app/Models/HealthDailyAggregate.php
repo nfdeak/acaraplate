@@ -10,6 +10,7 @@ use App\Services\HealthMetricRegistry;
 use App\ValueObjects\HealthMetricDescriptor;
 use Carbon\CarbonInterface;
 use Database\Factories\HealthDailyAggregateFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -104,26 +105,20 @@ final class HealthDailyAggregate extends Model
         };
     }
 
-    /**
-     * @param  Builder<self>  $query
-     */
-    protected function scopeForDate(Builder $query, CarbonInterface $date): void
+    #[Scope]
+    protected function forDate(Builder $query, CarbonInterface $date): void
     {
         $query->where('local_date', $date->toDateString());
     }
 
-    /**
-     * @param  Builder<self>  $query
-     */
-    protected function scopeForDateRange(Builder $query, CarbonInterface $from, CarbonInterface $to): void
+    #[Scope]
+    protected function forDateRange(Builder $query, CarbonInterface $from, CarbonInterface $to): void
     {
         $query->whereBetween('local_date', [$from->toDateString(), $to->toDateString()]);
     }
 
-    /**
-     * @param  Builder<self>  $query
-     */
-    protected function scopeOfType(Builder $query, HealthMetricDescriptor|string $type): void
+    #[Scope]
+    protected function ofType(Builder $query, HealthMetricDescriptor|string $type): void
     {
         $query->where('type_identifier', $type instanceof HealthMetricDescriptor ? $type->identifier : $type);
     }

@@ -41,23 +41,7 @@ final class HealthSyncSample extends Model
     /** @use HasFactory<HealthSyncSampleFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'mobile_sync_device_id',
-        'type_identifier',
-        'value',
-        'unit',
-        'original_unit',
-        'measured_at',
-        'ended_at',
-        'source',
-        'entry_source',
-        'timezone',
-        'metadata',
-        'notes',
-        'group_id',
-        'sample_uuid',
-    ];
+    protected $guarded = [];
 
     public static function categoryFor(string $typeIdentifier): string
     {

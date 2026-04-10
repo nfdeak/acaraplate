@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\CarbonInterface;
 use Database\Factories\SleepSessionFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,15 +42,7 @@ final class SleepSession extends Model
 
     public const string STAGE_ASLEEP_UNSPECIFIED = 'asleepUnspecified';
 
-    protected $fillable = [
-        'user_id',
-        'sample_uuid',
-        'started_at',
-        'ended_at',
-        'stage',
-        'source',
-        'timezone',
-    ];
+    protected $guarded = [];
 
     /**
      * @return array<string, string>
@@ -75,10 +68,8 @@ final class SleepSession extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @param  Builder<self>  $query
-     */
-    protected function scopeForNight(Builder $query, CarbonInterface $nightDate, string $timezone = 'UTC'): void
+    #[Scope]
+    protected function forNight(Builder $query, CarbonInterface $nightDate, string $timezone = 'UTC'): void
     {
         $nightStart = $nightDate->copy()->setTimezone($timezone)->setTime(12, 0);
         $nightEnd = $nightDate->copy()->setTimezone($timezone)->addDay()->setTime(12, 0);
