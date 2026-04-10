@@ -38,6 +38,16 @@ Route::get('/food/{slug}', [Web\PublicFoodController::class, 'show'])->name('foo
 
 Route::get('/food_sitemap.xml', [Web\FoodSitemapXmlController::class, 'food'])->name('food.sitemap');
 
+Route::get('/blog', [Web\PublicPostController::class, 'index'])->name('blog.index');
+Route::get('/blog/category/{category}', [Web\PublicPostController::class, 'category'])->name('blog.category');
+Route::get('/blog/{slug}', [Web\PublicPostController::class, 'show'])->name('blog.show');
+
+Route::get('/{locale}/blog', [Web\PublicPostController::class, 'index'])->where('locale', 'mn|fr')->name('blog.index.locale');
+Route::get('/{locale}/blog/{slug}', [Web\PublicPostController::class, 'show'])->where('locale', 'mn|fr')->name('blog.show.locale');
+Route::get('/{locale}/blog/category/{category}', [Web\PublicPostController::class, 'category'])->where('locale', 'mn|fr')->name('blog.category.locale');
+
+Route::get('/blog_sitemap.xml', [Web\BlogSitemapXmlController::class, 'blog'])->name('blog.sitemap');
+
 Route::post('/profile/timezone', [Web\UserTimezoneController::class, 'update'])
     ->middleware('throttle:10,1')
     ->name('profile.timezone.update');

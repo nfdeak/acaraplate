@@ -7,12 +7,16 @@ namespace App\Models;
 use App\DataObjects\ContentMetaData;
 use App\Enums\ContentType;
 use App\Enums\FoodCategory;
+use App\Enums\PostCategory;
+use BackedEnum;
 use Carbon\CarbonInterface;
 use Database\Factories\ContentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -26,13 +30,15 @@ use Illuminate\Support\Facades\Storage;
  *     seo_description?: string,
  *     manual_links?: array<int, array{slug: string, anchor: string}>
  * }|null $meta_data
- * @property-read FoodCategory|null $category
+ * @property-read FoodCategory|PostCategory|null $category
  * @property-read string|null $image_path
  * @property-read string|null $image_url
  * @property-read ContentMetaData|null $meta
  * @property-read string $meta_title
  * @property-read string $meta_description
  * @property-read bool $is_published
+ * @property-read string $locale
+ * @property-read string|null $translation_group
  * @property-read string $display_name
  * @property-read string|null $diabetic_insight
  * @property-read array<string, float|int|null> $nutrition
@@ -60,16 +66,42 @@ final class Content extends Model
         return [
             'id' => 'integer',
             'type' => ContentType::class,
-            'category' => FoodCategory::class,
             'slug' => 'string',
             'title' => 'string',
             'body' => 'array',
             'meta_data' => 'array',
             'image_path' => 'string',
             'is_published' => 'boolean',
+            'locale' => 'string',
+            'translation_group' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return HasMany<Content, $this>
+     */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(self::class, 'translation_group', 'translation_group');
+    }
+
+    /**
+     * @return Attribute<FoodCategory|PostCategory|null, FoodCategory|PostCategory|string|null>
+     */
+    protected function category(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => match ($this->type) {
+                ContentType::Food => $value ? FoodCategory::tryFrom($value) : null,
+                ContentType::Post => $value ? PostCategory::tryFrom($value) : null,
+                default => null,
+            },
+            set: fn (FoodCategory|PostCategory|string|null $value) => $value instanceof BackedEnum
+                ? $value->value
+                : $value,
+        );
     }
 
     /**
@@ -103,15 +135,37 @@ final class Content extends Model
      * @param  Builder<Content>  $query
      */
     #[Scope]
-    protected function inCategory(Builder $query, FoodCategory $category): void
+    protected function inCategory(Builder $query, FoodCategory|PostCategory $category): void
     {
         $query->where('category', $category);
+    }
+
+    /**
+     * @param  Builder<Content>  $query
+     */
+    #[Scope]
+    protected function post(Builder $query): void
+    {
+        $query->ofType(ContentType::Post);
+    }
+
+    /**
+     * @param  Builder<Content>  $query
+     */
+    #[Scope]
+    protected function inLocale(Builder $query, string $locale): void
+    {
+        $query->where('locale', $locale);
     }
 
     protected function getImageUrlAttribute(): ?string
     {
         if (! $this->image_path) {
             return null;
+        }
+
+        if (str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
         }
 
         return Storage::disk('s3_public')->url($this->image_path);
