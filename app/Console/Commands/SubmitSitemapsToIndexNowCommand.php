@@ -82,8 +82,8 @@ final class SubmitSitemapsToIndexNowCommand extends Command
                 ->published()
                 ->food()
                 ->orderBy('slug')
-                ->pluck('slug')
-                ->map(fn (string $slug): string => route('food.show', $slug))
+                ->get()
+                ->map(fn (Content $food): string => route('food.show', $food->slug))
                 ->values()
                 ->all();
             // @codeCoverageIgnoreStart
