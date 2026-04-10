@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Contracts\Services\IndexNowServiceContract;
+use App\Models\Content;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
@@ -19,7 +20,7 @@ final class SubmitSitemapsToIndexNowCommand extends Command
     {
         $files = $this->option('file');
         if (empty($files)) {
-            $files = ['sitemap.xml', 'food_sitemap.xml'];
+            $files = ['sitemap.xml'];
         }
 
         $allUrls = [];
@@ -44,6 +45,8 @@ final class SubmitSitemapsToIndexNowCommand extends Command
             $allUrls = array_merge($allUrls, $this->extractUrlsFromSitemap($path));
         }
 
+        $allUrls = array_merge($allUrls, $this->getFoodUrls());
+
         $allUrls = array_unique($allUrls);
 
         if ($allUrls === []) {
@@ -67,6 +70,30 @@ final class SubmitSitemapsToIndexNowCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function getFoodUrls(): array
+    {
+        try {
+            return Content::query()
+                ->published()
+                ->food()
+                ->orderBy('slug')
+                ->get()
+                ->map(fn (Content $food): string => route('food.show', $food->slug))
+                ->values()
+                ->all();
+            // @codeCoverageIgnoreStart
+        } catch (Exception $exception) {
+            $this->error('Error fetching food URLs: '.$exception->getMessage());
+
+            return [];
+        }
+
+        // @codeCoverageIgnoreEnd
     }
 
     /**
