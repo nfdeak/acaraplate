@@ -148,3 +148,65 @@ it('includes canonical url with page parameter for locale paginated index', func
         ->assertViewIs('post.index')
         ->assertViewHas('canonicalUrl');
 });
+
+it('sets app locale for locale-specific index page', function (): void {
+    Content::factory()->post()->localized('mn')->create([
+        'slug' => 'mn-locale-test-'.Str::uuid()->toString(),
+    ]);
+
+    $this->get(route('post.locale.index', ['locale' => 'mn']))
+        ->assertOk();
+
+    expect(app()->getLocale())->toBe('mn');
+});
+
+it('sets app locale to en for default index page', function (): void {
+    $this->get(route('post.index'))->assertOk();
+
+    expect(app()->getLocale())->toBe('en');
+});
+
+it('includes hreflang links on index page', function (): void {
+    Content::factory()->post()->create([
+        'slug' => 'hreflang-test-'.Str::uuid()->toString(),
+    ]);
+
+    $this->get(route('post.index'))
+        ->assertOk()
+        ->assertViewHas('hreflangLinks');
+});
+
+it('includes hreflang links on category page', function (): void {
+    Content::factory()->post()->create([
+        'slug' => 'cat-hreflang-'.Str::uuid()->toString(),
+        'category' => PostCategory::Recipes,
+    ]);
+
+    $this->get(route('post.category', PostCategory::Recipes->value))
+        ->assertOk()
+        ->assertViewHas('hreflangLinks');
+});
+
+it('falls back x-default to own url when non-english post has no english translation', function (): void {
+    $post = Content::factory()->post()->localized('mn')->create([
+        'slug' => 'mn-no-en-translation-'.Str::uuid()->toString(),
+    ]);
+
+    $postUrl = route('post.locale.show', ['locale' => 'mn', 'slug' => $post->slug]);
+
+    $this->get($postUrl)
+        ->assertOk()
+        ->assertViewIs('post.show')
+        ->assertSee('hreflang="x-default" href="'.$postUrl.'"', false);
+});
+
+it('generates correct canonical url for locale category page', function (): void {
+    Content::factory()->post()->localized('fr')->create([
+        'slug' => 'fr-canonical-'.Str::uuid()->toString(),
+        'category' => PostCategory::Lifestyle,
+    ]);
+
+    $this->get(route('post.locale.category', ['locale' => 'fr', 'category' => PostCategory::Lifestyle->value]))
+        ->assertOk()
+        ->assertViewHas('canonicalUrl', route('post.locale.category', ['locale' => 'fr', 'category' => PostCategory::Lifestyle->value]));
+});

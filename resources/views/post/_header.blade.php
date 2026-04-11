@@ -4,9 +4,9 @@
         <span>Acara Plate</span>
     </a>
     <div class="flex items-center gap-4">
-        <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Log in</a>
+        <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">{{ __('post.log_in') }}</a>
         <a href="{{ route('register') }}" class="rounded-full bg-slate-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-all">
-            Get Started
+            {{ __('post.get_started') }}
         </a>
     </div>
 </header>

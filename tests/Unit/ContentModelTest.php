@@ -313,8 +313,8 @@ it('returns meta description when meta data exists', function (): void {
 });
 
 it('filters published content with scope', function (): void {
-    Content::factory()->create(['is_published' => true]);
-    Content::factory()->create(['is_published' => false]);
+    Content::factory()->create(['slug' => 'published-'.Str::uuid()->toString(), 'is_published' => true]);
+    Content::factory()->create(['slug' => 'unpublished-'.Str::uuid()->toString(), 'is_published' => false]);
 
     expect(Content::query()->published()->count())->toBe(1);
 });

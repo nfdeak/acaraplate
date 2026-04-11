@@ -107,3 +107,64 @@ it('returns empty sitemap when no posts exist', function (): void {
     $content = $response->getContent();
     expect($content)->toContain('urlset');
 });
+
+it('includes self-referencing hreflang for posts', function (): void {
+    Content::factory()->post()->create([
+        'slug' => 'self-ref-post',
+    ]);
+
+    $response = $this->get(route('post.sitemap'));
+    $content = $response->getContent();
+
+    expect($content)->toContain('hreflang="en"')
+        ->toContain(route('post.show', 'self-ref-post'));
+});
+
+it('generates correct x-default pointing to english version', function (): void {
+    $group = Str::uuid()->toString();
+
+    Content::factory()->post()->localized('en', $group)->create([
+        'slug' => 'en-xdefault-post',
+    ]);
+    Content::factory()->post()->localized('mn', $group)->create([
+        'slug' => 'mn-xdefault-post',
+    ]);
+
+    $response = $this->get(route('post.sitemap'));
+    $content = $response->getContent();
+
+    expect($content)->toContain('hreflang="x-default"')
+        ->toContain(route('post.show', 'en-xdefault-post'));
+});
+
+it('falls back x-default to own url when no english translation exists', function (): void {
+    $post = Content::factory()->post()->localized('mn')->create([
+        'slug' => 'mn-only-post',
+    ]);
+
+    $response = $this->get(route('post.sitemap'));
+    $content = $response->getContent();
+
+    $expectedUrl = route('post.locale.show', ['locale' => 'mn', 'slug' => 'mn-only-post']);
+
+    expect($content)->toContain('hreflang="x-default"')
+        ->toContain(route('post.show', 'mn-only-post'));
+});
+
+it('has correct hreflang attribute format in sitemap output', function (): void {
+    $group = Str::uuid()->toString();
+
+    Content::factory()->post()->localized('en', $group)->create([
+        'slug' => 'param-order-en',
+    ]);
+    Content::factory()->post()->localized('mn', $group)->create([
+        'slug' => 'param-order-mn',
+    ]);
+
+    $response = $this->get(route('post.sitemap'));
+    $content = $response->getContent();
+
+    expect($content)->toContain('hreflang="en"')
+        ->toContain('hreflang="mn"')
+        ->toContain('hreflang="x-default"');
+});

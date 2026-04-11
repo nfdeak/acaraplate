@@ -1,5 +1,7 @@
 @section('title', $seoTitle)
 @section('meta_description', $seoDescription)
+@section('meta_keywords', __('post.meta_keywords'))
+@section('og_image_alt', __('post.og_image_alt'))
 @section('canonical_url', $canonicalUrl)
 
 @section('head')
@@ -43,6 +45,12 @@
     @if($posts->hasMorePages())
     <link rel="next" href="{{ $posts->nextPageUrl() }}" />
     @endif
+
+    {{-- hreflang alternate links for multilingual SEO --}}
+    @foreach($hreflangLinks as $link)
+        <link rel="alternate" hreflang="{{ $link['locale'] }}" href="{{ $link['url'] }}" />
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ $hreflangLinks[0]['url'] }}" />
 @endsection
 
 <x-default-layout>
@@ -101,7 +109,7 @@
                                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        {{ $firstReadingTime }} min read
+                                        {{ __('post.min_read', ['minutes' => $firstReadingTime]) }}
                                     </span>
                                     <span aria-hidden="true">&middot;</span>
                                 @endif
@@ -111,7 +119,7 @@
                             </div>
 
                             <div class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary group-hover:gap-3 transition-all duration-300">
-                                Read article
+                                {{ __('post.read_article') }}
                                 <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                 </svg>
@@ -149,9 +157,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No Articles Yet</h3>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">{{ __('post.no_articles_title') }}</h3>
                 <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                    Check back soon — we're always adding new content to help you live healthier.
+                    {{ __('post.no_articles_description') }}
                 </p>
             </div>
         @endif
@@ -166,9 +174,9 @@
         {{-- CTA Section --}}
         <div class="mt-10 mb-16">
             <x-cta-block
-                title="Want Personalized Nutrition Advice?"
-                description="Our AI nutritionist can analyze your meals, predict blood sugar impact, and create a personalized plan — tailored to your health goals."
-                button-text="Ask Our AI Nutritionist"
+                title="{{ __('post.cta_index_title') }}"
+                description="{{ __('post.cta_index_description') }}"
+                button-text="{{ __('post.cta_index_button') }}"
                 button-url="{{ route('meet-altani') }}"
             />
         </div>

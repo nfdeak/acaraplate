@@ -28,38 +28,17 @@ enum PostCategory: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::ProductUpdates => 'Product Updates',
-            self::NutritionTips => 'Nutrition Tips',
-            self::Recipes => 'Recipes',
-            self::Research => 'Research',
-            self::Lifestyle => 'Lifestyle',
-            self::DiabetesManagement => 'Diabetes Management',
-        };
+        return __('post.category_'.$this->value);
     }
 
     public function title(): string
     {
-        return match ($this) {
-            self::ProductUpdates => 'Product Updates & Announcements',
-            self::NutritionTips => 'Nutrition Tips: Eat Smarter, Live Better',
-            self::Recipes => 'Healthy Recipes: Balanced Meals & Snacks',
-            self::Research => 'Health Research & Nutrition Science',
-            self::Lifestyle => 'Lifestyle & Wellness',
-            self::DiabetesManagement => 'Diabetes Management & Blood Sugar Control',
-        };
+        return __('post.category_title_'.$this->value);
     }
 
     public function description(): string
     {
-        return match ($this) {
-            self::ProductUpdates => 'News about Acara Plate — new features, product updates, and our journey to make health accessible for everyone.',
-            self::NutritionTips => 'Evidence-based nutrition advice — understanding macros, glycemic index, and making smarter food choices for your health goals.',
-            self::Recipes => 'Delicious, health-conscious recipes designed to keep you nourished without sacrificing flavor.',
-            self::Research => 'Summaries of the latest research in nutrition science, metabolic health, and wellness.',
-            self::Lifestyle => 'Tips for exercising, sleeping better, and managing stress — the foundations of a healthy life.',
-            self::DiabetesManagement => 'Practical guides for managing diabetes, monitoring blood sugar, and preventing glucose spikes.',
-        };
+        return __('post.category_desc_'.$this->value);
     }
 
     public function order(): int

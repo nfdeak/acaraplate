@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PostCategory;
 use App\Models\Content;
+use App\Utilities\LanguageUtil;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -15,6 +16,7 @@ final readonly class PublicPostController
     public function show(Request $request): View
     {
         $locale = $request->route('locale', 'en');
+        app()->setLocale($locale);
         $slug = $request->route('slug');
 
         $content = Content::query()
@@ -41,6 +43,7 @@ final readonly class PublicPostController
     public function index(Request $request): View
     {
         $locale = $request->route('locale', 'en');
+        app()->setLocale($locale);
 
         $posts = Content::query()
             ->post()
@@ -52,18 +55,20 @@ final readonly class PublicPostController
 
         return view('post.index', [
             'posts' => $posts,
-            'pageTitle' => 'Posts',
-            'pageDescription' => 'Practical articles on nutrition, healthy eating, and living well — powered by the latest health research.',
-            'seoTitle' => 'Posts | Acara Plate',
-            'seoDescription' => 'Articles on nutrition, healthy eating, meal planning, and wellness tips to help you make smarter food choices.',
+            'pageTitle' => __('post.page_title'),
+            'pageDescription' => __('post.page_description'),
+            'seoTitle' => __('post.seo_title'),
+            'seoDescription' => __('post.seo_description'),
             'locale' => $locale,
             'canonicalUrl' => $this->getCanonicalUrl($request, $locale),
+            'hreflangLinks' => $this->getHreflangLinks('post.index', 'post.locale.index'),
         ]);
     }
 
     public function category(Request $request): View
     {
         $locale = $request->route('locale', 'en');
+        app()->setLocale($locale);
         $category = $request->route('category');
 
         $categoryEnum = PostCategory::tryFrom($category);
@@ -85,8 +90,35 @@ final readonly class PublicPostController
             'seoTitle' => $categoryEnum->title().' | Acara Plate',
             'seoDescription' => $categoryEnum->description(),
             'locale' => $locale,
-            'canonicalUrl' => route('post.category', ['category' => $category]),
+            'canonicalUrl' => $locale === 'en'
+                ? route('post.category', ['category' => $category])
+                : route('post.locale.category', ['locale' => $locale, 'category' => $category]),
+            'hreflangLinks' => $this->getHreflangLinks(
+                'post.category',
+                'post.locale.category',
+                ['category' => $category],
+            ),
         ]);
+    }
+
+    /**
+     * @param  array<string, string>  $extraParams
+     * @return array<int, array{locale: string, url: string}>
+     */
+    private function getHreflangLinks(string $enRoute, string $localeRoute, array $extraParams = []): array
+    {
+        $links = [];
+
+        foreach (LanguageUtil::keys() as $hrefLocale) {
+            $links[] = [
+                'locale' => $hrefLocale,
+                'url' => $hrefLocale === 'en'
+                    ? route($enRoute, $extraParams)
+                    : route($localeRoute, array_merge(['locale' => $hrefLocale], $extraParams)),
+            ];
+        }
+
+        return $links;
     }
 
     private function getCanonicalUrl(Request $request, string $locale): string

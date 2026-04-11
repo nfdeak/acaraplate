@@ -53,7 +53,7 @@
                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {{ $readingTime }} min
+                    {{ __('post.min_read', ['minutes' => $readingTime]) }}
                 </span>
                 <span class="text-slate-300 dark:text-slate-700" aria-hidden="true">&middot;</span>
             @endif

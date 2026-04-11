@@ -1,5 +1,6 @@
 @section('title', $content->meta_title)
 @section('meta_description', $content->meta_description)
+@section('meta_keywords', __('post.meta_keywords'))
 @section('og_type', 'article')
 @section('og_image', $content->image_url ?? asset('banner-acara-plate.webp'))
 @section('og_image_alt', $content->display_name)
@@ -10,13 +11,19 @@
     $bodyContent = $content->body['content'] ?? '';
     $readingTime = $content->body['reading_time'] ?? null;
     $postUrl = $locale === 'en' ? route('post.show', $content->slug) : route('post.locale.show', ['locale' => $locale, 'slug' => $content->slug]);
-    $englishSlug = $locale === 'en'
-        ? $content->slug
-        : ($translations->firstWhere('locale', 'en')?->slug ?? $content->slug);
+    $englishTranslation = $translations->firstWhere('locale', 'en');
+    $xDefaultUrl = $locale === 'en' || $englishTranslation === null
+        ? $postUrl
+        : route('post.show', $englishTranslation->slug);
+    $ogLocale = match ($locale) {
+        'mn' => 'mn_MN',
+        'fr' => 'fr_FR',
+        default => 'en_US',
+    };
 @endphp
 
 @section('canonical_url', $postUrl)
-@section('og_locale', $locale === 'mn' ? 'mn_MN' : ($locale === 'fr' ? 'fr_FR' : 'en_US'))
+@section('og_locale', $ogLocale)
 
 @section('head')
     {{-- Article Open Graph meta tags --}}
@@ -31,7 +38,7 @@
     @foreach($translations as $translation)
         <link rel="alternate" hreflang="{{ $translation->locale }}" href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}" />
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ route('post.show', $englishSlug) }}" />
+    <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}" />
 
     <script type="application/ld+json">
 {
@@ -97,7 +104,7 @@
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {{ $readingTime }} min read
+                        {{ __('post.min_read', ['minutes' => $readingTime]) }}
                     </span>
                 @endif
                 <span class="text-xs text-slate-500 dark:text-slate-400">
@@ -148,14 +155,16 @@
                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.966 18.966 0 016.416 6m0 0a18.966 18.966 0 01-1.14-1.686M6.416 6L5.07 3.95M19.95 16.5A18.966 18.966 0 0115.936 12m0 0a18.966 18.966 0 01-1.14-1.686M15.936 12l1.346-2.05M15.936 12L18 15m-3-3l1.346 2.05" />
                     </svg>
-                    Read this article in
+                    {{ __('post.read_this_article_in') }}
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('post.show', $englishSlug) }}"
+                    @if($englishTranslation || $locale === 'en')
+                    <a href="{{ $locale === 'en' ? $postUrl : route('post.show', $englishTranslation->slug) }}"
                        class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === 'en' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
                        lang="en">
                         English
                     </a>
+                    @endif
                     @foreach($translations as $translation)
                         <a href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}"
                            class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === $translation->locale ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
@@ -170,9 +179,9 @@
             {{-- Related Posts / CTA --}}
             <div class="my-10">
                 <x-cta-block
-                    title="Have questions about {{ $displayName }}?"
-                    description="Our AI nutritionist can help you understand how this topic relates to your personal health goals and blood sugar management."
-                    button-text="Ask Our Nutritionist"
+                    title="{{ __('post.cta_show_title', ['topic' => $displayName]) }}"
+                    description="{{ __('post.cta_show_description') }}"
+                    button-text="{{ __('post.cta_show_button') }}"
                     button-url="{{ route('meet-altani') }}"
                 />
             </div>
