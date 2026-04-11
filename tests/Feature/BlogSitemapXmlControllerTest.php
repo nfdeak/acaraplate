@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\BlogSitemapXmlController;
 use App\Models\Content;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 covers(BlogSitemapXmlController::class);
@@ -53,6 +54,8 @@ it('only includes published posts', function (): void {
 });
 
 it('includes post image when available', function (): void {
+    Storage::fake('s3_public');
+
     Content::factory()->post()->withImage()->create([
         'slug' => 'post-with-image',
     ]);
