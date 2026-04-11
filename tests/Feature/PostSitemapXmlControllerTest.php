@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\BlogSitemapXmlController;
+use App\Http\Controllers\PostSitemapXmlController;
 use App\Models\Content;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-covers(BlogSitemapXmlController::class);
+covers(PostSitemapXmlController::class);
 
-it('returns blog sitemap as xml', function (): void {
+it('returns post sitemap as xml', function (): void {
     Content::factory()->post()->create([
         'slug' => 'test-blog-post',
         'title' => 'Test Blog Post',
     ]);
 
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful()
         ->assertHeader('Content-Type', 'application/xml');
@@ -25,26 +25,26 @@ it('returns blog sitemap as xml', function (): void {
         ->toContain('urlset');
 });
 
-it('includes blog index pages for all supported locales', function (): void {
-    $response = $this->get(route('blog.sitemap'));
+it('includes post index pages for all supported locales', function (): void {
+    $response = $this->get(route('post.sitemap'));
 
     $content = $response->getContent();
-    expect($content)->toContain(route('blog.index'));
+    expect($content)->toContain(route('post.index'));
 });
 
-it('includes blog index locale pages for non-en locales', function (): void {
-    $response = $this->get(route('blog.sitemap'));
+it('includes post index locale pages for non-en locales', function (): void {
+    $response = $this->get(route('post.sitemap'));
 
     $content = $response->getContent();
-    expect($content)->toContain(route('blog.locale.index', ['locale' => 'mn']))
-        ->toContain(route('blog.locale.index', ['locale' => 'fr']));
+    expect($content)->toContain(route('post.locale.index', ['locale' => 'mn']))
+        ->toContain(route('post.locale.index', ['locale' => 'fr']));
 });
 
 it('only includes published posts', function (): void {
     Content::factory()->post()->create(['slug' => 'published-post']);
     Content::factory()->post()->unpublished()->create(['slug' => 'unpublished-post']);
 
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful();
 
@@ -60,7 +60,7 @@ it('includes post image when available', function (): void {
         'slug' => 'post-with-image',
     ]);
 
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful();
 
@@ -78,7 +78,7 @@ it('includes alternate links for translated posts', function (): void {
         'slug' => 'mn-translated-post',
     ]);
 
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful();
 
@@ -91,16 +91,16 @@ it('generates locale-specific urls for non-en posts', function (): void {
         'slug' => 'mn-blog-post',
     ]);
 
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful();
 
     $content = $response->getContent();
-    expect($content)->toContain(route('blog.locale.show', ['locale' => 'mn', 'slug' => 'mn-blog-post']));
+    expect($content)->toContain(route('post.locale.show', ['locale' => 'mn', 'slug' => 'mn-blog-post']));
 });
 
 it('returns empty sitemap when no posts exist', function (): void {
-    $response = $this->get(route('blog.sitemap'));
+    $response = $this->get(route('post.sitemap'));
 
     $response->assertSuccessful();
 

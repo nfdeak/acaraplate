@@ -38,15 +38,15 @@ Route::get('/food/{slug}', [Web\PublicFoodController::class, 'show'])->name('foo
 
 Route::get('/food_sitemap.xml', [Web\FoodSitemapXmlController::class, 'food'])->name('food.sitemap');
 
-Route::get('/blog', [Web\PublicPostController::class, 'index'])->name('blog.index');
-Route::get('/blog/category/{category}', [Web\PublicPostController::class, 'category'])->name('blog.category');
-Route::get('/blog/{slug}', [Web\PublicPostController::class, 'show'])->name('blog.show');
+Route::get('/post', [Web\PublicPostController::class, 'index'])->name('post.index');
+Route::get('/post/category/{category}', [Web\PublicPostController::class, 'category'])->name('post.category');
+Route::get('/post/{slug}', [Web\PublicPostController::class, 'show'])->name('post.show');
 
-Route::get('/{locale}/blog', [Web\PublicPostController::class, 'index'])->where('locale', 'mn|fr')->name('blog.locale.index');
-Route::get('/{locale}/blog/{slug}', [Web\PublicPostController::class, 'show'])->where('locale', 'mn|fr')->name('blog.locale.show');
-Route::get('/{locale}/blog/category/{category}', [Web\PublicPostController::class, 'category'])->where('locale', 'mn|fr')->name('blog.locale.category');
+Route::get('/{locale}/post', [Web\PublicPostController::class, 'index'])->where('locale', 'mn|fr')->name('post.locale.index');
+Route::get('/{locale}/post/{slug}', [Web\PublicPostController::class, 'show'])->where('locale', 'mn|fr')->name('post.locale.show');
+Route::get('/{locale}/post/category/{category}', [Web\PublicPostController::class, 'category'])->where('locale', 'mn|fr')->name('post.locale.category');
 
-Route::get('/blog_sitemap.xml', [Web\BlogSitemapXmlController::class, 'blog'])->name('blog.sitemap');
+Route::get('/post_sitemap.xml', [Web\PostSitemapXmlController::class, 'post'])->name('post.sitemap');
 
 Route::post('/profile/timezone', [Web\UserTimezoneController::class, 'update'])
     ->middleware('throttle:10,1')

@@ -45,7 +45,7 @@ final class SubmitSitemapsToIndexNowCommand extends Command
             $allUrls = array_merge($allUrls, $this->extractUrlsFromSitemap($path));
         }
 
-        $allUrls = array_merge($allUrls, $this->getFoodUrls(), $this->getBlogUrls());
+        $allUrls = array_merge($allUrls, $this->getFoodUrls(), $this->getPostUrls());
 
         $allUrls = array_unique($allUrls);
 
@@ -99,7 +99,7 @@ final class SubmitSitemapsToIndexNowCommand extends Command
     /**
      * @return array<int, string>
      */
-    private function getBlogUrls(): array
+    private function getPostUrls(): array
     {
         try {
             return Content::query()
@@ -108,14 +108,14 @@ final class SubmitSitemapsToIndexNowCommand extends Command
                 ->orderBy('slug')
                 ->get()
                 ->map(fn (Content $post): string => $post->locale === 'en'
-                    ? route('blog.show', $post->slug)
-                    : route('blog.locale.show', ['locale' => $post->locale, 'slug' => $post->slug])
+                    ? route('post.show', $post->slug)
+                    : route('post.locale.show', ['locale' => $post->locale, 'slug' => $post->slug])
                 )
                 ->values()
                 ->all();
             // @codeCoverageIgnoreStart
         } catch (Exception $exception) {
-            $this->error('Error fetching blog URLs: '.$exception->getMessage());
+            $this->error('Error fetching post URLs: '.$exception->getMessage());
 
             return [];
         }

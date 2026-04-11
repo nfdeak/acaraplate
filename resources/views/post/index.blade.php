@@ -28,7 +28,7 @@
         {
             "@@type": "ListItem",
             "position": {{ $loop->iteration + (($posts->currentPage() - 1) * $posts->perPage()) }},
-            "url": "{{ $post->locale === 'en' ? route('blog.show', $post->slug) : route('blog.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]) }}",
+            "url": "{{ $post->locale === 'en' ? route('post.show', $post->slug) : route('post.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]) }}",
             "name": "{{ $post->display_name }}"
         }@unless ($loop->last),@endunless
         @endforeach
@@ -46,7 +46,7 @@
 @endsection
 
 <x-default-layout>
-    @include('blog._header')
+    @include('post._header')
 
     <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
 
@@ -57,7 +57,7 @@
                 $firstExcerpt = $firstPost->body['excerpt'] ?? '';
                 $firstReadingTime = $firstPost->body['reading_time'] ?? null;
                 $firstCategoryLabel = $firstPost->category?->label() ?? '';
-                $firstPostUrl = $firstPost->locale === 'en' ? route('blog.show', $firstPost->slug) : route('blog.locale.show', ['locale' => $firstPost->locale, 'slug' => $firstPost->slug]);
+                $firstPostUrl = $firstPost->locale === 'en' ? route('post.show', $firstPost->slug) : route('post.locale.show', ['locale' => $firstPost->locale, 'slug' => $firstPost->slug]);
             @endphp
 
             <a href="{{ $firstPostUrl }}" class="group block mt-10 sm:mt-14 mb-10 sm:mb-14">
@@ -131,14 +131,14 @@
             </div>
         @endif
 
-        {{-- Blog Grid --}}
+        {{-- Post Grid --}}
         @if($posts->isNotEmpty())
             @php $remainingPosts = $posts->skip(1); @endphp
 
             @if($remainingPosts->isNotEmpty())
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                     @foreach($remainingPosts as $post)
-                        @include('blog._card', ['post' => $post])
+                        @include('post._card', ['post' => $post])
                     @endforeach
                 </div>
             @endif

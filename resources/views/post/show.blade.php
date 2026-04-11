@@ -9,7 +9,7 @@
     $excerpt = $content->body['excerpt'] ?? '';
     $bodyContent = $content->body['content'] ?? '';
     $readingTime = $content->body['reading_time'] ?? null;
-    $postUrl = $locale === 'en' ? route('blog.show', $content->slug) : route('blog.locale.show', ['locale' => $locale, 'slug' => $content->slug]);
+    $postUrl = $locale === 'en' ? route('post.show', $content->slug) : route('post.locale.show', ['locale' => $locale, 'slug' => $content->slug]);
     $englishSlug = $locale === 'en'
         ? $content->slug
         : ($translations->firstWhere('locale', 'en')?->slug ?? $content->slug);
@@ -29,9 +29,9 @@
     {{-- hreflang alternate links for multilingual SEO --}}
     <link rel="alternate" hreflang="{{ $locale }}" href="{{ $postUrl }}" />
     @foreach($translations as $translation)
-        <link rel="alternate" hreflang="{{ $translation->locale }}" href="{{ $translation->locale === 'en' ? route('blog.show', $translation->slug) : route('blog.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}" />
+        <link rel="alternate" hreflang="{{ $translation->locale }}" href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}" />
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ route('blog.show', $englishSlug) }}" />
+    <link rel="alternate" hreflang="x-default" href="{{ route('post.show', $englishSlug) }}" />
 
     <script type="application/ld+json">
 {
@@ -81,7 +81,7 @@
 @endsection
 
 <x-default-layout>
-    @include('blog._header')
+    @include('post._header')
 
     <div class="mx-auto my-16 max-w-3xl px-6 lg:px-8">
         <article class="mt-6">
@@ -151,13 +151,13 @@
                     Read this article in
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('blog.show', $englishSlug) }}"
+                    <a href="{{ route('post.show', $englishSlug) }}"
                        class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === 'en' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
                        lang="en">
                         English
                     </a>
                     @foreach($translations as $translation)
-                        <a href="{{ $translation->locale === 'en' ? route('blog.show', $translation->slug) : route('blog.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}"
+                        <a href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}"
                            class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === $translation->locale ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
                            lang="{{ $translation->locale }}">
                             {{ strtoupper($translation->locale) }}

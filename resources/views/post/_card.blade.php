@@ -9,7 +9,7 @@
 @endphp
 
 <a
-    href="{{ $post->locale === 'en' ? route('blog.show', $post->slug) : route('blog.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]) }}"
+    href="{{ $post->locale === 'en' ? route('post.show', $post->slug) : route('post.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]) }}"
     class="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-primary/40 dark:hover:border-primary/40 transition-[transform,box-shadow,border-color] duration-250 hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_oklch(0.45_0.02_260/0.15)] dark:hover:shadow-[0_20px_40px_-12px_oklch(0_0_0/0.4)]"
 >
     @if($post->image_url)

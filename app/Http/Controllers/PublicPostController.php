@@ -31,7 +31,7 @@ final readonly class PublicPostController
             ->where('is_published', true)
             ->values();
 
-        return view('blog.show', [
+        return view('post.show', [
             'content' => $content,
             'translations' => $translations,
             'locale' => $locale,
@@ -50,11 +50,11 @@ final readonly class PublicPostController
             ->paginate(9)
             ->withQueryString();
 
-        return view('blog.index', [
+        return view('post.index', [
             'posts' => $posts,
-            'pageTitle' => 'Blog',
+            'pageTitle' => 'Posts',
             'pageDescription' => 'Practical articles on nutrition, healthy eating, and living well — powered by the latest health research.',
-            'seoTitle' => 'Blog | Acara Plate',
+            'seoTitle' => 'Posts | Acara Plate',
             'seoDescription' => 'Articles on nutrition, healthy eating, meal planning, and wellness tips to help you make smarter food choices.',
             'locale' => $locale,
             'canonicalUrl' => $this->getCanonicalUrl($request, $locale),
@@ -78,14 +78,14 @@ final readonly class PublicPostController
             ->paginate(9)
             ->withQueryString();
 
-        return view('blog.index', [
+        return view('post.index', [
             'posts' => $posts,
             'pageTitle' => $categoryEnum->title(),
             'pageDescription' => $categoryEnum->description(),
             'seoTitle' => $categoryEnum->title().' | Acara Plate',
             'seoDescription' => $categoryEnum->description(),
             'locale' => $locale,
-            'canonicalUrl' => route('blog.category', ['category' => $category]),
+            'canonicalUrl' => route('post.category', ['category' => $category]),
         ]);
     }
 
@@ -98,9 +98,9 @@ final readonly class PublicPostController
         }
 
         if ($locale === 'en') {
-            return route('blog.index', $params);
+            return route('post.index', $params);
         }
 
-        return route('blog.locale.index', array_merge(['locale' => $locale], $params));
+        return route('post.locale.index', array_merge(['locale' => $locale], $params));
     }
 }

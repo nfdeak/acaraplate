@@ -17,7 +17,7 @@ enum ContentType: string
             self::Food => 'Food',
             self::UsdaDailyServingSize => 'USDA Daily Serving Size',
             self::UsdaSugarLimit => 'USDA Sugar Limit',
-            self::Post => 'Blog Post',
+            self::Post => 'Post',
         };
     }
 }

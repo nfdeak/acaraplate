@@ -103,7 +103,7 @@ final class ContentFactory extends Factory
                 'title' => $postTitle,
                 'category' => $postCategory,
                 'meta_data' => [
-                    'seo_title' => $postTitle.' | Acara Plate Blog',
+                    'seo_title' => $postTitle.' | Acara Plate',
                     'seo_description' => sprintf('Learn about %s and how it relates to diabetes management and nutrition.', $postTitle),
                     'manual_links' => [],
                 ],

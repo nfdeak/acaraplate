@@ -10,11 +10,11 @@ use Illuminate\Http\Response;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
-final class BlogSitemapXmlController
+final class PostSitemapXmlController
 {
     private const array SUPPORTED_LOCALES = ['en', 'mn', 'fr'];
 
-    public function blog(): Response
+    public function post(): Response
     {
         $posts = Content::query()
             ->published()
@@ -27,7 +27,7 @@ final class BlogSitemapXmlController
 
         foreach (self::SUPPORTED_LOCALES as $locale) {
             $sitemap->add(
-                Url::create($locale === 'en' ? route('blog.index') : route('blog.locale.index', ['locale' => $locale]))
+                Url::create($locale === 'en' ? route('post.index') : route('post.locale.index', ['locale' => $locale]))
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.8)
             );
@@ -38,8 +38,8 @@ final class BlogSitemapXmlController
 
             $url = Url::create(
                 $locale === 'en'
-                    ? route('blog.show', $post->slug)
-                    : route('blog.locale.show', ['locale' => $locale, 'slug' => $post->slug])
+                    ? route('post.show', $post->slug)
+                    : route('post.locale.show', ['locale' => $locale, 'slug' => $post->slug])
             )
                 ->setLastModificationDate($post->updated_at)
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
@@ -59,13 +59,13 @@ final class BlogSitemapXmlController
             foreach ($otherTranslations as $translation) {
                 $transLocale = $translation->locale ?? 'en';
                 $transUrl = $transLocale === 'en'
-                    ? route('blog.show', $translation->slug)
-                    : route('blog.locale.show', ['locale' => $transLocale, 'slug' => $translation->slug]);
+                    ? route('post.show', $translation->slug)
+                    : route('post.locale.show', ['locale' => $transLocale, 'slug' => $translation->slug]);
 
                 $url->addAlternate($transLocale, $transUrl);
             }
 
-            $url->addAlternate('x-default', route('blog.show', $post->slug));
+            $url->addAlternate('x-default', route('post.show', $post->slug));
 
             $sitemap->add($url);
         }

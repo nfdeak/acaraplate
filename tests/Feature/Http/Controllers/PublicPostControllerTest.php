@@ -9,26 +9,26 @@ use Illuminate\Support\Str;
 
 covers(PublicPostController::class);
 
-it('displays the blog index page', function (): void {
+it('displays the post index page', function (): void {
     Content::factory()->post()->create(['slug' => 'post-'.Str::uuid()->toString()]);
 
-    $this->get(route('blog.index'))
+    $this->get(route('post.index'))
         ->assertOk()
-        ->assertViewIs('blog.index');
+        ->assertViewIs('post.index');
 });
 
-it('displays a single blog post', function (): void {
+it('displays a single post', function (): void {
     $post = Content::factory()->post()->create([
         'slug' => 'test-post-'.Str::uuid()->toString(),
     ]);
 
-    $this->get(route('blog.show', $post->slug))
+    $this->get(route('post.show', $post->slug))
         ->assertOk()
-        ->assertViewIs('blog.show');
+        ->assertViewIs('post.show');
 });
 
 it('returns 404 for non-existent post', function (): void {
-    $this->get(route('blog.show', 'non-existent-post'))
+    $this->get(route('post.show', 'non-existent-post'))
         ->assertNotFound();
 });
 
@@ -37,7 +37,7 @@ it('returns 404 for unpublished post', function (): void {
         'slug' => 'unpublished-post-'.Str::uuid()->toString(),
     ]);
 
-    $this->get(route('blog.show', $post->slug))
+    $this->get(route('post.show', $post->slug))
         ->assertNotFound();
 });
 
@@ -51,14 +51,14 @@ it('filters posts by category', function (): void {
         'category' => PostCategory::Research,
     ]);
 
-    $this->get(route('blog.category', PostCategory::Recipes->value))
+    $this->get(route('post.category', PostCategory::Recipes->value))
         ->assertOk()
-        ->assertViewIs('blog.index')
+        ->assertViewIs('post.index')
         ->assertViewHas('posts', fn ($posts): bool => $posts->total() === 1);
 });
 
 it('returns 404 for invalid category', function (): void {
-    $this->get(route('blog.category', 'invalid-category'))
+    $this->get(route('post.category', 'invalid-category'))
         ->assertNotFound();
 });
 
@@ -71,7 +71,7 @@ it('displays posts for a specific locale', function (): void {
         'locale' => 'en',
     ]);
 
-    $this->get(route('blog.locale.index', ['locale' => 'mn']))
+    $this->get(route('post.locale.index', ['locale' => 'mn']))
         ->assertOk()
         ->assertViewHas('posts', fn ($posts): bool => $posts->total() === 1);
 });
@@ -86,19 +86,19 @@ it('shows translations for a post with translation group', function (): void {
         'slug' => 'mn-translated-'.Str::uuid()->toString(),
     ]);
 
-    $this->get(route('blog.show', $enPost->slug))
+    $this->get(route('post.show', $enPost->slug))
         ->assertOk()
         ->assertViewHas('translations', fn ($translations): bool => $translations->count() === 1);
 });
 
-it('displays a locale-specific blog post via locale route', function (): void {
+it('displays a locale-specific post via locale route', function (): void {
     $post = Content::factory()->post()->localized('mn')->create([
         'slug' => 'mn-detail-'.Str::uuid()->toString(),
     ]);
 
-    $this->get(route('blog.locale.show', ['locale' => 'mn', 'slug' => $post->slug]))
+    $this->get(route('post.locale.show', ['locale' => 'mn', 'slug' => $post->slug]))
         ->assertOk()
-        ->assertViewIs('blog.show');
+        ->assertViewIs('post.show');
 });
 
 it('displays category page via locale route', function (): void {
@@ -107,9 +107,9 @@ it('displays category page via locale route', function (): void {
         'category' => PostCategory::Lifestyle,
     ]);
 
-    $this->get(route('blog.locale.category', ['locale' => 'fr', 'category' => PostCategory::Lifestyle->value]))
+    $this->get(route('post.locale.category', ['locale' => 'fr', 'category' => PostCategory::Lifestyle->value]))
         ->assertOk()
-        ->assertViewIs('blog.index');
+        ->assertViewIs('post.index');
 });
 
 it('resolves category as PostCategory enum for post content', function (): void {
@@ -128,10 +128,10 @@ it('includes canonical url with page parameter for paginated index', function ()
         ]);
     }
 
-    $response = $this->get(route('blog.index', ['page' => 2]));
+    $response = $this->get(route('post.index', ['page' => 2]));
 
     $response->assertOk()
-        ->assertViewIs('blog.index')
+        ->assertViewIs('post.index')
         ->assertViewHas('canonicalUrl');
 });
 
@@ -142,9 +142,9 @@ it('includes canonical url with page parameter for locale paginated index', func
         ]);
     }
 
-    $response = $this->get(route('blog.locale.index', ['locale' => 'mn', 'page' => 2]));
+    $response = $this->get(route('post.locale.index', ['locale' => 'mn', 'page' => 2]));
 
     $response->assertOk()
-        ->assertViewIs('blog.index')
+        ->assertViewIs('post.index')
         ->assertViewHas('canonicalUrl');
 });

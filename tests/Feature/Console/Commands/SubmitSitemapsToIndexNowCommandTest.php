@@ -238,7 +238,7 @@ it('excludes unpublished foods from submission', function (): void {
     });
 });
 
-it('includes blog post URLs for both english and non-english locales', function (): void {
+it('includes post URLs for both english and non-english locales', function (): void {
     Http::fake([
         'api.indexnow.org/IndexNow' => Http::response([], 200),
     ]);
@@ -254,8 +254,8 @@ it('includes blog post URLs for both english and non-english locales', function 
     Http::assertSent(function (Request $request): bool {
         $urlList = $request->data()['urlList'];
 
-        return in_array(route('blog.show', 'my-english-post'), $urlList)
-            && in_array(route('blog.locale.show', ['locale' => 'mn', 'slug' => 'my-mongolian-post']), $urlList);
+        return in_array(route('post.show', 'my-english-post'), $urlList)
+            && in_array(route('post.locale.show', ['locale' => 'mn', 'slug' => 'my-mongolian-post']), $urlList);
     });
 });
 
