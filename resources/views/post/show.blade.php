@@ -20,6 +20,69 @@
         'fr' => 'fr_FR',
         default => 'en_US',
     };
+    $localeToOg = ['en' => 'en_US', 'mn' => 'mn_MN', 'fr' => 'fr_FR'];
+    $indexUrl = $locale === 'en' ? route('post.index') : route('post.locale.index', ['locale' => $locale]);
+
+    $articleSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Article',
+        'headline' => $content->title,
+        'description' => $content->meta_description,
+        'image' => $content->image_url ?? asset('banner-acara-plate.webp'),
+        'inLanguage' => $locale,
+        'author' => [
+            '@type' => 'Organization',
+            'name' => 'Acara Plate',
+            'url' => url('/'),
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'Acara Plate',
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('apple-touch-icon/apple-touch-icon-180x180.png'),
+            ],
+        ],
+        'datePublished' => $content->created_at->toIso8601String(),
+        'dateModified' => $content->updated_at->toIso8601String(),
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => $postUrl,
+        ],
+    ];
+
+    $breadcrumbItems = [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => __('post.page_title'), 'item' => $indexUrl],
+    ];
+    if ($content->category) {
+        $categoryUrl = $locale === 'en'
+            ? route('post.category', ['category' => $content->category->value])
+            : route('post.locale.category', ['locale' => $locale, 'category' => $content->category->value]);
+        $breadcrumbItems[] = ['@type' => 'ListItem', 'position' => 3, 'name' => $content->category->label(), 'item' => $categoryUrl];
+        $breadcrumbItems[] = ['@type' => 'ListItem', 'position' => 4, 'name' => $content->title];
+    } else {
+        $breadcrumbItems[] = ['@type' => 'ListItem', 'position' => 3, 'name' => $content->title];
+    }
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbItems,
+    ];
+
+    $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG;
+
+    $webPageSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'WebPage',
+        'name' => $content->title,
+        'url' => $postUrl,
+        'speakable' => [
+            '@type' => 'SpeakableSpecification',
+            'cssSelector' => ['.speakable-intro'],
+        ],
+    ];
 @endphp
 
 @section('canonical_url', $postUrl)
@@ -33,6 +96,11 @@
     <meta property="article:section" content="{{ $content->category->label() }}" />
     @endif
 
+    {{-- og:locale:alternate for social sharing --}}
+    @foreach($translations as $translation)
+        <meta property="og:locale:alternate" content="{{ $localeToOg[$translation->locale] ?? $translation->locale }}" />
+    @endforeach
+
     {{-- hreflang alternate links for multilingual SEO --}}
     <link rel="alternate" hreflang="{{ $locale }}" href="{{ $postUrl }}" />
     @foreach($translations as $translation)
@@ -41,48 +109,17 @@
     <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}" />
 
     <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "Article",
-    "headline": "{{ $content->title }}",
-    "description": "{{ $content->meta_description }}",
-    "image": "{{ $content->image_url ?? asset('banner-acara-plate.webp') }}",
-    "inLanguage": "{{ $locale }}",
-    "author": {
-        "@@type": "Organization",
-        "name": "Acara Plate",
-        "url": "{{ url('/') }}"
-    },
-    "publisher": {
-        "@@type": "Organization",
-        "name": "Acara Plate",
-        "logo": {
-            "@@type": "ImageObject",
-            "url": "{{ asset('apple-touch-icon/apple-touch-icon-180x180.png') }}"
-        }
-    },
-    "datePublished": "{{ $content->created_at->toIso8601String() }}",
-    "dateModified": "{{ $content->updated_at->toIso8601String() }}",
-    "mainEntityOfPage": {
-        "@@type": "WebPage",
-        "@@id": "{{ $postUrl }}"
-    }
-}
+{!! json_encode($articleSchema, $jsonFlags) !!}
+</script>
+
+    <script type="application/ld+json">
+{!! json_encode($breadcrumbSchema, $jsonFlags) !!}
 </script>
 
     {{-- Language switcher for search engines --}}
     @if($translations->isNotEmpty())
     <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "WebPage",
-    "name": "{{ $content->title }}",
-    "url": "{{ $postUrl }}",
-    "speakable": {
-        "@@type": "SpeakableSpecification",
-        "cssSelector": [".speakable-intro"]
-    }
-}
+{!! json_encode($webPageSchema, $jsonFlags) !!}
 </script>
     @endif
 @endsection
@@ -179,10 +216,10 @@
             {{-- Related Posts / CTA --}}
             <div class="my-10">
                 <x-cta-block
-                    title="{{ __('post.cta_show_title', ['topic' => $displayName]) }}"
-                    description="{{ __('post.cta_show_description') }}"
-                    button-text="{{ __('post.cta_show_button') }}"
-                    button-url="{{ route('meet-altani') }}"
+                    :title="__('post.cta_show_title', ['topic' => $displayName])"
+                    :description="__('post.cta_show_description')"
+                    :button-text="__('post.cta_show_button')"
+                    :button-url="route('register')"
                 />
             </div>
         </article>

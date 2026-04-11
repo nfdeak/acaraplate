@@ -4,38 +4,50 @@
 @section('og_image_alt', __('post.og_image_alt'))
 @section('canonical_url', $canonicalUrl)
 
+@php
+    $ogLocale = match ($locale) {
+        'mn' => 'mn_MN',
+        'fr' => 'fr_FR',
+        default => 'en_US',
+    };
+    $localeToOg = ['en' => 'en_US', 'mn' => 'mn_MN', 'fr' => 'fr_FR'];
+    $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG;
+
+    $collectionSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $pageTitle,
+        'description' => $pageDescription,
+        'url' => $canonicalUrl,
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            'name' => 'Acara Plate',
+            'url' => url('/'),
+        ],
+    ];
+
+    $itemListSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ItemList',
+        'name' => $pageTitle,
+        'numberOfItems' => $posts->total(),
+        'itemListElement' => $posts->values()->map(fn ($post, $index) => [
+            '@type' => 'ListItem',
+            'position' => $index + 1 + (($posts->currentPage() - 1) * $posts->perPage()),
+            'url' => $post->locale === 'en' ? route('post.show', $post->slug) : route('post.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]),
+            'name' => $post->display_name,
+        ])->all(),
+    ];
+@endphp
+
+@section('og_locale', $ogLocale)
+
 @section('head')
     <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "CollectionPage",
-    "name": "{{ $pageTitle }}",
-    "description": "{{ $pageDescription }}",
-    "url": "{{ $canonicalUrl }}",
-    "isPartOf": {
-        "@@type": "WebSite",
-        "name": "Acara Plate",
-        "url": "{{ url('/') }}"
-    }
-}
+{!! json_encode($collectionSchema, $jsonFlags) !!}
 </script>
     <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "ItemList",
-    "name": "{{ $pageTitle }}",
-    "numberOfItems": {{ $posts->total() }},
-    "itemListElement": [
-        @foreach($posts as $post)
-        {
-            "@@type": "ListItem",
-            "position": {{ $loop->iteration + (($posts->currentPage() - 1) * $posts->perPage()) }},
-            "url": "{{ $post->locale === 'en' ? route('post.show', $post->slug) : route('post.locale.show', ['locale' => $post->locale, 'slug' => $post->slug]) }}",
-            "name": "{{ $post->display_name }}"
-        }@unless ($loop->last),@endunless
-        @endforeach
-    ]
-}
+{!! json_encode($itemListSchema, $jsonFlags) !!}
 </script>
 
     {{-- Pagination SEO links --}}
@@ -45,6 +57,13 @@
     @if($posts->hasMorePages())
     <link rel="next" href="{{ $posts->nextPageUrl() }}" />
     @endif
+
+    {{-- og:locale:alternate for social sharing --}}
+    @foreach($hreflangLinks as $link)
+        @if($link['locale'] !== $locale)
+            <meta property="og:locale:alternate" content="{{ $localeToOg[$link['locale']] ?? $link['locale'] }}" />
+        @endif
+    @endforeach
 
     {{-- hreflang alternate links for multilingual SEO --}}
     @foreach($hreflangLinks as $link)

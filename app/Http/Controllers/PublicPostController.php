@@ -90,9 +90,7 @@ final readonly class PublicPostController
             'seoTitle' => $categoryEnum->title().' | Acara Plate',
             'seoDescription' => $categoryEnum->description(),
             'locale' => $locale,
-            'canonicalUrl' => $locale === 'en'
-                ? route('post.category', ['category' => $category])
-                : route('post.locale.category', ['locale' => $locale, 'category' => $category]),
+            'canonicalUrl' => $this->getCanonicalUrl($request, $locale, 'post.category', 'post.locale.category', ['category' => $category]),
             'hreflangLinks' => $this->getHreflangLinks(
                 'post.category',
                 'post.locale.category',
@@ -121,18 +119,21 @@ final readonly class PublicPostController
         return $links;
     }
 
-    private function getCanonicalUrl(Request $request, string $locale): string
+    /**
+     * @param  array<string, string>  $extraParams
+     */
+    private function getCanonicalUrl(Request $request, string $locale, string $enRoute = 'post.index', string $localeRoute = 'post.locale.index', array $extraParams = []): string
     {
         $page = $request->integer('page', 1);
-        $params = [];
+        $params = $extraParams;
         if ($page > 1) {
             $params['page'] = $page;
         }
 
         if ($locale === 'en') {
-            return route('post.index', $params);
+            return route($enRoute, $params);
         }
 
-        return route('post.locale.index', array_merge(['locale' => $locale], $params));
+        return route($localeRoute, array_merge(['locale' => $locale], $params));
     }
 }

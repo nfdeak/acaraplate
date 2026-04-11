@@ -25,11 +25,18 @@ final class PostSitemapXmlController
         $sitemap = Sitemap::create();
 
         foreach (LanguageUtil::keys() as $locale) {
-            $sitemap->add(
-                Url::create($locale === 'en' ? route('post.index') : route('post.locale.index', ['locale' => $locale]))
-                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                    ->setPriority(0.8)
-            );
+            $indexUrl = $locale === 'en' ? route('post.index') : route('post.locale.index', ['locale' => $locale]);
+            $url = Url::create($indexUrl)
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                ->setPriority(0.8);
+
+            foreach (LanguageUtil::keys() as $altLocale) {
+                $altUrl = $altLocale === 'en' ? route('post.index') : route('post.locale.index', ['locale' => $altLocale]);
+                $url->addAlternate($altUrl, $altLocale);
+            }
+
+            $url->addAlternate(route('post.index'), 'x-default');
+            $sitemap->add($url);
         }
 
         foreach ($posts as $post) {
