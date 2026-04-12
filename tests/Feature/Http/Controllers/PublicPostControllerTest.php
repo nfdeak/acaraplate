@@ -210,7 +210,7 @@ it('shows hreflang for both locales and x-default pointing to english translatio
         'slug' => 'mn-hreflang-test-'.Str::uuid()->toString(),
     ]);
 
-    $mnSlug = Content::where('locale', 'mn')->where('translation_group', $group)->first()->slug;
+    $mnSlug = Content::query()->where('locale', 'mn')->where('translation_group', $group)->first()->slug;
     $response = $this->get(route('post.locale.show', ['locale' => 'mn', 'slug' => $mnSlug]));
 
     $response->assertOk()
