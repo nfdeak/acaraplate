@@ -11,10 +11,6 @@
     $bodyContent = $content->body['content'] ?? '';
     $readingTime = $content->body['reading_time'] ?? null;
     $postUrl = $locale === 'en' ? route('post.show', $content->slug) : route('post.locale.show', ['locale' => $locale, 'slug' => $content->slug]);
-    $englishTranslation = $translations->firstWhere('locale', 'en');
-    $xDefaultUrl = $locale === 'en' || $englishTranslation === null
-        ? $postUrl
-        : route('post.show', $englishTranslation->slug);
     $ogLocale = match ($locale) {
         'mn' => 'mn_MN',
         default => 'en_US',
@@ -51,7 +47,7 @@
     ];
 
     $breadcrumbItems = [
-        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+        ['@type' => 'ListItem', 'position' => 1, 'name' => __('post.breadcrumb_home'), 'item' => url('/')],
         ['@type' => 'ListItem', 'position' => 2, 'name' => __('post.page_title'), 'item' => $indexUrl],
     ];
     if ($content->category) {
@@ -194,13 +190,6 @@
                     {{ __('post.read_this_article_in') }}
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                    @if($englishTranslation || $locale === 'en')
-                    <a href="{{ $locale === 'en' ? $postUrl : route('post.show', $englishTranslation->slug) }}"
-                       class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === 'en' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
-                       lang="en">
-                        English
-                    </a>
-                    @endif
                     @foreach($translations as $translation)
                         <a href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}"
                            class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === $translation->locale ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"

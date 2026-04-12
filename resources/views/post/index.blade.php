@@ -68,7 +68,7 @@
     @foreach($hreflangLinks as $link)
         <link rel="alternate" hreflang="{{ $link['locale'] }}" href="{{ $link['url'] }}" />
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ $hreflangLinks[0]['url'] }}" />
+    <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}" />
 @endsection
 
 <x-default-layout>

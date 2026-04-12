@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'breadcrumb_home' => 'Home',
+
     'page_title' => 'Posts',
     'page_description' => 'Practical articles on nutrition, healthy eating, and living well — powered by the latest health research.',
     'seo_title' => 'Posts | Acara Plate',

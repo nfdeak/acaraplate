@@ -9,6 +9,7 @@ use App\Models\Content;
 use App\Utilities\LanguageUtil;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final readonly class PublicPostController
@@ -28,15 +29,15 @@ final readonly class PublicPostController
 
         throw_unless($content, NotFoundHttpException::class, 'Post not found');
 
-        $translations = $content->translations
-            ->where('id', '!=', $content->id)
-            ->where('is_published', true)
-            ->values();
+        $translations = $this->getTranslations($content);
+
+        $xDefaultUrl = $this->getXDefaultUrl($content, $translations);
 
         return view('post.show', [
             'content' => $content,
             'translations' => $translations,
             'locale' => $locale,
+            'xDefaultUrl' => $xDefaultUrl,
         ]);
     }
 
@@ -62,6 +63,7 @@ final readonly class PublicPostController
             'locale' => $locale,
             'canonicalUrl' => $this->getCanonicalUrl($request, $locale),
             'hreflangLinks' => $this->getHreflangLinks('post.index', 'post.locale.index'),
+            'xDefaultUrl' => $this->getXDefaultUrlForIndex('post.index'),
         ]);
     }
 
@@ -96,7 +98,49 @@ final readonly class PublicPostController
                 'post.locale.category',
                 ['category' => $category],
             ),
+            'xDefaultUrl' => route('post.category', ['category' => $category]),
         ]);
+    }
+
+    /**
+     * @return Collection<int, Content>
+     */
+    private function getTranslations(Content $content): Collection
+    {
+        if ($content->translation_group !== null) {
+            return $content->translations
+                ->where('id', '!=', $content->id)
+                ->where('is_published', true)
+                ->values();
+        }
+
+        return Content::query()
+            ->post()
+            ->published()
+            ->where('slug', $content->slug)
+            ->where('locale', '!=', $content->locale)
+            ->get()
+            ->values();
+    }
+
+    private function getXDefaultUrl(Content $content, Collection $translations): string
+    {
+        if ($content->locale === 'en') {
+            return route('post.show', $content->slug);
+        }
+
+        $englishTranslation = $translations->firstWhere('locale', 'en');
+
+        if ($englishTranslation !== null) {
+            return route('post.show', $englishTranslation->slug);
+        }
+
+        return route('post.index');
+    }
+
+    private function getXDefaultUrlForIndex(string $enRoute): string
+    {
+        return route($enRoute);
     }
 
     /**

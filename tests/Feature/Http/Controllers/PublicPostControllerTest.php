@@ -187,7 +187,7 @@ it('includes hreflang links on category page', function (): void {
         ->assertViewHas('hreflangLinks');
 });
 
-it('falls back x-default to own url when non-english post has no english translation', function (): void {
+it('falls back x-default to post index when non-english post has no english translation', function (): void {
     $post = Content::factory()->post()->localized('mn')->create([
         'slug' => 'mn-no-en-translation-'.Str::uuid()->toString(),
     ]);
@@ -197,7 +197,59 @@ it('falls back x-default to own url when non-english post has no english transla
     $this->get($postUrl)
         ->assertOk()
         ->assertViewIs('post.show')
-        ->assertSee('hreflang="x-default" href="'.$postUrl.'"', false);
+        ->assertSee('hreflang="x-default" href="'.route('post.index').'"', false);
+});
+
+it('shows hreflang for both locales and x-default pointing to english translation', function (): void {
+    $group = Str::uuid()->toString();
+
+    $enPost = Content::factory()->post()->localized('en', $group)->create([
+        'slug' => 'en-hreflang-test-'.Str::uuid()->toString(),
+    ]);
+    Content::factory()->post()->localized('mn', $group)->create([
+        'slug' => 'mn-hreflang-test-'.Str::uuid()->toString(),
+    ]);
+
+    $mnSlug = Content::where('locale', 'mn')->where('translation_group', $group)->first()->slug;
+    $response = $this->get(route('post.locale.show', ['locale' => 'mn', 'slug' => $mnSlug]));
+
+    $response->assertOk()
+        ->assertSee('hreflang="mn"', false)
+        ->assertSee('hreflang="en"', false)
+        ->assertSee('hreflang="x-default" href="'.route('post.show', $enPost->slug).'"', false);
+});
+
+it('sets x-default to self for english post', function (): void {
+    $post = Content::factory()->post()->create([
+        'slug' => 'en-xdefault-test-'.Str::uuid()->toString(),
+    ]);
+
+    $this->get(route('post.show', $post->slug))
+        ->assertOk()
+        ->assertSee('hreflang="x-default" href="'.route('post.show', $post->slug).'"', false);
+});
+
+it('falls back to slug-based translation lookup when translation group is null', function (): void {
+    $sharedSlug = 'shared-slug-test-'.Str::uuid()->toString();
+
+    $mnPost = Content::factory()->post()->state([
+        'slug' => $sharedSlug,
+        'locale' => 'mn',
+        'translation_group' => null,
+    ])->create();
+
+    Content::factory()->post()->state([
+        'slug' => $sharedSlug,
+        'locale' => 'en',
+        'translation_group' => null,
+    ])->create();
+
+    $postUrl = route('post.locale.show', ['locale' => 'mn', 'slug' => $sharedSlug]);
+
+    $this->get($postUrl)
+        ->assertOk()
+        ->assertSee('hreflang="en"', false)
+        ->assertSee('hreflang="mn"', false);
 });
 
 it('generates correct canonical url for locale category page', function (): void {

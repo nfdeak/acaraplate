@@ -64,6 +64,15 @@ final class PostSitemapXmlController
 
             $otherTranslations = $post->translations->where('id', '!=', $post->id);
 
+            if ($otherTranslations->isEmpty() && $post->translation_group === null) {
+                $otherTranslations = Content::query()
+                    ->post()
+                    ->published()
+                    ->where('slug', $post->slug)
+                    ->where('locale', '!=', $post->locale)
+                    ->get();
+            }
+
             foreach ($otherTranslations as $translation) {
                 $transLocale = $translation->locale ?? 'en';
                 $transUrl = $transLocale === 'en'

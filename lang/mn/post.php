@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'breadcrumb_home' => 'Нүүр',
+
     'page_title' => 'Нийтлэлүүд',
     'page_description' => 'Хоол тэжээл, эрүүл хооллолт, эрүүл амьдрал — шинжлэх ухааны судалгаанд суурилсан нийтлэлүүд.',
     'seo_title' => 'Нийтлэлүүд | Acara Plate',
