@@ -1049,9 +1049,7 @@ it('normalizes incoming timestamps to UTC and dispatches aggregate jobs for affe
         ->and($sample->measured_at->toDateTimeString())->toBe('2026-03-26 04:30:00')
         ->and($sample->timezone)->toBe('America/New_York');
 
-    Queue::assertPushed(AggregateUserDayJob::class, function (AggregateUserDayJob $job) use ($user): bool {
-        return $job->uniqueId() === $user->id.':2026-03-26';
-    });
+    Queue::assertPushed(AggregateUserDayJob::class, fn (AggregateUserDayJob $job): bool => $job->uniqueId() === $user->id.':2026-03-26');
 });
 
 it('syncs medication dose event with camelCase metadata mapped to snake_case', function (): void {

@@ -46,7 +46,7 @@ final class RebuildHealthDailyAggregatesCommand extends Command
         $from = $fromOption !== null ? $this->parseUtcDate($fromOption) : null;
         $to = $toOption !== null ? $this->parseUtcDate($toOption) : null;
 
-        if ($from !== null && $to !== null && $from->gt($to)) {
+        if ($from instanceof CarbonImmutable && $to instanceof CarbonImmutable && $from->gt($to)) {
             $this->error('--from must be before or equal to --to.');
 
             return self::FAILURE;
@@ -103,7 +103,7 @@ final class RebuildHealthDailyAggregatesCommand extends Command
 
     private function clearTargetAggregates(?int $userId, ?CarbonImmutable $from, ?CarbonImmutable $to): void
     {
-        if ($userId === null && $from === null && $to === null) {
+        if ($userId === null && ! $from instanceof CarbonImmutable && ! $to instanceof CarbonImmutable) {
             HealthDailyAggregate::query()->truncate();
             $this->info('Cleared all existing health_daily_aggregates rows.');
 
@@ -116,7 +116,7 @@ final class RebuildHealthDailyAggregatesCommand extends Command
             $query->where('user_id', $userId);
         }
 
-        if ($from !== null && $to !== null) {
+        if ($from instanceof CarbonImmutable && $to instanceof CarbonImmutable) {
             $query->whereBetween(HealthDailyAggregate::UTC_DAY_COLUMN, [$from->toDateString(), $to->toDateString()]);
         }
 
@@ -130,7 +130,7 @@ final class RebuildHealthDailyAggregatesCommand extends Command
      */
     private function resolveUserUtcDates(User $user, ?CarbonImmutable $from, ?CarbonImmutable $to): array
     {
-        if ($from !== null && $to !== null) {
+        if ($from instanceof CarbonImmutable && $to instanceof CarbonImmutable) {
             $dates = [];
             $current = $from;
 
