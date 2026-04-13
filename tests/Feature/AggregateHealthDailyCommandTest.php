@@ -146,3 +146,57 @@ it('requires both from and to for range', function (): void {
     $this->artisan('health:aggregate-daily --from=2026-03-01')
         ->assertFailed();
 });
+
+it('aggregates for a specific user and specific date together', function (): void {
+    $user = User::factory()->create();
+
+    HealthSyncSample::factory()->for($user)->stepCount()->create([
+        'value' => 7500,
+        'measured_at' => CarbonImmutable::parse('2026-03-20 10:00:00 UTC'),
+        'entry_source' => HealthEntrySource::MobileSync,
+    ]);
+
+    $this->artisan('health:aggregate-daily --user_id='.$user->id.' --date=2026-03-20')
+        ->expectsOutputToContain('user '.$user->id.' on 2026-03-20')
+        ->assertSuccessful();
+
+    $aggregate = HealthDailyAggregate::query()
+        ->where('user_id', $user->id)
+        ->where('type_identifier', 'stepCount')
+        ->where('local_date', '2026-03-20')
+        ->first();
+
+    expect($aggregate)->not->toBeNull();
+});
+
+it('fails when from is after to in date range', function (): void {
+    $this->artisan('health:aggregate-daily --from=2026-04-10 --to=2026-04-05')
+        ->assertFailed();
+});
+
+it('fails with invalid user id in date range', function (): void {
+    $this->artisan('health:aggregate-daily --from=2026-03-01 --to=2026-03-02 --user_id=99999')
+        ->assertFailed();
+});
+
+it('aggregates a date range for a specific user', function (): void {
+    $user = User::factory()->create();
+
+    HealthSyncSample::factory()->for($user)->stepCount()->create([
+        'value' => 3000,
+        'measured_at' => CarbonImmutable::parse('2026-03-01 12:00:00 UTC'),
+        'entry_source' => HealthEntrySource::MobileSync,
+    ]);
+
+    HealthSyncSample::factory()->for($user)->stepCount()->create([
+        'value' => 4000,
+        'measured_at' => CarbonImmutable::parse('2026-03-02 12:00:00 UTC'),
+        'entry_source' => HealthEntrySource::MobileSync,
+    ]);
+
+    $this->artisan('health:aggregate-daily --from=2026-03-01 --to=2026-03-02 --user_id='.$user->id)
+        ->expectsOutputToContain('user '.$user->id.' from 2026-03-01 to 2026-03-02')
+        ->assertSuccessful();
+
+    expect(HealthDailyAggregate::query()->where('user_id', $user->id)->count())->toBe(2);
+});

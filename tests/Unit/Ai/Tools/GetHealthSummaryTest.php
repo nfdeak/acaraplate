@@ -155,6 +155,96 @@ it('returns all types when type is all', function (): void {
         ->and($types)->toContain('bloodGlucose');
 });
 
+it('returns primary value for each aggregation function', function (string $aggregationFunction, string $valueField, mixed $expectedValue): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $day = CarbonImmutable::parse('2026-04-10');
+
+    HealthDailyAggregate::factory()->for($user)->create([
+        'type_identifier' => 'testMetric',
+        'local_date' => $day,
+        'date' => $day,
+        'aggregation_function' => $aggregationFunction,
+        'value_sum' => 100.0,
+        'value_avg' => 50.0,
+        'value_min' => 10.0,
+        'value_max' => 90.0,
+        'value_last' => 75.0,
+        'value_count' => 5,
+    ]);
+
+    $request = new Request(['type' => 'testMetric', 'days' => 1, 'date' => $day->toDateString()]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['summaries'])->toHaveCount(1)
+        ->and((float) $json['summaries'][0]['primary_value'])->toBe($expectedValue);
+})->with([
+    'min' => ['min', 'value_min', 10.0],
+    'max' => ['max', 'value_max', 90.0],
+    'last' => ['last', 'value_last', 75.0],
+    'count' => ['count', 'value_count', 5.0],
+]);
+
+it('delegates to model primaryValue when aggregation function is none', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $day = CarbonImmutable::parse('2026-04-10');
+
+    HealthDailyAggregate::factory()->for($user)->stepCount(5000)->create([
+        'local_date' => $day,
+        'date' => $day,
+        'aggregation_function' => 'none',
+    ]);
+
+    $request = new Request(['type' => 'stepCount', 'days' => 1, 'date' => $day->toDateString()]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['summaries'])->toHaveCount(1)
+        ->and($json['summaries'][0]['aggregation_function'])->toBe('none');
+});
+
+it('delegates to model primaryValue when aggregation function is null', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $day = CarbonImmutable::parse('2026-04-10');
+
+    HealthDailyAggregate::factory()->for($user)->heartRate()->create([
+        'local_date' => $day,
+        'date' => $day,
+        'aggregation_function' => null,
+    ]);
+
+    $request = new Request(['type' => 'heartRate', 'days' => 1, 'date' => $day->toDateString()]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['summaries'])->toHaveCount(1)
+        ->and($json['summaries'][0]['primary_value'])->not->toBeNull();
+});
+
+it('returns null primary value when value field is null', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $day = CarbonImmutable::parse('2026-04-10');
+
+    HealthDailyAggregate::factory()->for($user)->create([
+        'type_identifier' => 'testMetric',
+        'local_date' => $day,
+        'date' => $day,
+        'aggregation_function' => 'min',
+        'value_min' => null,
+    ]);
+
+    $request = new Request(['type' => 'testMetric', 'days' => 1, 'date' => $day->toDateString()]);
+    $result = $this->tool->handle($request);
+    $json = json_decode((string) $result, true);
+
+    expect($json['summaries'])->toHaveCount(1)
+        ->and($json['summaries'][0]['primary_value'])->toBeNull();
+});
+
 it('does not return data from other users', function (): void {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();

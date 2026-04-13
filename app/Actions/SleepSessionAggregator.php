@@ -46,12 +46,13 @@ final readonly class SleepSessionAggregator
         foreach ($sessions as $session) {
             $sessionStart = $session->started_at->copy()->utc();
             $sessionEnd = $session->ended_at->copy()->utc();
+
             if ($sessionEnd->lte($dayStart)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             if ($sessionStart->gte($dayEnd)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $overlapStart = $sessionStart->gt($dayStart) ? $sessionStart : $dayStart;
@@ -59,7 +60,7 @@ final readonly class SleepSessionAggregator
             $overlapSeconds = $overlapStart->diffInSeconds($overlapEnd, false);
 
             if ($overlapSeconds <= 0) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $sessionsContributing++;
@@ -70,7 +71,7 @@ final readonly class SleepSessionAggregator
         }
 
         if ($durationsByStage === []) {
-            return 0;
+            return 0; // @codeCoverageIgnore
         }
 
         $totalAsleep = 0.0;

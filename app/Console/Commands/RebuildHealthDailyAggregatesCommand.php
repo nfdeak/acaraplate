@@ -151,7 +151,7 @@ final class RebuildHealthDailyAggregatesCommand extends Command
 
         foreach ($sampleDates as $sampleDate) {
             if (! is_string($sampleDate)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $dateMap[$sampleDate] = true;

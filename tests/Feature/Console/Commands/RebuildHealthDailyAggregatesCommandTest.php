@@ -6,6 +6,7 @@ use App\Console\Commands\RebuildHealthDailyAggregatesCommand;
 use App\Enums\HealthEntrySource;
 use App\Models\HealthDailyAggregate;
 use App\Models\HealthSyncSample;
+use App\Models\SleepSession;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
@@ -42,6 +43,36 @@ it('rebuilds all aggregates from raw samples with UTC-day semantics', function (
         ->and($aggregate->timezone)->toBe('UTC')
         ->and((float) $aggregate->value_avg)->toBe(72.0)
         ->and(HealthDailyAggregate::query()->where('local_date', '2020-01-01')->count())->toBe(0);
+});
+
+it('fails when only from is provided without to', function (): void {
+    $this->artisan('health:rebuild-daily-aggregates --from=2026-04-01')
+        ->assertFailed();
+});
+
+it('fails when from is after to', function (): void {
+    $this->artisan('health:rebuild-daily-aggregates --from=2026-04-10 --to=2026-04-05')
+        ->assertFailed();
+});
+
+it('rebuilds aggregates including sleep sessions', function (): void {
+    $user = User::factory()->create();
+
+    SleepSession::query()->create([
+        'user_id' => $user->id,
+        'started_at' => '2026-04-05 22:00:00',
+        'ended_at' => '2026-04-06 06:00:00',
+        'stage' => SleepSession::STAGE_ASLEEP_CORE,
+        'source' => 'Apple Watch',
+    ]);
+
+    $this->artisan('health:rebuild-daily-aggregates')
+        ->assertSuccessful();
+
+    expect(HealthDailyAggregate::query()
+        ->where('user_id', $user->id)
+        ->where('type_identifier', 'coreSleep')
+        ->exists())->toBeTrue();
 });
 
 it('supports scoped rebuild by user and UTC date range', function (): void {
