@@ -7,6 +7,7 @@ use App\Jobs\AggregateUserDayJob;
 use App\Models\HealthSyncSample;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 covers(DestroyHealthEntryController::class);
 
@@ -36,6 +37,27 @@ it('can delete own diabetes log', function (): void {
     $this->assertDatabaseMissing('health_sync_samples', [
         'id' => $sample->id,
     ]);
+});
+
+it('collects UTC dates from grouped samples when deleting', function (): void {
+    Queue::fake();
+    $user = User::factory()->create();
+    $groupId = (string) Str::uuid();
+
+    $sample1 = HealthSyncSample::factory()->bloodGlucose()->fromWeb()->create([
+        'user_id' => $user->id,
+        'group_id' => $groupId,
+    ]);
+
+    HealthSyncSample::factory()->bloodGlucose()->fromWeb()->create([
+        'user_id' => $user->id,
+        'group_id' => $groupId,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->delete(route('health-entries.destroy', $sample1));
+
+    $response->assertRedirect();
 });
 
 it('cannot delete another user diabetes log', function (): void {

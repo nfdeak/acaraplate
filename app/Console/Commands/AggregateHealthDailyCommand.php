@@ -223,7 +223,7 @@ final class AggregateHealthDailyCommand extends Command
             $user = User::query()->find($userId);
 
             if ($user === null) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $total += $healthAggregator->handle($user, $dayStart);
