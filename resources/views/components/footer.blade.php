@@ -84,6 +84,9 @@
                     <li>
                         <a href="{{ route('about') }}" class="text-sm leading-6 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">About</a>
                     </li>
+                    <li>
+                        <a href="{{ route('post.index') }}" class="text-sm leading-6 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">Blog</a>
+                    </li>
                 </ul>
             </div>
 

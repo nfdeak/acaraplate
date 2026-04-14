@@ -182,17 +182,17 @@
 
             {{-- Language Switcher (bottom of article) --}}
             @if($translations->isNotEmpty())
-            <div class="mt-10 mb-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.966 18.966 0 016.416 6m0 0a18.966 18.966 0 01-1.14-1.686M6.416 6L5.07 3.95M19.95 16.5A18.966 18.966 0 0115.936 12m0 0a18.966 18.966 0 01-1.14-1.686M15.936 12l1.346-2.05M15.936 12L18 15m-3-3l1.346 2.05" />
+            <div class="mt-10 mb-8 p-5 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900/40 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
                     </svg>
                     {{ __('post.read_this_article_in') }}
                 </h3>
                 <div class="flex flex-wrap gap-2">
                     @foreach($translations as $translation)
                         <a href="{{ $translation->locale === 'en' ? route('post.show', $translation->slug) : route('post.locale.show', ['locale' => $translation->locale, 'slug' => $translation->slug]) }}"
-                           class="px-3 py-1.5 text-sm font-medium rounded-lg {{ $locale === $translation->locale ? 'bg-primary text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-colors"
+                           class="inline-flex items-center px-3.5 py-2 text-sm font-medium rounded-xl {{ $locale === $translation->locale ? 'bg-primary text-white shadow-sm shadow-primary/25' : 'bg-white dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600' }} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                            lang="{{ $translation->locale }}">
                             {{ strtoupper($translation->locale) }}
                         </a>
