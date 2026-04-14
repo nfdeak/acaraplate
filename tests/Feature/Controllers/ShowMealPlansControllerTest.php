@@ -558,3 +558,70 @@ it('returns generating status when overall plan is generating and day is empty',
             ->where('currentDay.day_number', 2)
             ->where('currentDay.needs_generation', true));
 });
+
+it('returns failed status when generating is stale for overall plan', function (): void {
+    $user = User::factory()->create();
+
+    MealPlan::factory()
+        ->weekly()
+        ->for($user)
+        ->create([
+            'metadata' => [
+                'status' => 'generating',
+            ],
+            'updated_at' => now()->subMinutes(31),
+        ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('meal-plans.index', ['day' => 2]));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('currentDay.status', 'failed')
+            ->where('currentDay.needs_generation', true));
+});
+
+it('keeps generating status when generation is recent', function (): void {
+    $user = User::factory()->create();
+
+    MealPlan::factory()
+        ->weekly()
+        ->for($user)
+        ->create([
+            'metadata' => [
+                'status' => 'generating',
+            ],
+            'updated_at' => now()->subMinutes(5),
+        ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('meal-plans.index', ['day' => 2]));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('currentDay.status', 'generating')
+            ->where('currentDay.needs_generation', true));
+});
+
+it('returns failed status for stale day-specific generating status', function (): void {
+    $user = User::factory()->create();
+
+    MealPlan::factory()
+        ->weekly()
+        ->for($user)
+        ->create([
+            'metadata' => [
+                'status' => 'pending',
+                'day_3_status' => 'generating',
+            ],
+            'updated_at' => now()->subMinutes(31),
+        ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('meal-plans.index', ['day' => 3]));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('currentDay.status', 'failed')
+            ->where('currentDay.needs_generation', true));
+});

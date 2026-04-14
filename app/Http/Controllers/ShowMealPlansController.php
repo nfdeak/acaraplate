@@ -131,6 +131,11 @@ final readonly class ShowMealPlansController
 
         $dayStatusKey = sprintf('day_%d_status', $dayNumber);
         if (isset($metadata[$dayStatusKey]) && is_string($metadata[$dayStatusKey])) {
+            if ($metadata[$dayStatusKey] === MealPlanGenerationStatus::Generating->value
+                && $this->isStaleGenerating($mealPlan)) {
+                return MealPlanGenerationStatus::Failed->value;
+            }
+
             return $metadata[$dayStatusKey];
         }
 
@@ -139,9 +144,18 @@ final readonly class ShowMealPlansController
         }
 
         if (($metadata['status'] ?? '') === MealPlanGenerationStatus::Generating->value) {
+            if ($this->isStaleGenerating($mealPlan)) {
+                return MealPlanGenerationStatus::Failed->value;
+            }
+
             return MealPlanGenerationStatus::Generating->value;
         }
 
         return MealPlanGenerationStatus::Pending->value;
+    }
+
+    private function isStaleGenerating(MealPlan $mealPlan): bool
+    {
+        return $mealPlan->updated_at->isBefore(now()->subMinutes(30));
     }
 }

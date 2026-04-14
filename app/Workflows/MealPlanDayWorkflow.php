@@ -9,6 +9,7 @@ use App\Data\PreviousDayContext;
 use App\Enums\MealPlanGenerationStatus;
 use App\Models\MealPlan;
 use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -16,6 +17,25 @@ final class MealPlanDayWorkflow extends Workflow
 {
     /** @var int 5 minutes per day */
     public $timeout = 300;
+
+    public function failed(Throwable $throwable): void
+    {
+        $arguments = $this->storedWorkflow->workflowArguments();
+        $mealPlan = $arguments[0] ?? null;
+        $dayNumber = $arguments[1] ?? null;
+
+        if ($mealPlan instanceof MealPlan && is_int($dayNumber)) {
+            $dayStatusKey = sprintf('day_%d_status', $dayNumber);
+
+            $mealPlan->update([
+                'metadata' => array_merge($mealPlan->metadata ?? [], [
+                    $dayStatusKey => MealPlanGenerationStatus::Failed->value,
+                ]),
+            ]);
+        }
+
+        parent::failed($throwable);
+    }
 
     /**
      * @codeCoverageIgnore Generator methods with yield are executed by the workflow engine

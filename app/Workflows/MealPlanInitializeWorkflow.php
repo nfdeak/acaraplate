@@ -15,6 +15,7 @@ use App\Models\MealPlan;
 use App\Models\User;
 use Generator;
 use Spatie\LaravelData\DataCollection;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -79,6 +80,22 @@ final class MealPlanInitializeWorkflow extends Workflow
         ]);
 
         return $mealPlan;
+    }
+
+    public function failed(Throwable $throwable): void
+    {
+        $arguments = $this->storedWorkflow->workflowArguments();
+        $mealPlan = $arguments[1] ?? null;
+
+        if ($mealPlan instanceof MealPlan) {
+            $mealPlan->update([
+                'metadata' => array_merge($mealPlan->metadata ?? [], [
+                    'status' => MealPlanGenerationStatus::Failed->value,
+                ]),
+            ]);
+        }
+
+        parent::failed($throwable);
     }
 
     /**
