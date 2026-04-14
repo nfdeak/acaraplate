@@ -258,6 +258,8 @@ export default function MealPlans({
                                     <GeneratingMealsState
                                         status={currentDay.status}
                                         dayNumber={currentDay.day_number}
+                                        mealPlanId={mealPlan.id}
+                                        onRetry={startPolling}
                                     />
                                 ) : currentDay.meals.length === 0 ? (
                                     <Alert>
@@ -333,13 +335,19 @@ function CalorieComparison({ actual, target }: CalorieComparisonProps) {
 interface GeneratingMealsStateProps {
     status: MealPlanGenerationStatus;
     dayNumber: number;
+    mealPlanId: number;
+    onRetry: () => void;
 }
 
 function GeneratingMealsState({
     status,
     dayNumber,
+    mealPlanId,
+    onRetry,
 }: GeneratingMealsStateProps) {
     const { t } = useTranslation('common');
+    const retryForm = useForm({ day: dayNumber });
+
     if (status === GenerationStatus.Failed) {
         return (
             <Alert variant="destructive">
@@ -349,16 +357,23 @@ function GeneratingMealsState({
                 </AlertTitle>
                 <AlertDescription className="space-y-3">
                     <p>{t('meal_plans.generation.failed_description')}</p>
-                    <Button variant="outline" size="sm" asChild>
-                        <Link
-                            href={
-                                mealPlans.index({
-                                    query: { day: dayNumber, retry: 1 },
-                                }).url
-                            }
-                        >
-                            {t('meal_plans.generation.try_again')}
-                        </Link>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={retryForm.processing}
+                        onClick={() =>
+                            retryForm.post(
+                                mealPlans.regenerateDay(mealPlanId).url,
+                                { onSuccess: onRetry },
+                            )
+                        }
+                    >
+                        {retryForm.processing ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                        )}
+                        {t('meal_plans.generation.try_again')}
                     </Button>
                 </AlertDescription>
             </Alert>
