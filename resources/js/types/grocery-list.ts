@@ -60,16 +60,3 @@ export const GroceryCategory = {
 
 export type GroceryCategoryType =
     (typeof GroceryCategory)[keyof typeof GroceryCategory];
-
-export const categoryEmojis: Record<string, string> = {
-    [GroceryCategory.Produce]: '🥬',
-    [GroceryCategory.Dairy]: '🥛',
-    [GroceryCategory.MeatAndSeafood]: '🥩',
-    [GroceryCategory.Pantry]: '🥫',
-    [GroceryCategory.Frozen]: '🧊',
-    [GroceryCategory.Bakery]: '🍞',
-    [GroceryCategory.Beverages]: '🥤',
-    [GroceryCategory.CondimentsAndSauces]: '🧴',
-    [GroceryCategory.HerbsAndSpices]: '🌿',
-    [GroceryCategory.Other]: '📦',
-};
