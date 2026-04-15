@@ -37,6 +37,9 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
+      - name: Clear Pest Type Coverage Cache
+        run: rm -rf vendor/pestphp/pest-plugin-type-coverage/.temp
+
       - name: Cache Bun Dependencies
         uses: actions/cache@v4
         with:

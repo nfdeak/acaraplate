@@ -18,6 +18,7 @@ use App\Workflows\MealPlanDayWorkflow;
 use App\Workflows\SaveDayMealsActivity;
 use Spatie\LaravelData\DataCollection;
 use Workflow\Activity;
+use Workflow\Models\StoredWorkflow;
 use Workflow\Workflow;
 use Workflow\WorkflowStub;
 
@@ -281,4 +282,41 @@ it('generates single day workflow returns correct result structure', function ()
         ->meal_plan_id->toBe(123)
         ->day_number->toBe(2)
         ->status->toBe('completed');
+});
+
+it('marks day as failed when workflow fails', function (): void {
+    WorkflowStub::fake();
+
+    $mealPlan = MealPlan::factory()
+        ->for($this->user)
+        ->weekly()
+        ->create([
+            'metadata' => [
+                'status' => MealPlanGenerationStatus::Pending->value,
+                'days_completed' => 0,
+            ],
+        ]);
+
+    $workflowStub = WorkflowStub::make(MealPlanDayWorkflow::class);
+    $workflowStub->start($mealPlan, 2);
+
+    $storedWorkflow = StoredWorkflow::query()->findOrFail($workflowStub->id());
+
+    $workflow = new MealPlanDayWorkflow($storedWorkflow);
+    $workflow->failed(new RuntimeException('test error'));
+
+    expect($mealPlan->fresh()->metadata['day_2_status'])
+        ->toBe(MealPlanGenerationStatus::Failed->value);
+});
+
+it('handles failed gracefully when arguments are missing', function (): void {
+    WorkflowStub::fake();
+
+    $workflowStub = WorkflowStub::make(MealPlanDayWorkflow::class);
+    $storedWorkflow = StoredWorkflow::query()->findOrFail($workflowStub->id());
+
+    $workflow = new MealPlanDayWorkflow($storedWorkflow);
+    $workflow->failed(new RuntimeException('test error'));
+
+    expect(true)->toBeTrue();
 });

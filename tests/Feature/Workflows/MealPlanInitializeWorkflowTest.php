@@ -12,12 +12,14 @@ use App\Enums\MealPlanGenerationStatus;
 use App\Enums\MealPlanType;
 use App\Enums\MealType;
 use App\Enums\Sex;
+use App\Models\MealPlan;
 use App\Models\User;
 use App\Workflows\MealPlanDayGeneratorActivity;
 use App\Workflows\MealPlanInitializeWorkflow;
 use App\Workflows\SaveDayMealsActivity;
 use Spatie\LaravelData\DataCollection;
 use Workflow\Activity;
+use Workflow\Models\StoredWorkflow;
 use Workflow\Workflow;
 use Workflow\WorkflowStub;
 
@@ -381,4 +383,41 @@ it('converts day meals data to meal data collection with correct properties', fu
         ->and($result[0]->name)->toBe('Oatmeal')
         ->and($result[0]->calories)->toBe(300.0)
         ->and($result[0]->type)->toBe(MealType::Breakfast);
+});
+
+it('marks meal plan as failed when workflow fails', function (): void {
+    WorkflowStub::fake();
+
+    $mealPlan = MealPlan::factory()
+        ->for($this->user)
+        ->weekly()
+        ->create([
+            'metadata' => [
+                'status' => MealPlanGenerationStatus::Generating->value,
+                'days_completed' => 0,
+            ],
+        ]);
+
+    $workflowStub = WorkflowStub::make(MealPlanInitializeWorkflow::class);
+    $workflowStub->start($this->user, $mealPlan);
+
+    $storedWorkflow = StoredWorkflow::query()->findOrFail($workflowStub->id());
+
+    $workflow = new MealPlanInitializeWorkflow($storedWorkflow);
+    $workflow->failed(new RuntimeException('test error'));
+
+    expect($mealPlan->fresh()->metadata['status'])
+        ->toBe(MealPlanGenerationStatus::Failed->value);
+});
+
+it('handles failed gracefully when meal plan argument is missing', function (): void {
+    WorkflowStub::fake();
+
+    $workflowStub = WorkflowStub::make(MealPlanInitializeWorkflow::class);
+    $storedWorkflow = StoredWorkflow::query()->findOrFail($workflowStub->id());
+
+    $workflow = new MealPlanInitializeWorkflow($storedWorkflow);
+    $workflow->failed(new RuntimeException('test error'));
+
+    expect(true)->toBeTrue();
 });
