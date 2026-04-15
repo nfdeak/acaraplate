@@ -14,11 +14,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import useSharedProps from '@/hooks/use-shared-props';
 import AppLayout from '@/layouts/app-layout';
-import { generateUUID } from '@/lib/utils';
+import { cn, generateUUID } from '@/lib/utils';
 import { MealCard } from '@/pages/meal-plans/elements/meal-card';
 import { NutritionStats } from '@/pages/meal-plans/elements/nutrition-stats';
 import chat from '@/routes/chat';
@@ -33,7 +33,9 @@ import {
 } from '@/types/meal-plan';
 import { Form, Head, Link, useForm, usePoll } from '@inertiajs/react';
 import {
-    Calendar,
+    CalendarDays,
+    CheckCircle2,
+    ChefHat,
     ChevronLeft,
     ChevronRight,
     Info,
@@ -43,6 +45,8 @@ import {
     RefreshCw,
     ShoppingCart,
     Sparkles,
+    Target,
+    Utensils,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,16 +62,6 @@ const getBreadcrumbs = (t: (key: string) => string): BreadcrumbItem[] => [
         href: mealPlans.index().url,
     },
 ];
-
-const dayEmojis: Record<string, string> = {
-    Monday: '💼',
-    Tuesday: '🚀',
-    Wednesday: '⚡',
-    Thursday: '🌟',
-    Friday: '🎉',
-    Saturday: '🌈',
-    Sunday: '☀️',
-};
 
 export default function MealPlans({
     mealPlan,
@@ -91,118 +85,49 @@ export default function MealPlans({
         <AppLayout breadcrumbs={getBreadcrumbs(t)}>
             <Head title={t('meal_plans.title')} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6">
                 {!currentUser?.is_onboarded ? (
                     <OnboardingBanner />
                 ) : !mealPlan ? (
-                    <>
-                        <div className="space-y-2">
-                            <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
-                                <Calendar className="h-8 w-8 text-primary" />
-                                {t('meal_plans.your_meal_plans')}
-                            </h1>
-                            <p className="text-muted-foreground">
-                                {t('meal_plans.description')}
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-                            <Sparkles className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                            <p className="mb-6 max-w-md text-muted-foreground">
-                                {t('meal_plans.no_plans')}
-                            </p>
-                            <div className="flex flex-col gap-3 sm:flex-row">
-                                <Button asChild>
-                                    <Link
-                                        href={`${chat.create(generateUUID()).url}?mode=create-meal-plan`}
-                                    >
-                                        <MessageSquare className="mr-2 h-4 w-4" />
-                                        {t('meal_plans.create_with_altani')}
-                                    </Link>
-                                </Button>
-                                <Form {...mealPlans.store.form()}>
-                                    <Button type="submit" variant="outline">
-                                        <Sparkles className="mr-2 h-4 w-4" />
-                                        {t('meal_plans.generate_now')}
-                                    </Button>
-                                </Form>
-                            </div>
-                        </div>
-                    </>
+                    <EmptyMealPlanState />
                 ) : (
                     mealPlan &&
                     currentDay &&
                     navigation && (
                         <>
-                            {/* Header with Navigation */}
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <Badge
-                                            variant="default"
-                                            className="capitalize"
-                                        >
-                                            📅 {mealPlan.type}
-                                        </Badge>
-                                        <Badge variant="outline">
-                                            {mealPlan.duration_days}{' '}
-                                            {t('meal_plans.days')}
-                                        </Badge>
-                                    </div>
-                                    <h1 className="text-3xl font-bold tracking-tight">
-                                        {mealPlan.name || 'Meal Plan'}
-                                    </h1>
-                                    {mealPlan.description && (
-                                        <p className="text-muted-foreground">
-                                            {mealPlan.description}
-                                        </p>
-                                    )}
-                                </div>
+                            <PlanSummary mealPlan={mealPlan} />
 
-                                {/* Actions */}
-                                <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="sm" asChild>
-                                        <Link
-                                            href={
-                                                showGroceryList(mealPlan.id).url
-                                            }
-                                        >
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            {t('meal_plans.grocery_list')}
-                                        </Link>
-                                    </Button>
-                                    <Button variant="outline" size="sm" asChild>
-                                        <a
-                                            href={
-                                                mealPlans.print(mealPlan.id).url
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <Printer className="mr-2 h-4 w-4" />
-                                            {t('meal_plans.print')}
-                                        </a>
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Day Navigation */}
                             <DayPagination
                                 currentDay={currentDay.day_number}
-                                totalDays={navigation.total_days}
+                                navigation={navigation}
                             />
 
-                            <Separator />
+                            <section className="space-y-4 rounded-xl border bg-card p-4 shadow-sm md:p-5">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                    <div className="space-y-2">
+                                        <Badge
+                                            variant="secondary"
+                                            className="w-fit gap-1.5 bg-primary/10 text-primary hover:bg-primary/10 dark:bg-primary/20"
+                                        >
+                                            <CalendarDays className="h-3.5 w-3.5" />
+                                            {t('meal_plans.current_day')}
+                                        </Badge>
+                                        <div>
+                                            <h2 className="flex items-center gap-2 text-2xl font-semibold">
+                                                <ChefHat className="h-6 w-6 text-primary" />
+                                                {currentDay.day_name}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {t('meal_plans.day_of', {
+                                                    current:
+                                                        currentDay.day_number,
+                                                    total: navigation.total_days,
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            {/* Current Day Header */}
-                            <div className="space-y-4">
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <h2 className="flex items-center gap-2 text-2xl font-semibold">
-                                        {dayEmojis[currentDay.day_name] || '📅'}{' '}
-                                        {currentDay.day_name}
-                                    </h2>
-
-                                    <div className="flex items-center gap-3">
+                                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:min-w-96">
                                         {mealPlan.target_daily_calories && (
                                             <CalorieComparison
                                                 actual={
@@ -222,7 +147,6 @@ export default function MealPlans({
                                     </div>
                                 </div>
 
-                                {/* Daily Nutrition Stats */}
                                 <NutritionStats
                                     calories={
                                         currentDay.daily_stats.total_calories
@@ -232,27 +156,37 @@ export default function MealPlans({
                                     fat={currentDay.daily_stats.fat}
                                     size="lg"
                                 />
-                            </div>
+                            </section>
 
-                            {/* Preparation Notes */}
                             {mealPlan.metadata?.preparation_notes && (
-                                <Alert>
-                                    <Info className="h-4 w-4" />
+                                <Alert className="border-cyan-500/30 bg-cyan-500/5">
+                                    <Info className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
                                     <AlertDescription>
-                                        <strong className="font-semibold">
-                                            Preparation Tips:
+                                        <strong className="font-semibold text-foreground">
+                                            {t('meal_plans.preparation_tips')}
                                         </strong>{' '}
                                         {mealPlan.metadata.preparation_notes}
                                     </AlertDescription>
                                 </Alert>
                             )}
 
-                            {/* Meals for Current Day */}
-                            <div className="space-y-3">
-                                <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                    <Sparkles className="h-5 w-5 text-primary" />
-                                    {t('meal_plans.todays_meals')}
-                                </h3>
+                            <section className="space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <h3 className="flex items-center gap-2 text-lg font-semibold">
+                                        <Utensils className="h-5 w-5 text-primary" />
+                                        {t('meal_plans.todays_meals')}
+                                    </h3>
+                                    {!currentDay.needs_generation &&
+                                        currentDay.meals.length > 0 && (
+                                            <Badge
+                                                variant="outline"
+                                                className="font-normal"
+                                            >
+                                                {currentDay.meals.length}{' '}
+                                                {t('meal_plans.meals')}
+                                            </Badge>
+                                        )}
+                                </div>
 
                                 {currentDay.needs_generation ? (
                                     <GeneratingMealsState
@@ -269,7 +203,7 @@ export default function MealPlans({
                                         </AlertDescription>
                                     </Alert>
                                 ) : (
-                                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                         {currentDay.meals.map((meal) => (
                                             <MealCard
                                                 key={meal.id}
@@ -278,19 +212,20 @@ export default function MealPlans({
                                         ))}
                                     </div>
                                 )}
-                            </div>
+                            </section>
 
-                            {/* Plan Info Footer */}
-                            <div className="mt-8 rounded-lg bg-muted/30 p-4 text-sm text-muted-foreground">
+                            <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
                                 <p>
                                     {t('meal_plans.created_on')}{' '}
-                                    {new Date(
-                                        mealPlan.created_at,
-                                    ).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                    })}
+                                    <time dateTime={mealPlan.created_at}>
+                                        {new Date(
+                                            mealPlan.created_at,
+                                        ).toLocaleDateString(undefined, {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </time>
                                 </p>
                             </div>
                         </>
@@ -301,6 +236,144 @@ export default function MealPlans({
     );
 }
 
+function EmptyMealPlanState() {
+    const { t } = useTranslation('common');
+
+    return (
+        <>
+            <div className="space-y-2">
+                <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
+                    <CalendarDays className="h-8 w-8 text-primary" />
+                    {t('meal_plans.your_meal_plans')}
+                </h1>
+                <p className="max-w-2xl text-muted-foreground">
+                    {t('meal_plans.description')}
+                </p>
+            </div>
+
+            <section className="grid gap-6 rounded-xl border bg-card p-5 shadow-sm md:p-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+                <div className="space-y-5">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Sparkles className="h-6 w-6" />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-semibold">
+                            {t('meal_plans.empty_title')}
+                        </h2>
+                        <p className="max-w-xl text-muted-foreground">
+                            {t('meal_plans.no_plans')}
+                        </p>
+                    </div>
+                    <div className="grid gap-3 sm:flex sm:flex-wrap">
+                        <Button className="w-full sm:w-auto" asChild>
+                            <Link
+                                href={`${chat.create(generateUUID()).url}?mode=create-meal-plan`}
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                {t('meal_plans.create_with_altani')}
+                            </Link>
+                        </Button>
+                        <Form {...mealPlans.store.form()}>
+                            {({ processing }) => (
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-full sm:w-auto"
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="h-4 w-4" />
+                                    )}
+                                    {t('meal_plans.generate_now')}
+                                </Button>
+                            )}
+                        </Form>
+                    </div>
+                </div>
+
+                <div className="mx-auto hidden w-full max-w-64 lg:block">
+                    <img
+                        src="/images/altani/altani_holding_plate-320.webp"
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        className="h-auto w-full"
+                    />
+                </div>
+            </section>
+        </>
+    );
+}
+
+interface PlanSummaryProps {
+    mealPlan: MealPlan;
+}
+
+function PlanSummary({ mealPlan }: PlanSummaryProps) {
+    const { t } = useTranslation('common');
+
+    return (
+        <section className="relative overflow-hidden rounded-xl border bg-card p-4 shadow-sm md:p-5">
+            <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-emerald-500 via-cyan-400 to-emerald-400" />
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="default" className="gap-1.5 capitalize">
+                            <CalendarDays className="h-3.5 w-3.5" />
+                            {mealPlan.type}
+                        </Badge>
+                        <Badge variant="outline" className="gap-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                            {mealPlan.duration_days} {t('meal_plans.days')}
+                        </Badge>
+                    </div>
+                    <div className="space-y-2">
+                        <h1 className="max-w-4xl text-3xl font-bold tracking-tight">
+                            {mealPlan.name || t('meal_plans.fallback_name')}
+                        </h1>
+                        {mealPlan.description && (
+                            <p className="max-w-3xl text-muted-foreground">
+                                {mealPlan.description}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid gap-2 sm:flex sm:flex-wrap lg:justify-end">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-10 w-full sm:w-auto"
+                        asChild
+                    >
+                        <Link href={showGroceryList(mealPlan.id).url}>
+                            <ShoppingCart className="h-4 w-4" />
+                            {t('meal_plans.grocery_list')}
+                        </Link>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-10 w-full sm:w-auto"
+                        asChild
+                    >
+                        <a
+                            href={mealPlans.print(mealPlan.id).url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Printer className="h-4 w-4" />
+                            {t('meal_plans.print')}
+                        </a>
+                    </Button>
+                </div>
+            </div>
+        </section>
+    );
+}
+
 interface CalorieComparisonProps {
     actual: number;
     target: number;
@@ -308,26 +381,44 @@ interface CalorieComparisonProps {
 
 function CalorieComparison({ actual, target }: CalorieComparisonProps) {
     const diff = actual - target;
-    const percentage = ((diff / target) * 100).toFixed(0);
+    const targetProgress = target > 0 ? (actual / target) * 100 : 0;
+    const differencePercentage =
+        target > 0 ? Math.round((diff / target) * 100) : 0;
     const isWithinRange = Math.abs(diff) <= 50;
     const { t } = useTranslation('common');
 
+    const status = isWithinRange
+        ? t('meal_plans.on_target')
+        : diff > 0
+          ? t('meal_plans.over_target')
+          : t('meal_plans.under_target');
+
     return (
-        <div className="text-right">
-            <div
-                className={
-                    isWithinRange
-                        ? 'text-lg font-semibold text-green-600 dark:text-green-400'
-                        : 'text-lg font-semibold text-muted-foreground'
-                }
-            >
-                {diff > 0 ? '+' : ''}
-                {Math.round(diff)} {t('meal_plans.cal')}
+        <div className="rounded-lg border bg-background/70 p-3">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                    <Target className="h-4 w-4 text-primary" />
+                    {status}
+                </div>
+                <div className="text-right">
+                    <div
+                        className={cn(
+                            'font-semibold',
+                            isWithinRange
+                                ? 'text-green-700 dark:text-green-300'
+                                : 'text-foreground',
+                        )}
+                    >
+                        {diff > 0 ? '+' : ''}
+                        {Math.round(diff)} {t('meal_plans.cal')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                        {diff > 0 ? '+' : ''}
+                        {differencePercentage}% {t('meal_plans.vs_target')}
+                    </div>
+                </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-                {diff > 0 ? '+' : ''}
-                {percentage}% {t('meal_plans.vs_target')}
-            </div>
+            <Progress value={targetProgress} className="mt-3 h-2" />
         </div>
     );
 }
@@ -350,7 +441,7 @@ function GeneratingMealsState({
 
     if (status === GenerationStatus.Failed) {
         return (
-            <Alert variant="destructive">
+            <Alert variant="destructive" aria-live="polite">
                 <Info className="h-4 w-4" />
                 <AlertTitle>
                     {t('meal_plans.generation.failed_title')}
@@ -360,6 +451,7 @@ function GeneratingMealsState({
                     <Button
                         variant="outline"
                         size="sm"
+                        className="min-h-10 w-full sm:w-auto"
                         disabled={retryForm.processing}
                         onClick={() =>
                             retryForm.post(
@@ -369,9 +461,9 @@ function GeneratingMealsState({
                         }
                     >
                         {retryForm.processing ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <RefreshCw className="mr-2 h-4 w-4" />
+                            <RefreshCw className="h-4 w-4" />
                         )}
                         {t('meal_plans.generation.try_again')}
                     </Button>
@@ -381,7 +473,7 @@ function GeneratingMealsState({
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4" aria-live="polite">
             <Alert className="border-primary/30 bg-primary/5">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <AlertTitle className="text-primary">
@@ -392,8 +484,7 @@ function GeneratingMealsState({
                 </AlertDescription>
             </Alert>
 
-            {/* Skeleton cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {[1, 2, 3, 4].map((i) => (
                     <MealCardSkeleton key={i} />
                 ))}
@@ -404,20 +495,19 @@ function GeneratingMealsState({
 
 function MealCardSkeleton() {
     return (
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <Skeleton className="h-5 w-20" />
+        <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                    <Skeleton className="h-6 w-24" />
                     <Skeleton className="h-4 w-16" />
                 </div>
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-                <div className="flex gap-2 pt-2">
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-8 w-16" />
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} className="h-16 rounded-lg" />
+                    ))}
                 </div>
+                <Skeleton className="h-11 w-full" />
             </div>
         </div>
     );
@@ -425,81 +515,82 @@ function MealCardSkeleton() {
 
 interface DayPaginationProps {
     currentDay: number;
-    totalDays: number;
+    navigation: Navigation;
 }
 
-function DayPagination({ currentDay, totalDays }: DayPaginationProps) {
-    const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+function DayPagination({ currentDay, navigation }: DayPaginationProps) {
+    const days = Array.from({ length: navigation.total_days }, (_, i) => i + 1);
     const { t } = useTranslation('common');
 
     return (
-        <nav className="flex items-center justify-between border-t border-border px-4 sm:px-0">
-            {/* Previous */}
-            <div className="-mt-px flex w-0 flex-1">
+        <nav
+            aria-label={t('meal_plans.day_navigation')}
+            className="rounded-xl border bg-card p-2 shadow-sm"
+        >
+            <div className="flex items-center gap-2">
                 <Link
                     href={
                         mealPlans.index({
-                            query: { day: Math.max(1, currentDay - 1) },
+                            query: { day: navigation.previous_day },
                         }).url
                     }
                     preserveScroll
-                    className={`inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-sm font-medium text-muted-foreground hover:border-border hover:text-foreground ${
-                        currentDay === 1 ? 'pointer-events-none opacity-50' : ''
-                    }`}
+                    aria-label={t('meal_plans.previous_day')}
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    {t('meal_plans.previous')}
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                        {t('meal_plans.previous')}
+                    </span>
                 </Link>
-            </div>
 
-            {/* Day numbers - hidden on mobile */}
-            <div className="hidden md:-mt-px md:flex">
-                {days.map((day) => (
-                    <Link
-                        key={day}
-                        href={mealPlans.index({ query: { day } }).url}
-                        preserveScroll
-                        aria-current={day === currentDay ? 'page' : undefined}
-                        className={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${
-                            day === currentDay
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
-                        }`}
-                    >
-                        {day}
-                    </Link>
-                ))}
-            </div>
+                <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
+                    {days.map((day) => (
+                        <Link
+                            key={day}
+                            href={mealPlans.index({ query: { day } }).url}
+                            preserveScroll
+                            aria-current={
+                                day === currentDay ? 'page' : undefined
+                            }
+                            aria-label={t('meal_plans.view_day', { day })}
+                            className={cn(
+                                'flex min-h-11 min-w-11 flex-col items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+                                day === currentDay
+                                    ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                                    : 'border-transparent bg-muted/40 text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                            )}
+                        >
+                            <span className="text-xs">
+                                {t('meal_plans.day_short')}
+                            </span>
+                            <span>{day}</span>
+                        </Link>
+                    ))}
+                </div>
 
-            {/* Mobile: show current day indicator */}
-            <div className="-mt-px flex items-center pt-4 md:hidden">
-                <span className="text-sm text-muted-foreground">
-                    {t('meal_plans.day_of', {
-                        current: currentDay,
-                        total: totalDays,
-                    })}
-                </span>
-            </div>
-
-            {/* Next */}
-            <div className="-mt-px flex w-0 flex-1 justify-end">
                 <Link
                     href={
                         mealPlans.index({
-                            query: { day: Math.min(totalDays, currentDay + 1) },
+                            query: { day: navigation.next_day },
                         }).url
                     }
                     preserveScroll
-                    className={`inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-sm font-medium text-muted-foreground hover:border-border hover:text-foreground ${
-                        currentDay === totalDays
-                            ? 'pointer-events-none opacity-50'
-                            : ''
-                    }`}
+                    aria-label={t('meal_plans.next_day')}
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
-                    {t('meal_plans.next')}
-                    <ChevronRight className="ml-2 h-4 w-4" />
+                    <span className="hidden sm:inline">
+                        {t('meal_plans.next')}
+                    </span>
+                    <ChevronRight className="h-4 w-4" />
                 </Link>
             </div>
+            <p className="sr-only">
+                {t('meal_plans.day_of', {
+                    current: currentDay,
+                    total: navigation.total_days,
+                })}
+            </p>
         </nav>
     );
 }
@@ -543,12 +634,13 @@ function RegenerateDayButton({
                 <Button
                     variant="outline"
                     size="sm"
+                    className="min-h-10 w-full sm:w-auto"
                     disabled={isRegenerating || regenerateForm.processing}
                 >
                     {regenerateForm.processing || isRegenerating ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                        <RefreshCw className="mr-2 h-4 w-4" />
+                        <RefreshCw className="h-4 w-4" />
                     )}
                     {t('meal_plans.regenerate_day')}
                 </Button>

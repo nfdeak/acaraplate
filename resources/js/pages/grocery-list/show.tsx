@@ -12,25 +12,38 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import mealPlans from '@/routes/meal-plans';
 import { type BreadcrumbItem } from '@/types';
 import {
-    categoryEmojis,
+    GroceryCategory,
+    GroceryStatus,
     type GroceryItem,
     type GroceryList,
-    GroceryStatus,
     type MealPlanSummary,
 } from '@/types/grocery-list';
 import { Head, Link, router, useForm, usePoll } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Beef,
+    BottleWine,
     CalendarDays,
+    Carrot,
+    CircleAlert,
+    CircleCheck,
+    Croissant,
+    CupSoda,
     LayoutGrid,
+    Leaf,
     Loader2,
+    Milk,
+    Package,
+    Package2,
     Printer,
     RefreshCw,
     ShoppingCart,
-    Sparkles,
+    Snowflake,
+    type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,6 +54,62 @@ interface GroceryListPageProps {
 }
 
 type ViewMode = 'category' | 'day';
+
+const groceryCategoryIcons: Record<
+    string,
+    { Icon: LucideIcon; className: string }
+> = {
+    [GroceryCategory.Produce]: {
+        Icon: Carrot,
+        className:
+            'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+    },
+    [GroceryCategory.Dairy]: {
+        Icon: Milk,
+        className:
+            'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+    },
+    [GroceryCategory.MeatAndSeafood]: {
+        Icon: Beef,
+        className:
+            'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
+    },
+    [GroceryCategory.Pantry]: {
+        Icon: Package2,
+        className:
+            'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+    },
+    [GroceryCategory.Frozen]: {
+        Icon: Snowflake,
+        className:
+            'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
+    },
+    [GroceryCategory.Bakery]: {
+        Icon: Croissant,
+        className:
+            'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
+    },
+    [GroceryCategory.Beverages]: {
+        Icon: CupSoda,
+        className:
+            'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+    },
+    [GroceryCategory.CondimentsAndSauces]: {
+        Icon: BottleWine,
+        className:
+            'bg-lime-100 text-lime-700 dark:bg-lime-500/15 dark:text-lime-300',
+    },
+    [GroceryCategory.HerbsAndSpices]: {
+        Icon: Leaf,
+        className:
+            'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+    },
+    [GroceryCategory.Other]: {
+        Icon: Package,
+        className:
+            'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
+    },
+};
 
 export default function GroceryListPage({
     mealPlan,
@@ -92,18 +161,23 @@ export default function GroceryListPage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('grocery_list.title')} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6">
                 {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between md:p-5">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t('grocery_list.back_to_meal_plan')}
+                                asChild
+                            >
                                 <Link href={mealPlans.index().url}>
                                     <ArrowLeft className="h-4 w-4" />
                                 </Link>
                             </Button>
-                            <Badge variant="default">
-                                <ShoppingCart className="mr-1 h-3 w-3" />
+                            <Badge variant="default" className="gap-1.5">
+                                <ShoppingCart className="h-3.5 w-3.5" />
                                 {t('grocery_list.title')}
                             </Badge>
                         </div>
@@ -118,10 +192,11 @@ export default function GroceryListPage({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="grid gap-2 sm:flex sm:items-center">
                         <Button
                             variant="outline"
                             size="sm"
+                            className="min-h-10 w-full sm:w-auto"
                             onClick={handleRegenerate}
                             disabled={regenerateForm.processing || isGenerating}
                         >
@@ -138,6 +213,7 @@ export default function GroceryListPage({
                             <Button
                                 variant="outline"
                                 size="sm"
+                                className="min-h-10 w-full sm:w-auto"
                                 asChild
                                 disabled={isGenerating}
                             >
@@ -187,8 +263,10 @@ function EmptyGroceryListState({
 }: EmptyGroceryListStateProps) {
     const { t } = useTranslation('common');
     return (
-        <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-            <ShoppingCart className="mb-4 h-16 w-16 text-muted-foreground" />
+        <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-8 text-center shadow-sm md:p-12">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <ShoppingCart className="h-8 w-8" />
+            </div>
             <h3 className="text-xl font-semibold">
                 {t('grocery_list.empty.title')}
             </h3>
@@ -196,7 +274,7 @@ function EmptyGroceryListState({
                 {t('grocery_list.empty.description')}
             </p>
             <Button
-                className="mt-6"
+                className="mt-6 w-full sm:w-auto"
                 onClick={onGenerate}
                 disabled={isGenerating}
             >
@@ -287,21 +365,32 @@ function GroceryListContent({
     return (
         <>
             {/* Progress */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                        {t('grocery_list.progress')}
-                    </span>
-                    <span className="font-medium">
-                        {groceryList.checked_items} {t('grocery_list.of')}{' '}
-                        {groceryList.total_items} {t('grocery_list.items')}
+            <div className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <ShoppingCart className="h-4 w-4" />
+                        </div>
+                        <div>
+                            <p className="font-medium">
+                                {t('grocery_list.progress')}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {groceryList.checked_items}{' '}
+                                {t('grocery_list.of')} {groceryList.total_items}{' '}
+                                {t('grocery_list.items')}
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-sm font-semibold text-primary tabular-nums">
+                        {Math.round(progress)}%
                     </span>
                 </div>
-                <Progress value={progress} className="h-2" />
+                <Progress value={progress} className="h-2.5" />
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <ToggleGroup
                     type="single"
                     value={viewMode}
@@ -310,16 +399,22 @@ function GroceryListContent({
                     }
                     variant="outline"
                     size="sm"
+                    className="grid w-full grid-cols-1 sm:w-auto sm:grid-cols-2"
                 >
                     <ToggleGroupItem
                         value="category"
-                        aria-label="View by category"
+                        aria-label={t('grocery_list.view_modes.by_category')}
+                        className="min-h-11 justify-center"
                     >
-                        <LayoutGrid className="mr-2 h-4 w-4" />
+                        <LayoutGrid className="h-4 w-4" />
                         {t('grocery_list.view_modes.by_category')}
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="day" aria-label="View by day">
-                        <CalendarDays className="mr-2 h-4 w-4" />
+                    <ToggleGroupItem
+                        value="day"
+                        aria-label={t('grocery_list.view_modes.by_day')}
+                        className="min-h-11 justify-center"
+                    >
+                        <CalendarDays className="h-4 w-4" />
                         {t('grocery_list.view_modes.by_day')}
                     </ToggleGroupItem>
                 </ToggleGroup>
@@ -341,7 +436,7 @@ function GroceryListContent({
             {/* Status Alerts */}
             {groceryList.status === GroceryStatus.Completed && (
                 <Alert className="border-green-500/30 bg-green-500/5">
-                    <Sparkles className="h-4 w-4 text-green-600" />
+                    <CircleCheck className="h-4 w-4 text-green-600" />
                     <AlertTitle className="text-green-700 dark:text-green-400">
                         {t('grocery_list.status.complete_title')}
                     </AlertTitle>
@@ -353,6 +448,7 @@ function GroceryListContent({
 
             {groceryList.status === GroceryStatus.Failed && (
                 <Alert className="border-red-500/30 bg-red-500/5">
+                    <CircleAlert className="h-4 w-4 text-red-600" />
                     <AlertTitle className="text-red-700 dark:text-red-400">
                         {t('grocery_list.status.failed_title')}
                     </AlertTitle>
@@ -375,10 +471,9 @@ function GroceryListContent({
                             <Card key={category} className="overflow-hidden">
                                 <CardHeader className="pb-3">
                                     <CardTitle className="flex items-center justify-between text-lg">
-                                        <span className="flex items-center gap-2">
-                                            {categoryEmojis[category] || '📦'}{' '}
-                                            {category}
-                                        </span>
+                                        <GroceryCategoryLabel
+                                            category={category}
+                                        />
                                         <Badge
                                             variant="secondary"
                                             className="font-normal"
@@ -459,12 +554,9 @@ function GroceryListContent({
                                             >
                                                 <CardHeader className="pb-3">
                                                     <CardTitle className="flex items-center justify-between text-lg">
-                                                        <span className="flex items-center gap-2">
-                                                            {categoryEmojis[
-                                                                category
-                                                            ] || '📦'}{' '}
-                                                            {category}
-                                                        </span>
+                                                        <GroceryCategoryLabel
+                                                            category={category}
+                                                        />
                                                         <Badge
                                                             variant="secondary"
                                                             className="font-normal"
@@ -509,8 +601,10 @@ function GroceryListContent({
 
             {/* Empty State */}
             {categories.length === 0 && (
-                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-                    <ShoppingCart className="mb-4 h-12 w-12 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card p-8 text-center shadow-sm md:p-12">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <ShoppingCart className="h-6 w-6" />
+                    </div>
                     <h3 className="text-lg font-semibold">
                         {t('grocery_list.empty_items.title')}
                     </h3>
@@ -519,7 +613,7 @@ function GroceryListContent({
                     </p>
                     <Button
                         variant="outline"
-                        className="mt-4"
+                        className="mt-4 w-full sm:w-auto"
                         onClick={onRegenerate}
                         disabled={isRegenerating}
                     >
@@ -533,6 +627,32 @@ function GroceryListContent({
                 </div>
             )}
         </>
+    );
+}
+
+interface GroceryCategoryLabelProps {
+    category: string;
+}
+
+function GroceryCategoryLabel({ category }: GroceryCategoryLabelProps) {
+    const config =
+        groceryCategoryIcons[category] ??
+        groceryCategoryIcons[GroceryCategory.Other];
+    const Icon = config.Icon;
+
+    return (
+        <span className="flex min-w-0 items-center gap-2">
+            <span
+                className={cn(
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                    config.className,
+                )}
+                aria-hidden="true"
+            >
+                <Icon className="h-4 w-4" />
+            </span>
+            <span className="truncate">{category}</span>
+        </span>
     );
 }
 
@@ -553,35 +673,56 @@ function GroceryItemRow({
     const otherDays = currentDay ? days.filter((d) => d !== currentDay) : [];
     const hasOtherDays = otherDays.length > 0;
     const { t } = useTranslation('common');
+
+    const itemId = `item-${item.id}${currentDay ? `-day-${currentDay}` : ''}`;
+
     return (
-        <li className="flex items-center gap-3">
+        <li className="flex min-h-12 items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/50">
             <Checkbox
-                id={`item-${item.id}${currentDay ? `-day-${currentDay}` : ''}`}
+                id={itemId}
                 checked={item.is_checked}
+                className="mt-0.5 size-5 rounded-md"
                 onCheckedChange={() => onToggle(item)}
             />
             <label
-                htmlFor={`item-${item.id}${currentDay ? `-day-${currentDay}` : ''}`}
-                className={`flex-1 cursor-pointer text-sm ${
-                    item.is_checked ? 'text-muted-foreground line-through' : ''
-                }`}
+                htmlFor={itemId}
+                className="flex min-h-8 flex-1 cursor-pointer flex-col justify-center gap-1 text-sm"
             >
-                <span className="font-medium">{item.name}</span>
-                <span className="ml-2 text-muted-foreground">
-                    {item.quantity}
+                <span
+                    className={cn(
+                        'flex flex-wrap items-baseline gap-x-2 gap-y-1',
+                        item.is_checked && 'text-muted-foreground line-through',
+                    )}
+                >
+                    <span className="font-medium">{item.name}</span>
+                    <span className="text-muted-foreground">
+                        {item.quantity}
+                    </span>
                 </span>
-                {showDays && days.length > 1 && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                        (Day {days.join(', ')})
+                {(showDays && days.length > 1) || hasOtherDays ? (
+                    <span className="flex flex-wrap gap-1.5">
+                        {showDays && days.length > 1 && (
+                            <Badge
+                                variant="outline"
+                                className="h-6 rounded-md px-2 text-xs font-normal"
+                            >
+                                {t('grocery_list.day', {
+                                    number: days.join(', '),
+                                })}
+                            </Badge>
+                        )}
+                        {hasOtherDays && (
+                            <Badge
+                                variant="outline"
+                                className="h-6 rounded-md px-2 text-xs font-normal"
+                            >
+                                {t('grocery_list.also_day', {
+                                    days: otherDays.join(', '),
+                                })}
+                            </Badge>
+                        )}
                     </span>
-                )}
-                {hasOtherDays && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                        {t('grocery_list.also_day', {
-                            days: otherDays.join(', '),
-                        })}
-                    </span>
-                )}
+                ) : null}
             </label>
         </li>
     );

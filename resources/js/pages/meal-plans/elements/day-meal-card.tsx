@@ -8,6 +8,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { DailyStats, Meal } from '@/types/meal-plan';
+import { CalendarDays } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { MealCard } from './meal-card';
 import { NutritionStats } from './nutrition-stats';
@@ -21,16 +22,6 @@ interface DayMealCardProps {
     className?: string;
 }
 
-const dayEmojis: Record<string, string> = {
-    Monday: '💼',
-    Tuesday: '🚀',
-    Wednesday: '⚡',
-    Thursday: '🌟',
-    Friday: '🎉',
-    Saturday: '🌈',
-    Sunday: '☀️',
-};
-
 export function DayMealCard({
     dayNumber,
     dayName,
@@ -40,7 +31,6 @@ export function DayMealCard({
     className,
 }: DayMealCardProps) {
     const { t } = useTranslation('common');
-    const dayEmoji = dayEmojis[dayName] || '📅';
     const caloriesDiff = targetCalories
         ? dailyStats.total_calories - targetCalories
         : null;
@@ -59,11 +49,12 @@ export function DayMealCard({
 
     return (
         <Card className={cn('overflow-hidden', className)}>
-            <CardHeader className="bg-muted/50 pb-4">
+            <CardHeader className="bg-muted/40 pb-4">
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle className="flex items-center gap-2 text-xl">
-                            {dayEmoji} {dayName}
+                            <CalendarDays className="h-5 w-5 text-primary" />
+                            {dayName}
                         </CardTitle>
                         <CardDescription>
                             {t('meal_plans.day_card.day', {
@@ -83,7 +74,7 @@ export function DayMealCard({
                                 )}
                             >
                                 {caloriesDiff > 0 ? '+' : ''}
-                                {Math.round(caloriesDiff)} cal
+                                {Math.round(caloriesDiff)} {t('meal_plans.cal')}
                             </div>
                             <div className="text-xs text-muted-foreground">
                                 {t('meal_plans.vs_target')}

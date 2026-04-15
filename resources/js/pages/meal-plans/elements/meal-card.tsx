@@ -18,7 +18,17 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Meal, MealType } from '@/types/meal-plan';
-import { Clock } from 'lucide-react';
+import {
+    Apple,
+    BookOpen,
+    ChefHat,
+    ChevronRight,
+    Clock,
+    Coffee,
+    Moon,
+    SunMedium,
+    type LucideIcon,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { MacroBar } from './macro-bar';
 import { NutritionStats } from './nutrition-stats';
@@ -30,25 +40,32 @@ interface MealCardProps {
 
 const getMealTypeConfig = (
     t: (key: string) => string,
-): Record<MealType, { emoji: string; color: string; label: string }> => ({
+): Record<
+    MealType,
+    { Icon: LucideIcon; color: string; iconColor: string; label: string }
+> => ({
     breakfast: {
-        emoji: '🌅',
-        color: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+        Icon: Coffee,
+        color: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-200',
+        iconColor: 'text-orange-700 dark:text-orange-300',
         label: t('meal_plans.meal_types.breakfast'),
     },
     lunch: {
-        emoji: '☀️',
-        color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300',
+        Icon: SunMedium,
+        color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/15 dark:text-cyan-200',
+        iconColor: 'text-cyan-700 dark:text-cyan-300',
         label: t('meal_plans.meal_types.lunch'),
     },
     dinner: {
-        emoji: '🌙',
-        color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300',
+        Icon: Moon,
+        color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-200',
+        iconColor: 'text-indigo-700 dark:text-indigo-300',
         label: t('meal_plans.meal_types.dinner'),
     },
     snack: {
-        emoji: '🍎',
-        color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+        Icon: Apple,
+        color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200',
+        iconColor: 'text-emerald-700 dark:text-emerald-300',
         label: t('meal_plans.meal_types.snack'),
     },
 });
@@ -56,29 +73,47 @@ const getMealTypeConfig = (
 export function MealCard({ meal, className }: MealCardProps) {
     const { t } = useTranslation('common');
     const config = getMealTypeConfig(t)[meal.type];
+    const MealTypeIcon = config.Icon;
     const hasDetails =
         meal.description ||
         meal.preparation_instructions ||
         (meal.ingredients && meal.ingredients.length > 0);
 
     return (
-        <Card className={cn('overflow-hidden', className)}>
+        <Card
+            className={cn(
+                'h-full overflow-hidden transition-colors hover:border-primary/40',
+                className,
+            )}
+        >
             <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={config.color}>
-                                {config.emoji} {config.label}
-                            </Badge>
-                            {meal.preparation_time_minutes && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {meal.preparation_time_minutes}{' '}
-                                    {t('meal_plans.meal_card.min')}
-                                </div>
+                <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                'min-h-7 gap-1.5 border-transparent',
+                                config.color,
                             )}
-                        </div>
-                        <CardTitle className="text-lg">{meal.name}</CardTitle>
+                        >
+                            <MealTypeIcon
+                                className={cn('h-3.5 w-3.5', config.iconColor)}
+                            />
+                            {config.label}
+                        </Badge>
+                        {meal.preparation_time_minutes && (
+                            <div className="flex min-h-7 items-center gap-1.5 rounded-md border px-2 text-xs text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5" />
+                                {meal.preparation_time_minutes}{' '}
+                                {t('meal_plans.meal_card.min')}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-1">
+                        <CardTitle className="text-lg leading-snug">
+                            {meal.name}
+                        </CardTitle>
                         {meal.portion_size && (
                             <CardDescription>
                                 {t('meal_plans.meal_card.portion', {
@@ -90,7 +125,7 @@ export function MealCard({ meal, className }: MealCardProps) {
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 pb-4">
+            <CardContent className="flex flex-1 flex-col gap-4 pb-4">
                 <NutritionStats
                     calories={meal.calories}
                     protein={meal.protein_grams}
@@ -107,33 +142,51 @@ export function MealCard({ meal, className }: MealCardProps) {
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button
-                                variant="ghost"
-                                className="w-full justify-start px-0 text-sm font-normal text-muted-foreground hover:text-foreground"
+                                variant="outline"
+                                className="mt-auto min-h-11 w-full justify-between text-sm font-medium"
                             >
-                                {t('meal_plans.meal_card.view_recipe')}
+                                <span className="flex items-center gap-2">
+                                    <BookOpen className="h-4 w-4 text-primary" />
+                                    {t('meal_plans.meal_card.view_recipe')}
+                                </span>
+                                <ChevronRight className="h-4 w-4" />
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-h-[80vh] overflow-y-auto">
+                        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
-                                    {config.emoji} {meal.name}
+                                    <span
+                                        className={cn(
+                                            'flex h-9 w-9 items-center justify-center rounded-lg',
+                                            config.color,
+                                        )}
+                                    >
+                                        <MealTypeIcon
+                                            className={cn(
+                                                'h-4 w-4',
+                                                config.iconColor,
+                                            )}
+                                        />
+                                    </span>
+                                    {meal.name}
                                 </DialogTitle>
                                 <DialogDescription>
                                     {config.label}
                                     {meal.preparation_time_minutes &&
-                                        ` • ${meal.preparation_time_minutes} minutes`}
+                                        ` • ${meal.preparation_time_minutes} ${t('meal_plans.meal_card.min')}`}
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {meal.description && (
                                     <div>
-                                        <h4 className="mb-2 font-semibold">
+                                        <h4 className="mb-2 flex items-center gap-2 font-semibold">
+                                            <ChefHat className="h-4 w-4 text-primary" />
                                             {t(
                                                 'meal_plans.meal_card.description',
                                             )}
                                         </h4>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
                                             {meal.description}
                                         </p>
                                     </div>
@@ -147,16 +200,17 @@ export function MealCard({ meal, className }: MealCardProps) {
                                                     'meal_plans.meal_card.ingredients',
                                                 )}
                                             </h4>
-                                            <ul className="space-y-1 text-sm text-muted-foreground">
+                                            <ul className="space-y-2 text-sm text-muted-foreground">
                                                 {meal.ingredients.map(
                                                     (ingredient, index) => (
                                                         <li
                                                             key={index}
                                                             className="flex gap-2"
                                                         >
-                                                            <span className="text-foreground">
-                                                                •
-                                                            </span>
+                                                            <span
+                                                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                                                                aria-hidden="true"
+                                                            />
                                                             <span>
                                                                 {
                                                                     ingredient.quantity
@@ -189,7 +243,7 @@ export function MealCard({ meal, className }: MealCardProps) {
                                                 'meal_plans.meal_card.preparation_instructions',
                                             )}
                                         </h4>
-                                        <p className="text-sm whitespace-pre-line text-muted-foreground">
+                                        <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
                                             {meal.preparation_instructions}
                                         </p>
                                     </div>
