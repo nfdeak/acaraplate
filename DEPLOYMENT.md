@@ -1,63 +1,36 @@
 # Deployment & Private Package Install
 
-Plate ships two install modes. Pick the one that matches your situation.
+`acara-app/plate-core` is a private package in `require`. Installing plate therefore needs GitHub access to `github.com/acara-app/plate-core` — either via SSH key (local dev) or a GitHub PAT (CI / deploy). Composer pulls it transparently from the path repo (sibling checkout) when present, or from the private GitHub VCS repo otherwise.
 
-## Community install (no Acara credentials)
-
-The public `acara-app/plate` repo is fully functional on its own — premium memory features silently no-op via null-object fallbacks.
+## Acara local development
 
 ```bash
-git clone https://github.com/acara-app/plate.git
+cd ~/Herd
+git clone git@github.com:acara-app/plate-core.git   # sibling, one-time
+git clone git@github.com:acara-app/plate.git
 cd plate
 composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-npm install && npm run build
 ```
 
-What you get: meal planning, chat assistant (no memory recall or extraction), user profiles. What you don't get: memory recall, memory extraction, the seven AI memory tool adapters. Subscription gating is bypassed (`GatesPremiumFeatures` resolves to `NullPremiumGate`, which treats every user as premium).
-
-No authentication or private repo access is required.
-
-## Acara local development
-
-Requires GitHub access to the private `acara-app/plate-core` repo.
-
-```bash
-# One-time, alongside the plate clone
-cd ~/Herd
-git clone git@github.com:acara-app/plate-core.git
-
-cd plate
-cp composer.local.example.json composer.local.json
-composer update acara-app/plate-core --no-scripts
-```
-
-`composer.local.json` is gitignored (see `.gitignore:44`). The `wikimedia/composer-merge-plugin` in `composer.json` merges the `require` and `repositories` from your `composer.local.json` at install time. The path repo resolves via symlink — edits in `../plate-core/src/` are immediately live in `vendor/acara-app/plate-core/`.
-
-**Why `composer update` instead of `composer install`?** The committed `composer.lock` is community-safe — it doesn't contain `acara-app/plate-core`. `composer install` would refuse because the merged require references a package not in the lock. `composer update acara-app/plate-core --no-scripts` resolves the overlay's require, adds plate-core to the local lock, and symlinks from the sibling. Don't commit the resulting lock change — keep the committed lock community-safe.
+`composer install` symlinks plate-core from the sibling via the `path` repository — edits in `../plate-core/src/` are instantly live.
 
 ## Acara production deploy
 
-Requires a fine-grained GitHub PAT with **Contents: read** scope on `acara-app/plate-core`.
+### Preferred — `COMPOSER_AUTH` env var
 
-### Preferred — `COMPOSER_AUTH` env var (no disk file)
-
-Inject the token via your CI/CD secrets manager; never commit it.
+Inject the GitHub token via your CI/CD secrets. Never commit it.
 
 ```bash
 export COMPOSER_AUTH='{"github-oauth":{"github.com":"'"$GITHUB_DEPLOY_TOKEN"'"}}'
-cp composer.local.example.json composer.local.json
-composer update acara-app/plate-core --no-scripts --no-interaction
 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 ```
 
-Two-step: `composer update` resolves the overlay's require against the merged repository list (the VCS repo wins because the deploy server has no `../plate-core` sibling), writing plate-core into the lock. Then `composer install --no-dev` installs from the updated lock. Result: `vendor/acara-app/plate-core` is a full git clone of the private repo at the pinned commit.
+Deploy servers don't have the `../plate-core` sibling, so Composer falls through to the VCS repo and resolves via the injected token. `vendor/acara-app/plate-core` is a full git clone pinned to the commit in `composer.lock`.
 
 ### Fallback — project-local `auth.json`
-
-Place this file at the project root (gitignored at `.gitignore:34`):
 
 ```json
 {
@@ -67,13 +40,7 @@ Place this file at the project root (gitignored at `.gitignore:34`):
 }
 ```
 
-Then:
-
-```bash
-cp composer.local.example.json composer.local.json
-composer update acara-app/plate-core --no-scripts --no-interaction
-composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-```
+Placed at `plate/auth.json` (gitignored at `.gitignore:34`). Same `composer install --no-dev` as above.
 
 ### Dev convenience — global auth (one-time per machine)
 
@@ -83,25 +50,42 @@ For Acara developers who hit several private repos daily:
 composer config --global --auth github-oauth.github.com ghp_xxxxxxxx
 ```
 
-Writes to `~/.composer/auth.json`. Every Composer command on that machine can then resolve private GitHub repos without per-project auth.
+Writes to `~/.composer/auth.json`; applies to every project on that machine.
 
-## Token rotation
+## Token requirements
 
-Deploy tokens should be fine-grained PATs with a 90-day expiry. When a token rotates, update the CI secret (preferred) or the `auth.json` on the server; `composer install` picks it up on the next deploy.
+Use a **fine-grained personal access token** with **Contents: read** scope on `acara-app/plate-core`. Rotate every 90 days. When a token rotates, update the CI secret or the project-local `auth.json`; Composer picks it up on the next install.
+
+## Community fork (no Acara credentials)
+
+Plate is open source, but `acara-app/plate-core` is private. Community users who fork `acara-app/plate` and want to run it locally have two options:
+
+### Option A — strip the premium dep
+
+```bash
+git clone https://github.com/acara-app/plate.git
+cd plate
+composer remove acara-app/plate-core --no-update
+composer install
+```
+
+Plate boots with the null-object fallbacks from `app/Providers/AppServiceProvider.php:39-41` — memory recall and extraction silently no-op, the subscription gate treats every user as premium (`App\Services\Null\NullPremiumGate`). Everything else works.
+
+### Option B — keep it and supply your own auth
+
+If you have a GitHub token with access to `acara-app/plate-core` (Acara team members or buyers of a future premium license), set `COMPOSER_AUTH` as above and `composer install` picks it up.
 
 ## Verifying the install mode
-
-After `composer install`, check which binding path is active:
 
 ```bash
 php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); echo get_class(app(App\Contracts\Ai\Memory\ManagesMemoryContext::class)) . PHP_EOL;'
 ```
 
-- Community mode: `App\Services\Null\NullMemoryContext`
-- Acara mode: `App\Services\Memory\MemoryPromptContext`
+- Premium mode (plate-core installed): `App\Services\Memory\MemoryPromptContext`
+- Community mode (plate-core removed): `App\Services\Null\NullMemoryContext`
 
 ## Troubleshooting
 
-- `composer install` fails with `Could not authenticate against github.com` on an Acara deploy → auth token missing or expired. Regenerate in GitHub settings → Developer → Personal access tokens (fine-grained), scoped to `acara-app/plate-core`, **Contents: read**.
-- `composer install` on community mode complains about `composer.local.json` not found → fine, the merge plugin warns but does not fail when the include file is missing.
-- Memory features silently disabled in Acara mode (no recall / extraction) → confirm `composer.local.json` is in place and `vendor/acara-app/plate-core` exists. If missing, re-run `composer install`.
+- `composer install` fails with `Could not authenticate against github.com` → missing or expired token. Regenerate in GitHub → Settings → Developer → Personal access tokens (fine-grained), scoped to `acara-app/plate-core`, **Contents: read**.
+- `composer install` fails with `The "url" supplied for the path (../plate-core) repository does not exist` → the `path` repo option auto-skips when the directory is missing, so this error usually means the VCS repo also failed to authenticate. Fix the token first.
+- Community contributor hits `Could not authenticate` → they don't have Acara credentials; point them at **Option A** above.
