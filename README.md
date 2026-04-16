@@ -164,7 +164,7 @@ composer setup
 
 `composer setup` runs Composer and NPM installs, copies `.env.example`, generates the app key, and executes migrations.
 
-> **Community vs. premium install.** `composer install` on a fresh clone expects credentials for the private `acara-app/plate-core` package (long-term memory, seven AI memory tools). Plate-core follows the `spatie/laravel-multitenancy` convention — it owns its cross-boundary contracts — so community forks without Acara GitHub access need to ship a stub package via `replace` rather than simply removing the dep. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full install, `auth.json` flow, and stub-package recipe.
+> **Private dependency.** `composer install` fetches `acara-app/plate-core` from a private GitHub repo. Acara team members: set `COMPOSER_AUTH` with a GitHub token or place one in `auth.json` (gitignored) before running the install.
 
 ### Environment Configuration
 
