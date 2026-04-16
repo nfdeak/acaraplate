@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Contracts\Billing\GatesPremiumFeatures;
 use App\Data\UserSettingsData;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
@@ -219,7 +218,19 @@ final class User extends Authenticatable implements MustVerifyEmail
 
     protected function getIsVerifiedAttribute(?bool $isVerified): bool
     {
-        return app(GatesPremiumFeatures::class)->isPremium($this, $isVerified);
+        if (collect(config()->array('sponsors.admin_emails'))->contains($this->email)) {
+            return true;
+        }
+
+        if ($this->hasActiveSubscription()) {
+            return true;
+        }
+
+        if ($isVerified === null) {
+            return false;
+        }
+
+        return $isVerified;
     }
 
     protected function getHasMealPlanAttribute(): bool
