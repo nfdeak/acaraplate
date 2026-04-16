@@ -710,7 +710,7 @@
         eyebrow="New — Meal plans that learn from your numbers"
         headline="The planner gets better when it sees what your body actually did"
         body="A meal plan is a hypothesis. Post-meal glucose is the answer. Acara Health Sync quietly ships your Apple Health numbers over — glucose, weight, activity — so next week's plan is tuned to how your body really responded, not how it was supposed to."
-        :features="['Post-meal glucose context', 'Weight &amp; activity sync', 'Automatic week-over-week tuning', 'Encrypted end-to-end']"
+        :features="['Post-meal glucose context', 'Weight & activity sync', 'Automatic week-over-week tuning', 'Encrypted end-to-end']"
     />
 </div>
 

@@ -461,22 +461,22 @@
         </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+    <div class="py-8">
         <x-ios-app-promo
             eyebrow="New — Auto glucose import"
             headline="Stop telling the nutritionist what you already measured"
             body="If your glucose meter talks to Apple Health, Acara Health Sync picks up every reading and hands it to the nutritionist automatically. The AI can show you exactly which meals moved your numbers — without you logging a single thing."
             :features="['Automatic glucose import', 'Meal ↔ glucose correlation', '100+ other health types', 'Encrypted end-to-end']"
         />
-    </section>
+    </div>
 
-    <section class="mx-auto max-w-7xl py-24">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <x-cta-block
             title="Meet Altani, Your AI Health Coach"
             description="Get personalized guidance for diabetes management, nutrition planning, and daily wellness support."
             button-text="Learn More"
         />
-    </section>
+    </div>
 
     <!-- Part of Something Bigger Section (Peach Background) -->
     <section class="bg-[#FFEFE5] py-20 sm:py-32">

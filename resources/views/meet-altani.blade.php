@@ -588,12 +588,12 @@
         </section>
 
         {{-- iOS App Promo (post-launch) --}}
-        <div class="mb-16">
+        <div class="py-8">
             <x-ios-app-promo
                 eyebrow="New — Altani ❤️ Apple Health"
                 headline="Altani gets smarter when she sees your real data"
                 body="Altani's advice gets sharper when she can see your sleep, stress, activity, and glucose patterns — not just what you remember to mention in chat. Acara Health Sync pipes all of it in from Apple Health automatically, so every conversation starts with context she couldn't have guessed."
-                :features="['Sleep &amp; stress context for meal advice', 'Automatic glucose correlation', 'No manual logging — ever', 'End-to-end encrypted']"
+                :features="['Sleep & stress context for meal advice', 'Automatic glucose correlation', 'No manual logging — ever', 'End-to-end encrypted']"
                 :secondaryLinkUrl="route('health-sync')"
                 secondaryLinkText="See how Health Sync works"
             />

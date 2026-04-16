@@ -368,20 +368,20 @@
         </section>
 
     </div>
-    <div class="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+    <div class="py-8">
         <x-ios-app-promo
             eyebrow="New — Apple Health workout sync"
             headline="Workouts flow in automatically. Rest days too."
             body="Workouts, heart rate, and recovery metrics sync from Apple Health automatically — including the rest days you didn't log because you were, well, resting. Your trainer sees the whole picture, so the next week's plan matches what your body actually did."
-            :features="['Workouts &amp; HR sync', 'Recovery &amp; sleep data', 'Zero manual logging', 'Works with Apple Watch']"
+            :features="['Workouts & HR sync', 'Recovery & sleep data', 'Zero manual logging', 'Works with Apple Watch']"
         />
     </div>
-    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <x-cta-block
             title="Pair Your Fitness with Nutrition AI"
             description="Let Altani help you optimize your nutrition to fuel your workouts and recovery."
             button-text="Meet Altani"
         />
-    </section>
+    </div>
     <x-footer />
 </x-default-layout>
