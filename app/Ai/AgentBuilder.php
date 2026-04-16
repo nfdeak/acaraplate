@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Ai;
 
 use App\Actions\GetUserProfileContextAction;
+use App\Contracts\Ai\Memory\ManagesMemoryContext;
 use App\Models\ConversationSummary;
 use App\Models\History;
 use App\Models\User;
@@ -19,7 +20,7 @@ final readonly class AgentBuilder
 {
     public function __construct(
         private ToolRegistry $toolRegistry,
-        private MemoryPrompt $memoryPrompt,
+        private ManagesMemoryContext $memoryContext,
     ) {}
 
     /**
@@ -85,9 +86,11 @@ final readonly class AgentBuilder
             return '';
         }
 
-        return $this->memoryPrompt
-            ->for($user->id, $payload->message, $this->conversationTail($payload->conversationId))
-            ->render();
+        return $this->memoryContext->render(
+            $user->id,
+            $payload->message,
+            $this->conversationTail($payload->conversationId),
+        );
     }
 
     /**

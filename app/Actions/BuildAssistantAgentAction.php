@@ -6,13 +6,11 @@ namespace App\Actions;
 
 use App\Ai\AgentPayload;
 use App\Ai\Agents\AgentRunner;
+use App\Contracts\Ai\Memory\DispatchesMemoryExtraction;
 use App\Http\Requests\StreamChatRequest;
-use App\Jobs\Memory\ExtractUserMemoriesJob;
 use App\Jobs\SummarizeConversationJob;
 use App\Models\Conversation;
-use App\Models\MemoryExtractionCheckpoint;
 use App\Models\User;
-use App\Services\Memory\MemoryExtractor;
 use App\Utilities\ConfigHelper;
 use Laravel\Ai\Responses\StreamableAgentResponse;
 
@@ -20,7 +18,7 @@ final readonly class BuildAssistantAgentAction
 {
     public function __construct(
         private AgentRunner $agentRunner,
-        private MemoryExtractor $memoryExtractor,
+        private DispatchesMemoryExtraction $memoryExtraction,
     ) {}
 
     public function handle(StreamChatRequest $request, User $user, string $conversationId): StreamableAgentResponse
@@ -35,30 +33,9 @@ final readonly class BuildAssistantAgentAction
         );
 
         $this->dispatchSummarizationIfNeeded($conversationId);
-        $this->dispatchMemoryExtractionIfNeeded($user->id);
+        $this->memoryExtraction->dispatchIfEligible($user->id);
 
         return $this->agentRunner->runWithConversation($agentPayload, $user, $conversationId);
-    }
-
-    private function dispatchMemoryExtractionIfNeeded(int $userId): void
-    {
-        $checkpoint = MemoryExtractionCheckpoint::query()->where('user_id', $userId)->first();
-        $cooldownMinutes = ConfigHelper::int('memory.extraction.cooldown_minutes', 5);
-
-        if ($checkpoint?->last_extracted_at?->isAfter(now()->subMinutes($cooldownMinutes))) {
-            return;
-        }
-
-        if (! $this->memoryExtractor->shouldExtract($userId)) {
-            return;
-        }
-
-        MemoryExtractionCheckpoint::query()->updateOrCreate(
-            ['user_id' => $userId],
-            ['last_extracted_at' => now()],
-        );
-
-        dispatch(new ExtractUserMemoriesJob($userId));
     }
 
     private function dispatchSummarizationIfNeeded(string $conversationId): void

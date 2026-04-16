@@ -25,17 +25,21 @@ use App\Contracts\Ai\Memory\CategorizeMemoriesTool;
 use App\Contracts\Ai\Memory\ConsolidateMemoriesTool;
 use App\Contracts\Ai\Memory\DecayMemoriesTool;
 use App\Contracts\Ai\Memory\DeleteMemoryTool;
+use App\Contracts\Ai\Memory\DispatchesMemoryExtraction;
 use App\Contracts\Ai\Memory\GetImportantMemoriesTool;
 use App\Contracts\Ai\Memory\GetMemoryStatTool;
 use App\Contracts\Ai\Memory\GetMemoryTool;
 use App\Contracts\Ai\Memory\GetRelatedMemoriesTool;
 use App\Contracts\Ai\Memory\LinkMemoriesTool;
+use App\Contracts\Ai\Memory\ManagesMemoryContext;
 use App\Contracts\Ai\Memory\ReflectOnMemoriesTool;
 use App\Contracts\Ai\Memory\RestoreMemoriesTool;
 use App\Contracts\Ai\Memory\SearchMemoryTool;
 use App\Contracts\Ai\Memory\StoreMemoryTool;
 use App\Contracts\Ai\Memory\UpdateMemoryTool;
 use App\Contracts\Ai\Memory\ValidateMemoryTool;
+use App\Services\Memory\MemoryExtractionDispatcher;
+use App\Services\Memory\MemoryPromptContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -66,11 +70,12 @@ final class MemoryServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../../config/memory.php', 'memory');
-
         foreach (self::BINDINGS as $contract => $concrete) {
             $this->app->bind($contract, $concrete);
         }
+
+        $this->app->bind(ManagesMemoryContext::class, MemoryPromptContext::class);
+        $this->app->bind(DispatchesMemoryExtraction::class, MemoryExtractionDispatcher::class);
     }
 
     public function boot(): void
