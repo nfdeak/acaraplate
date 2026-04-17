@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf013e27ed46b9138cbb27bc6b72c40c",
+    "content-hash": "ad74964cb805d706b85830bbfb000216",
     "packages": [
         {
             "name": "acara-app/plate-core",
@@ -16310,6 +16310,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "acara-app/plate-core": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,
