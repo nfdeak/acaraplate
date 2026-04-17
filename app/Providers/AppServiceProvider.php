@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Memory\DispatchesMemoryExtraction;
+use App\Contracts\Memory\ManagesMemoryContext;
 use App\Contracts\Services\IndexNowServiceContract;
 use App\Contracts\Services\StripeServiceContract;
 use App\Listeners\TrackAiUsage;
 use App\Models\User;
 use App\Services\IndexNowService;
+use App\Services\Memory\NullMemoryExtractionDispatcher;
+use App\Services\Memory\NullMemoryPromptContext;
 use App\Services\StripeService;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -29,6 +33,8 @@ final class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(StripeServiceContract::class, StripeService::class);
         $this->app->bind(IndexNowServiceContract::class, IndexNowService::class);
+        $this->app->bindIf(ManagesMemoryContext::class, NullMemoryPromptContext::class);
+        $this->app->bindIf(DispatchesMemoryExtraction::class, NullMemoryExtractionDispatcher::class);
     }
 
     public function boot(): void
