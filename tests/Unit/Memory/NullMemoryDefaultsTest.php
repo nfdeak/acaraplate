@@ -28,6 +28,6 @@ it('ignores memory extraction dispatches by default', function (): void {
 });
 
 it('resolves public memory contracts from the container', function (): void {
-    expect(app(ManagesMemoryContext::class))->toBeInstanceOf(ManagesMemoryContext::class)
-        ->and(app(DispatchesMemoryExtraction::class))->toBeInstanceOf(DispatchesMemoryExtraction::class);
+    expect(resolve(ManagesMemoryContext::class))->toBeInstanceOf(ManagesMemoryContext::class)
+        ->and(resolve(DispatchesMemoryExtraction::class))->toBeInstanceOf(DispatchesMemoryExtraction::class);
 });
