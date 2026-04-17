@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Ai\AgentPayload;
 use App\Ai\Agents\AgentRunner;
+use App\Contracts\Memory\DispatchesMemoryExtraction;
 use App\Http\Requests\StreamChatRequest;
 use App\Jobs\SummarizeConversationJob;
 use App\Models\Conversation;
@@ -17,6 +18,7 @@ final readonly class BuildAssistantAgentAction
 {
     public function __construct(
         private AgentRunner $agentRunner,
+        private DispatchesMemoryExtraction $memoryExtraction,
     ) {}
 
     public function handle(StreamChatRequest $request, User $user, string $conversationId): StreamableAgentResponse
@@ -31,6 +33,7 @@ final readonly class BuildAssistantAgentAction
         );
 
         $this->dispatchSummarizationIfNeeded($conversationId);
+        $this->memoryExtraction->dispatchIfEligible($user->id);
 
         return $this->agentRunner->runWithConversation($agentPayload, $user, $conversationId);
     }
