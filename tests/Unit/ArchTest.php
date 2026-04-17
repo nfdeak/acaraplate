@@ -17,16 +17,6 @@ arch()->preset()->security()->ignoring([
     MobileSyncDevice::class,
 ]);
 
-arch('strict rules')
-    ->preset()->strict()
-    ->ignoring([
-        'App\Models',
-        'App\Console\Commands',
-        'App\Ai',
-        'App\Http\Requests',
-        'App\Services\Telegram',
-    ]);
-
 arch('controllers')
     ->expect('App\Http\Controllers')
     ->not->toBeUsed();

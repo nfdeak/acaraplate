@@ -4,15 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f4cc6f7aec97b808cb34798bf98e82f2",
+    "content-hash": "cf013e27ed46b9138cbb27bc6b72c40c",
     "packages": [
         {
             "name": "acara-app/plate-core",
             "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../plate-core",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:acara-app/plate-core.git",
                 "reference": "4abdb0be1481a09643183fa1b89847a001ef69f4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/acara-app/plate-core/zipball/4abdb0be1481a09643183fa1b89847a001ef69f4",
+                "reference": "4abdb0be1481a09643183fa1b89847a001ef69f4",
+                "shasum": ""
             },
             "require": {
                 "laravel/framework": "^13.5",
@@ -26,6 +32,7 @@
                 "pestphp/pest": "^4.4",
                 "pestphp/pest-plugin-laravel": "^4.1"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -50,10 +57,11 @@
                 "proprietary"
             ],
             "description": "Proprietary Acara Plate premium modules (memory, billing, premium AI). Not open source.",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "source": "https://github.com/acara-app/plate-core/tree/main",
+                "issues": "https://github.com/acara-app/plate-core/issues"
+            },
+            "time": "2026-04-17T00:13:32+00:00"
         },
         {
             "name": "aws/aws-crt-php",

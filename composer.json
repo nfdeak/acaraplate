@@ -34,13 +34,6 @@
     },
     "repositories": [
         {
-            "type": "path",
-            "url": "../plate-core",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
             "type": "vcs",
             "url": "git@github.com:acara-app/plate-core.git"
         }
