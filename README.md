@@ -164,8 +164,6 @@ composer setup
 
 `composer setup` runs Composer and NPM installs, copies `.env.example`, generates the app key, and executes migrations.
 
-> **Private dependency.** `composer install` fetches `acara-app/plate-core` from a private GitHub repo. Acara team members: set `COMPOSER_AUTH` with a GitHub token or place one in `auth.json` (gitignored) before running the install.
-
 ### Environment Configuration
 
 Configure the credentials you need in `.env`. Only the providers you enable in code require keys.
