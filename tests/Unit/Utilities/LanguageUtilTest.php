@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Symfony\Component\Finder\SplFileInfo;
 use App\Utilities\LanguageUtil;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Finder\SplFileInfo;
 
 covers(LanguageUtil::class);
 
