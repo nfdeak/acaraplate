@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Symfony\Component\Finder\SplFileInfo;
 use App\Utilities\LanguageUtil;
 use Illuminate\Support\Facades\File;
 
@@ -52,7 +53,7 @@ it('returns translations for existing locale', function (): void {
 
     File::shouldReceive('isDirectory')->with(lang_path('en'))->andReturn(true);
     File::shouldReceive('files')->with(lang_path('en'))->andReturn([
-        new Symfony\Component\Finder\SplFileInfo($filePath, lang_path('en'), 'auth.php'),
+        new SplFileInfo($filePath, lang_path('en'), 'auth.php'),
     ]);
 
     $result = LanguageUtil::translations('en');
