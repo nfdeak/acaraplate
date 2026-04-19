@@ -14,6 +14,11 @@ enum ModelName: string
     case GEMINI_3_FLASH = 'gemini-3-flash-preview';
     case GEMINI_3_1_PRO = 'gemini-3.1-pro-preview';
 
+    public static function default(): self
+    {
+        return self::GPT_5_4_MINI;
+    }
+
     /**
      * @return array{id: string, name: string, description: string, provider: string}[]
      */
