@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Enums\AgentMode;
-use App\Enums\ModelName;
 use App\Http\Controllers\ChatController;
 use App\Models\Conversation;
 use App\Models\History;
@@ -76,7 +75,8 @@ it('validates stream endpoint', function (): void {
 
     actingAs($user)
         ->post(route('chat.stream', $conversation->id), [])
-        ->assertSessionHasErrors(['messages', 'mode', 'model']);
+        ->assertSessionHasErrors(['messages', 'mode'])
+        ->assertSessionDoesntHaveErrors(['model']);
 });
 
 it('accepts valid stream request', function (): void {
@@ -89,7 +89,6 @@ it('accepts valid stream request', function (): void {
                 ['role' => 'user', 'parts' => [['type' => 'text', 'text' => 'Hello API']]],
             ],
             'mode' => AgentMode::Ask->value,
-            'model' => ModelName::GPT_5_MINI->value,
         ])
         ->assertOk();
 });

@@ -34,7 +34,6 @@ final class StreamChatRequest extends FormRequest
             'messages.*.parts.*.url' => ['nullable', 'string'],
 
             'mode' => ['required', Rule::enum(AgentMode::class)],
-            'model' => ['required', Rule::enum(ModelName::class)],
         ];
     }
 
@@ -68,10 +67,7 @@ final class StreamChatRequest extends FormRequest
 
     public function modelName(): ModelName
     {
-        /** @var string $model */
-        $model = $this->validated('model');
-
-        return ModelName::from($model);
+        return ModelName::default();
     }
 
     /**
@@ -112,7 +108,6 @@ final class StreamChatRequest extends FormRequest
         return [
             'messages.required' => 'Messages are required',
             'mode.required' => 'Mode is required',
-            'model.required' => 'Model is required',
         ];
     }
 }

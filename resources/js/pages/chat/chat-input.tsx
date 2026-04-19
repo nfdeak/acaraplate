@@ -19,16 +19,6 @@ import {
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export const AI_MODELS = {
-    'gpt-5.4-mini': 'chat.models.gpt_5_4_mini',
-    'gemini-3-flash-preview': 'chat.models.gemini_3_flash',
-    'gemini-3.1-pro-preview': 'chat.models.gemini_3_1_pro',
-    'gpt-5-mini': 'chat.models.gpt_5_mini',
-    'gpt-5-nano': 'chat.models.gpt_5_nano',
-} as const;
-
-export type AIModel = keyof typeof AI_MODELS;
-
 export const CHAT_MODES = {
     ask: {
         label: 'chat.modes.ask',
@@ -46,12 +36,10 @@ interface Props {
     onSubmit: (message: string, files?: FileUIPart[]) => void;
     onInputChange?: () => void;
     onModeChange: (mode: ChatMode) => void;
-    onModelChange: (model: AIModel) => void;
     className?: string;
     disabled?: boolean;
     isLoading?: boolean;
     mode: ChatMode;
-    model: AIModel;
 }
 
 function readFileAsDataURL(file: File): Promise<FileUIPart> {
@@ -75,11 +63,9 @@ export default function ChatInput({
     onSubmit,
     onInputChange,
     onModeChange,
-    onModelChange,
     disabled = false,
     isLoading = false,
     mode,
-    model,
 }: Props) {
     const { t } = useTranslation('common');
     const [message, setMessage] = useState('');
@@ -231,41 +217,6 @@ export default function ChatInput({
                     </div>
 
                     <div className="flex items-center gap-1">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="gap-1.5 text-muted-foreground hover:text-foreground"
-                                >
-                                    <span className="max-w-[80px] truncate sm:max-w-[90px]">
-                                        {t(AI_MODELS[model])}
-                                    </span>
-                                    <ChevronDown className="size-3.5 opacity-60" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                {Object.entries(AI_MODELS).map(
-                                    ([key, label]) => (
-                                        <DropdownMenuItem
-                                            key={key}
-                                            onClick={() =>
-                                                onModelChange(key as AIModel)
-                                            }
-                                            className={cn(
-                                                model === key &&
-                                                    'bg-accent text-accent-foreground',
-                                            )}
-                                        >
-                                            <span>{t(label)}</span>
-                                        </DropdownMenuItem>
-                                    ),
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <div className="mx-0.5 h-5 w-px bg-border" />
-
                         <Button
                             variant={
                                 hasContent && !disabled ? 'default' : 'ghost'

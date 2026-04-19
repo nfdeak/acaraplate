@@ -106,11 +106,7 @@ export default function HealthEntriesInsights({
                                             'health_entries.insights_page.no_data.title',
                                         )}
                                     </h2>
-                                    <Button
-                                        asChild
-                                        size="lg"
-                                        className="gap-2"
-                                    >
+                                    <Button asChild size="lg" className="gap-2">
                                         <Link
                                             href={healthEntries.dashboard().url}
                                         >

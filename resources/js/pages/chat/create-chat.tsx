@@ -7,7 +7,7 @@ import type { ChatPageProps, UIMessage } from '@/types/chat';
 import { Head, router, usePage } from '@inertiajs/react';
 import type { FileUIPart } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import ChatInput, { type AIModel, type ChatMode } from './chat-input';
+import ChatInput, { type ChatMode } from './chat-input';
 
 import ChatMessages, { ChatErrorBanner } from './chat-messages';
 
@@ -29,7 +29,6 @@ export default function CreateChat() {
         initialConversationId,
     );
     const [mode, setMode] = useState<ChatMode>(initialMode ?? 'ask');
-    const [model, setModel] = useState<AIModel>('gpt-5.4-mini');
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastMessageRef = useRef<{
@@ -50,7 +49,6 @@ export default function CreateChat() {
     } = useChatStream({
         conversationId,
         mode,
-        model,
         initialMessages,
     });
 
@@ -123,11 +121,9 @@ export default function CreateChat() {
                         onSubmit={handleSubmit}
                         onInputChange={handleInputChange}
                         onModeChange={setMode}
-                        onModelChange={setModel}
                         disabled={isStreaming || isSubmitting}
                         isLoading={isStreaming || isSubmitting}
                         mode={mode}
-                        model={model}
                     />
                     <p className="px-2 pb-2 text-center text-xs text-muted-foreground sm:px-4 sm:pb-4 sm:text-sm">
                         ⚠️ For informational purposes only. Not a substitute for
