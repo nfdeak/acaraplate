@@ -184,7 +184,7 @@ export default function Edit({
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/20">
                                         <Smartphone className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                     </div>
-                                    <div>
+                                    <div className="space-y-2">
                                         <CardTitle>
                                             {t('mobile_sync.no_devices')}
                                         </CardTitle>
