@@ -14,7 +14,7 @@
         "@tailwindcss/typography": "^0.5.19",
         "@types/node": "^25.6.0",
         "npm-check-updates": "^21.0.2",
-        "oxlint": "^1.60.0",
+        "oxlint": "^1.61.0",
         "playwright": "^1.59.1",
         "prettier": "^3.8.3",
         "prettier-plugin-organize-imports": "^4.3.0",
@@ -52,7 +52,7 @@
         "clsx": "^2.1.1",
         "concurrently": "^9.2.1",
         "globals": "^17.5.0",
-        "i18next": "^26.0.5",
+        "i18next": "^26.0.6",
         "input-otp": "^1.4.2",
         "laravel-vite-plugin": "^3.0.1",
         "lucide-react": "^1.8.0",
@@ -66,7 +66,7 @@
         "tailwindcss": "^4.2.2",
         "tailwindcss-animate": "^1.0.7",
         "typescript": "^6.0.3",
-        "vite": "^8.0.8"
+        "vite": "^8.0.9"
     },
     "overrides": {
         "vite-plugin-pwa": {
