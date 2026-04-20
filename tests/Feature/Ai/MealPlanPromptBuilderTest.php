@@ -18,7 +18,7 @@ it('handles user without profile gracefully by auto-creating one', function (): 
     $user = User::factory()->create();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString()
         ->and($user->refresh()->profile)->toBeInstanceOf(UserProfile::class);
@@ -47,7 +47,7 @@ it('generates meal plan context for user with complete profile', function (): vo
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -75,7 +75,7 @@ it('handles user with minimal profile data', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -95,7 +95,7 @@ it('calculates correct daily calorie target for weight loss', function (): void 
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -115,7 +115,7 @@ it('calculates correct daily calorie target for muscle gain', function (): void 
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -142,7 +142,7 @@ it('includes dietary preferences in meal plan context', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -171,7 +171,7 @@ it('includes health conditions in meal plan context', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -193,7 +193,7 @@ it('includes BMI calculation in context', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -214,7 +214,7 @@ it('includes TDEE calculation in context', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -234,7 +234,7 @@ it('calculates correct TDEE for female user', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -254,7 +254,7 @@ it('generates special instructions for weight loss goal', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -272,7 +272,7 @@ it('generates special instructions for muscle gain goal', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -290,7 +290,7 @@ it('generates special instructions for maintenance goal', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -308,7 +308,7 @@ it('generates special instructions for heart health goal', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -326,7 +326,7 @@ it('generates special instructions for blood sugar control goal', function (): v
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -345,7 +345,7 @@ it('handles missing lifestyle gracefully', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -363,7 +363,7 @@ it('handles missing sex gracefully', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -381,7 +381,7 @@ it('handles unknown goal type gracefully', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString();
@@ -414,7 +414,7 @@ it('automatically analyzes glucose data when analysis not provided', function ()
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)
         ->toBeString()
@@ -436,7 +436,7 @@ it('handles user profile with no tdee for calorie calculation', function (): voi
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -454,7 +454,7 @@ it('handles user profile with no goal choice for calorie calculation', function 
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $result = $builder->handle($user);
+    $result = $builder->handleForDay($user, 1, 7);
 
     expect($result)->toBeString();
 });
@@ -476,7 +476,7 @@ it('handles user profile with invalid goal choice enum value', function (): void
     $builder = resolve(MealPlanPromptBuilder::class);
 
     $closure = function () use ($builder, $user): void {
-        $builder->handle($user->fresh());
+        $builder->handleForDay($user->fresh(), 1, 7);
     };
     expect($closure)->toThrow(ValueError::class);
 });

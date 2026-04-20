@@ -26,15 +26,6 @@ final readonly class MealPlanPromptBuilder
         private GlucoseDataAnalyzer $glucoseDataAnalyzer,
     ) {}
 
-    public function handle(User $user, ?GlucoseAnalysisData $glucoseAnalysis = null): string
-    {
-        $context = $this->buildContext($user, $glucoseAnalysis);
-
-        return view('ai.agents.create-meal-plan', [
-            'context' => $context,
-        ])->render();
-    }
-
     public function handleForDay(
         User $user,
         int $dayNumber,

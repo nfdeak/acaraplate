@@ -9,7 +9,6 @@ use App\Ai\MealPlanPromptBuilder;
 use App\Contracts\Ai\GeneratesMealPlans;
 use App\Data\DayMealsData;
 use App\Data\GlucoseAnalysis\GlucoseAnalysisData;
-use App\Data\MealPlanData;
 use App\Data\PreviousDayContext;
 use App\Enums\DietType;
 use App\Models\MealPlan;
@@ -83,21 +82,6 @@ final class MealPlanAgent implements Agent, GeneratesMealPlans, HasTools
 
         WorkflowStub::make(MealPlanInitializeWorkflow::class)
             ->start($user, $mealPlan, $glucoseAnalysis->analysisData);
-    }
-
-    public function generate(User $user, ?GlucoseAnalysisData $glucoseAnalysis = null): MealPlanData
-    {
-        $this->user = $user;
-
-        $prompt = $this->promptBuilder->handle($user, $glucoseAnalysis);
-
-        $response = $this->prompt($prompt);
-
-        $cleanedJsonText = JsonCleaner::extractAndValidateJson((string) $response);
-
-        $data = json_decode($cleanedJsonText, true, 512, JSON_THROW_ON_ERROR);
-
-        return MealPlanData::from($data);
     }
 
     public function generateForDay(

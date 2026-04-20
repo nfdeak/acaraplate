@@ -34,7 +34,7 @@ it('includes critical safety warning when user has type 2 diabetes', function ()
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('CRITICAL SAFETY GUARDRAILS')
@@ -61,7 +61,7 @@ it('includes dietary rules for type 2 diabetes in metadata', function (): void {
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Strictly avoid high-GI foods')
@@ -86,7 +86,7 @@ it('includes foods to avoid for diabetic users from metadata', function (): void
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('White bread, white rice, instant oatmeal')
@@ -110,7 +110,7 @@ it('includes foods to prioritize for diabetic users from metadata', function ():
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Foods To Prioritize')
@@ -134,7 +134,7 @@ it('includes diabetes safety guardrails for gestational diabetes', function (): 
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Gestational Diabetes')
@@ -148,7 +148,7 @@ it('does not show critical warning for healthy users', function (): void {
         ->create();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('CRITICAL SAFETY GUARDRAILS')
@@ -162,7 +162,7 @@ it('includes general safety rules for all users', function (): void {
         ->create();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('ALLERGEN AWARENESS')
@@ -188,7 +188,7 @@ it('includes halal requirements from metadata', function (): void {
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Halal')
@@ -213,7 +213,7 @@ it('includes kosher requirements from metadata', function (): void {
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Kosher')
@@ -232,7 +232,7 @@ it('shows glucose monitoring data when available', function (): void {
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Glucose Monitoring Data')
@@ -253,7 +253,7 @@ it('includes caution warning for prediabetes from metadata', function (): void {
     $user->refresh();
 
     $builder = resolve(MealPlanPromptBuilder::class);
-    $prompt = $builder->handle($user);
+    $prompt = $builder->handleForDay($user, 1, 7);
 
     expect($prompt)
         ->toContain('Prediabetes')
