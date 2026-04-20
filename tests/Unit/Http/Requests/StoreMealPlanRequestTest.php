@@ -25,7 +25,7 @@ it('authorizes when a user is bound to the request', function (): void {
 
 it('rejects an unauthenticated request', function (): void {
     $request = new StoreMealPlanRequest;
-    $request->setUserResolver(fn () => null);
+    $request->setUserResolver(fn (): null => null);
 
     expect($request->authorize())->toBeFalse();
 });
