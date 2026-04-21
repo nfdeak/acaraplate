@@ -25,7 +25,7 @@ it('resolves the adapter registered in config', function (): void {
 });
 
 it('throws when no adapter is configured for a platform', function (): void {
-    config()->set('messaging.platforms.telegram.adapter', null);
+    config()->set('messaging.platforms.telegram.adapter');
 
     ChatPlatform::Telegram->adapter();
 })->throws(InvalidArgumentException::class);
