@@ -26,8 +26,8 @@ it('normalizes trailing slashes on deep_link_url', function (): void {
 });
 
 it('falls back to empty strings when config values are missing', function (): void {
-    config()->set('messaging.platforms.telegram.bot_username', null);
-    config()->set('messaging.platforms.telegram.deep_link_url', null);
+    config()->set('messaging.platforms.telegram.bot_username');
+    config()->set('messaging.platforms.telegram.deep_link_url');
 
     $adapter = new TelegramPlatformAdapter;
 
