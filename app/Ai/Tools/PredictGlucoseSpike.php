@@ -49,6 +49,7 @@ final readonly class PredictGlucoseSpike implements Tool
             $predictor = resolve(PredictsGlucoseSpikes::class);
 
             $user = Auth::user();
+            // @phpstan-ignore-next-line instanceof.alwaysTrue (test fakes bind a non-SpikePredictorAgent stub via app()->instance())
             if ($predictor instanceof SpikePredictorAgent && $user instanceof User) {
                 ['label' => $language, 'code' => $languageCode] = LanguageUtil::resolve($user->locale);
                 $predictor->withLanguage($language, $languageCode);

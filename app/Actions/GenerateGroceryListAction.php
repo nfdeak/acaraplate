@@ -23,7 +23,7 @@ final readonly class GenerateGroceryListAction
         $mealPlan->groceryList()->delete();
         $mealPlan->loadMissing('user');
 
-        $locale = LanguageUtil::resolve($mealPlan->user?->locale)['code'];
+        $locale = LanguageUtil::resolve($mealPlan->user->locale)['code'];
 
         return $mealPlan->groceryList()->create([
             'user_id' => $mealPlan->user_id,
