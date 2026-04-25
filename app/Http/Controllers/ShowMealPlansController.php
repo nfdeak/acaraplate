@@ -34,8 +34,7 @@ final readonly class ShowMealPlansController
             ->latest()
             ->first();
 
-        $userDietType = $this->user->profile?->calculated_diet_type?->value
-            ?? DietType::Balanced->value;
+        $userDietType = ($this->user->profile->calculated_diet_type ?? DietType::Balanced)->value;
         $dietTypes = DietType::toArray();
 
         if (! $mealPlan) {
