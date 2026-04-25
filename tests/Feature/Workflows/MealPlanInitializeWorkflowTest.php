@@ -425,7 +425,7 @@ it('handles failed gracefully when meal plan argument is missing', function (): 
 });
 
 it('localizes meal plan name and description for the owners preferred locale', function (string $locale): void {
-    $user = User::factory()->create(['preferred_language' => $locale]);
+    $user = User::factory()->create(['locale' => $locale]);
 
     $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, DietType::Mediterranean);
 
@@ -439,7 +439,7 @@ it('localizes meal plan name and description for the owners preferred locale', f
 })->with(LanguageUtil::keys());
 
 it('uses the default plan name template when no diet type is provided', function (): void {
-    $user = User::factory()->create(['preferred_language' => 'en']);
+    $user = User::factory()->create(['locale' => 'en']);
 
     $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 5);
 
@@ -448,7 +448,7 @@ it('uses the default plan name template when no diet type is provided', function
 });
 
 it('falls back to default locale when preferred language is unsupported', function (): void {
-    $user = User::factory()->create(['preferred_language' => 'xx']);
+    $user = User::factory()->create(['locale' => 'xx']);
 
     $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, DietType::Keto);
 

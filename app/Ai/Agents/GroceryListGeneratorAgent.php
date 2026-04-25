@@ -127,7 +127,7 @@ final class GroceryListGeneratorAgent implements Agent
         }
 
         $mealPlan->loadMissing('user');
-        ['label' => $language, 'code' => $languageCode] = LanguageUtil::resolve($mealPlan->user?->preferred_language);
+        ['label' => $language, 'code' => $languageCode] = LanguageUtil::resolve($mealPlan->user?->locale);
 
         return <<<PROMPT
             Please consolidate the following ingredients from a {$mealPlan->duration_days}-day meal plan into an organized grocery list.

@@ -53,7 +53,7 @@ final class MealPlanInitializeWorkflow extends Workflow
     public static function createMealPlan(User $user, int $totalDays = 7, ?DietType $dietType = null): MealPlan
     {
         $mealPlanType = self::getMealPlanType($totalDays);
-        $locale = LanguageUtil::resolve($user->preferred_language)['code'];
+        $locale = LanguageUtil::resolve($user->locale)['code'];
 
         $name = $dietType instanceof DietType
             ? __('common.meal_plans.name_with_diet', [

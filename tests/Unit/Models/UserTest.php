@@ -287,10 +287,10 @@ it('active chat platform link returns the active link for the given platform', f
     expect($activeLink->id)->toBe($link->id);
 });
 
-it('preferred_language returns null when not set', function (): void {
-    $user = User::factory()->create(['preferred_language' => null]);
+it('locale returns null when not set', function (): void {
+    $user = User::factory()->create(['locale' => null]);
 
-    expect($user->preferred_language)->toBeNull();
+    expect($user->locale)->toBeNull();
 });
 
 it("paginatedConversations returns only the user's own conversations ordered latest-first", function (): void {

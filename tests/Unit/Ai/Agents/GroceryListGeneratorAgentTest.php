@@ -50,7 +50,7 @@ it('keeps category in english while honoring language directive', function (): v
 });
 
 it('injects users preferred language into the grocery prompt', function (): void {
-    $user = User::factory()->create(['preferred_language' => 'mn']);
+    $user = User::factory()->create(['locale' => 'mn']);
     $mealPlan = MealPlan::factory()->for($user)->create(['duration_days' => 3]);
 
     Meal::factory()->for($mealPlan)->create([
@@ -77,7 +77,7 @@ it('injects users preferred language into the grocery prompt', function (): void
 });
 
 it('defaults grocery prompt language to english when user has none', function (): void {
-    $user = User::factory()->create(['preferred_language' => null]);
+    $user = User::factory()->create(['locale' => null]);
     $mealPlan = MealPlan::factory()->for($user)->create(['duration_days' => 3]);
 
     Meal::factory()->for($mealPlan)->create([

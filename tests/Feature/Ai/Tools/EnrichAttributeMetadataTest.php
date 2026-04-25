@@ -69,7 +69,7 @@ it('passes user preferred language to the agent when authenticated', function ()
     $agent = new EnrichAttributeMetadataAgent;
     app()->instance(EnrichAttributeMetadataAgent::class, $agent);
 
-    $user = User::factory()->create(['preferred_language' => 'en']);
+    $user = User::factory()->create(['locale' => 'en']);
     actingAs($user);
 
     $tool = new EnrichAttributeMetadata;

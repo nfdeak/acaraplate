@@ -87,7 +87,7 @@ it('passes user preferred language to the agent when authenticated', function ()
     $agent = new FoodPhotoAnalyzerAgent;
     app()->instance(FoodPhotoAnalyzerAgent::class, $agent);
 
-    $user = User::factory()->create(['preferred_language' => 'en']);
+    $user = User::factory()->create(['locale' => 'en']);
     actingAs($user);
 
     $image = new Base64Image(base64_encode('fake-image-data'), 'image/jpeg');

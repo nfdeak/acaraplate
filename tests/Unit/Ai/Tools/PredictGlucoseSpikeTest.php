@@ -167,7 +167,7 @@ it('passes user preferred language to the agent when authenticated', function ()
     $agent = new SpikePredictorAgent;
     app()->instance(PredictsGlucoseSpikes::class, $agent);
 
-    $user = User::factory()->create(['preferred_language' => 'en']);
+    $user = User::factory()->create(['locale' => 'en']);
     actingAs($user);
 
     $tool = new PredictGlucoseSpike;

@@ -519,7 +519,7 @@ it('includes language instruction in the prompt', function (): void {
 
 it('uses users preferred language in the prompt', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => 'mn',
+        'locale' => 'mn',
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
@@ -533,7 +533,7 @@ it('uses users preferred language in the prompt', function (): void {
 
 it('defaults to english when user has no preferred language', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => null,
+        'locale' => null,
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
@@ -547,7 +547,7 @@ it('defaults to english when user has no preferred language', function (): void 
 
 it('falls back to english for unsupported language code', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => 'xx',
+        'locale' => 'xx',
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);
@@ -561,7 +561,7 @@ it('falls back to english for unsupported language code', function (): void {
 
 it('keeps the language directive language-agnostic for english users', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => 'en',
+        'locale' => 'en',
     ]);
 
     $builder = resolve(MealPlanPromptBuilder::class);

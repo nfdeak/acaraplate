@@ -50,7 +50,7 @@ final readonly class PredictGlucoseSpike implements Tool
 
             $user = Auth::user();
             if ($predictor instanceof SpikePredictorAgent && $user instanceof User) {
-                ['label' => $language, 'code' => $languageCode] = LanguageUtil::resolve($user->preferred_language);
+                ['label' => $language, 'code' => $languageCode] = LanguageUtil::resolve($user->locale);
                 $predictor->withLanguage($language, $languageCode);
             }
 

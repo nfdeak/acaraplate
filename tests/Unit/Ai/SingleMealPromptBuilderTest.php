@@ -174,7 +174,7 @@ it('includes language instruction in the single meal prompt', function (): void 
 
 it('uses users preferred language for single meal prompt', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => 'mn',
+        'locale' => 'mn',
     ]);
 
     $prompt = $this->builder->handle($user, 'lunch');
@@ -187,7 +187,7 @@ it('uses users preferred language for single meal prompt', function (): void {
 
 it('defaults single meal prompt to english when user has no preferred language', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => null,
+        'locale' => null,
     ]);
 
     $prompt = $this->builder->handle($user, 'lunch');
@@ -200,7 +200,7 @@ it('defaults single meal prompt to english when user has no preferred language',
 
 it('falls back to english for unsupported single meal language code', function (): void {
     $user = User::factory()->create([
-        'preferred_language' => 'xx',
+        'locale' => 'xx',
     ]);
 
     $prompt = $this->builder->handle($user, 'lunch');

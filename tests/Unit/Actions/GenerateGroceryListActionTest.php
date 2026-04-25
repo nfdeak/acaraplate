@@ -37,7 +37,7 @@ it('creates a placeholder grocery list', function (): void {
 });
 
 it('uses the owners preferred locale for the placeholder name', function (string $locale): void {
-    $user = User::factory()->create(['preferred_language' => $locale]);
+    $user = User::factory()->create(['locale' => $locale]);
     $mealPlan = MealPlan::factory()->for($user)->create([
         'duration_days' => 7,
         'name' => 'Weekly Plan',
@@ -51,7 +51,7 @@ it('uses the owners preferred locale for the placeholder name', function (string
 })->with(LanguageUtil::keys());
 
 it('falls back to default locale when preferred language is unsupported', function (): void {
-    $user = User::factory()->create(['preferred_language' => 'xx']);
+    $user = User::factory()->create(['locale' => 'xx']);
     $mealPlan = MealPlan::factory()->for($user)->create([
         'duration_days' => 7,
         'name' => 'Weekly Plan',
