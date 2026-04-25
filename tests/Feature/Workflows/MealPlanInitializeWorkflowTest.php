@@ -7,6 +7,7 @@ use App\Data\DayMealsData;
 use App\Data\MealData;
 use App\Data\PreviousDayContext;
 use App\Data\SingleDayMealData;
+use App\Enums\DietType;
 use App\Enums\GoalChoice;
 use App\Enums\MealPlanGenerationStatus;
 use App\Enums\MealPlanType;
@@ -14,6 +15,7 @@ use App\Enums\MealType;
 use App\Enums\Sex;
 use App\Models\MealPlan;
 use App\Models\User;
+use App\Utilities\LanguageUtil;
 use App\Workflows\MealPlanDayGeneratorActivity;
 use App\Workflows\MealPlanInitializeWorkflow;
 use App\Workflows\SaveDayMealsActivity;
@@ -425,7 +427,7 @@ it('handles failed gracefully when meal plan argument is missing', function (): 
 it('localizes meal plan name and description for the owners preferred locale', function (string $locale): void {
     $user = User::factory()->create(['preferred_language' => $locale]);
 
-    $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, App\Enums\DietType::Mediterranean);
+    $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, DietType::Mediterranean);
 
     expect($mealPlan->name)
         ->toBe(__('common.meal_plans.name_with_diet', [
@@ -434,7 +436,7 @@ it('localizes meal plan name and description for the owners preferred locale', f
         ], $locale))
         ->and($mealPlan->description)
         ->toBe(__('common.meal_plans.default_description', [], $locale));
-})->with(App\Utilities\LanguageUtil::keys());
+})->with(LanguageUtil::keys());
 
 it('uses the default plan name template when no diet type is provided', function (): void {
     $user = User::factory()->create(['preferred_language' => 'en']);
@@ -448,11 +450,11 @@ it('uses the default plan name template when no diet type is provided', function
 it('falls back to default locale when preferred language is unsupported', function (): void {
     $user = User::factory()->create(['preferred_language' => 'xx']);
 
-    $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, App\Enums\DietType::Keto);
+    $mealPlan = MealPlanInitializeWorkflow::createMealPlan($user, 7, DietType::Keto);
 
     expect($mealPlan->name)
         ->toBe(__('common.meal_plans.name_with_diet', [
             'days' => 7,
-            'diet' => __('common.meal_plans.diet_short.keto', [], App\Utilities\LanguageUtil::default()),
-        ], App\Utilities\LanguageUtil::default()));
+            'diet' => __('common.meal_plans.diet_short.keto', [], LanguageUtil::default()),
+        ], LanguageUtil::default()));
 });
