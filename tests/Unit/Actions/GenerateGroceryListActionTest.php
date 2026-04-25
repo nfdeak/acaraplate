@@ -9,6 +9,7 @@ use App\Models\GroceryList;
 use App\Models\Meal;
 use App\Models\MealPlan;
 use App\Models\User;
+use App\Utilities\LanguageUtil;
 
 covers(GenerateGroceryListAction::class);
 
@@ -47,7 +48,7 @@ it('uses the owners preferred locale for the placeholder name', function (string
 
     expect($groceryList->name)
         ->toBe(__('common.grocery_list.name_template', ['name' => $mealPlan->name], $locale));
-})->with(App\Utilities\LanguageUtil::keys());
+})->with(LanguageUtil::keys());
 
 it('falls back to default locale when preferred language is unsupported', function (): void {
     $user = User::factory()->create(['preferred_language' => 'xx']);
@@ -60,7 +61,7 @@ it('falls back to default locale when preferred language is unsupported', functi
     $groceryList = $action->createPlaceholder($mealPlan);
 
     expect($groceryList->name)
-        ->toBe(__('common.grocery_list.name_template', ['name' => $mealPlan->name], App\Utilities\LanguageUtil::default()));
+        ->toBe(__('common.grocery_list.name_template', ['name' => $mealPlan->name], LanguageUtil::default()));
 });
 
 it('deletes existing grocery list before creating placeholder', function (): void {
