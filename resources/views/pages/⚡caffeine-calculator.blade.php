@@ -8,7 +8,7 @@ use Livewire\Component;
 
 new
 #[Layout('layouts.mini-app', ['metaDescription' => 'Free caffeine calculator: estimate your safe daily caffeine dose and find out when to stop drinking coffee for better sleep.', 'metaKeywords' => 'caffeine calculator, safe caffeine dose, caffeine sleep cutoff, coffee calculator, caffeine half life'])]
-#[Title('Caffeine Calculator | Free Safe Dose & Sleep Cutoff Tool')]
+#[Title('Coffee Caffeine Calculator: How Much Is Too Much?')]
 class extends Component
 {
     //

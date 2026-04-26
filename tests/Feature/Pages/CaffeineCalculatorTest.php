@@ -7,6 +7,13 @@ it('returns 200 for the caffeine calculator route without authentication', funct
         ->assertSuccessful();
 });
 
+it('renders the caffeine calculator under the mini-app layout with the expected title', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSee('<title>Coffee Caffeine Calculator: How Much Is Too Much?</title>', false)
+        ->assertSee('Caffeine Calculator');
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');
