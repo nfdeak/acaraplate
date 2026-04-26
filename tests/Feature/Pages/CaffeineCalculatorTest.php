@@ -182,6 +182,36 @@ it('ignores out-of-range sensitivity values', function (): void {
         ->assertSet('sensitivity', 3);
 });
 
+it('renders the How Much Coffee? primary CTA with solid emerald and responsive width', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-cta-calculate"',
+            'w-full',
+            'rounded-lg',
+            'bg-emerald-500',
+            'sm:w-auto',
+            'How Much Coffee?',
+        ], false);
+});
+
+it('uses spec hover, focus, and 150ms transition states on the primary CTA', function (): void {
+    $response = $this->get(route('caffeine-calculator'))->assertSuccessful();
+
+    $response->assertSee('hover:-translate-y-px', false)
+        ->assertSee('hover:bg-emerald-600', false)
+        ->assertSee('focus:ring-2', false)
+        ->assertSee('focus:ring-emerald-500', false)
+        ->assertSee('focus:ring-offset-2', false)
+        ->assertSee('duration-150', false);
+});
+
+it('does not use a gradient on the primary CTA background', function (): void {
+    $response = $this->get(route('caffeine-calculator'))->assertSuccessful();
+
+    $response->assertDontSee('bg-gradient', false);
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');

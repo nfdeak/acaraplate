@@ -183,5 +183,14 @@ class extends Component
                 </div>
             </div>
         </div>
+
+        <button
+            type="button"
+            wire:click="calculate"
+            data-testid="caffeine-cta-calculate"
+            class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-white transition duration-150 hover:-translate-y-px hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0 active:bg-emerald-700 sm:w-auto"
+        >
+            How Much Coffee?
+        </button>
     </div>
 </div>
