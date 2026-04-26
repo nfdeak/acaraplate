@@ -90,6 +90,18 @@ class extends Component
                 ],
             ],
             [
+                'name' => 'Caffeine Calculator',
+                'description' => 'Estimate your safe daily caffeine limit and find a sleep-friendly cutoff time based on your weight and sensitivity.',
+                'icon' => '☕',
+                'route' => route('caffeine-calculator'),
+                'badge' => 'New',
+                'features' => [
+                    'Personalized safe daily dose',
+                    'Sleep cutoff time estimate',
+                    'Tracks 30+ common drinks',
+                ],
+            ],
+            [
                 'name' => 'AI Meal Planner',
                 'description' => 'Get personalized 7-day meal plans tailored to your diabetes type, diet preferences, and glucose goals.',
                 'icon' => '📅',
