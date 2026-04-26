@@ -17,10 +17,19 @@ class extends Component
     #[Url(as: 'unit', except: 'kg')]
     public string $weightUnit = 'kg';
 
+    public int $sensitivity = 3;
+
     public function setUnit(string $unit): void
     {
         if (in_array($unit, ['kg', 'lb'], true)) {
             $this->weightUnit = $unit;
+        }
+    }
+
+    public function setSensitivity(int $step): void
+    {
+        if ($step >= 1 && $step <= 5) {
+            $this->sensitivity = $step;
         }
     }
 
@@ -133,6 +142,45 @@ class extends Component
                         {{ $message }}
                     </p>
                 @enderror
+            </div>
+
+            <div data-testid="caffeine-form-row-sensitivity">
+                <span class="block text-sm font-medium text-gray-700">
+                    Caffeine sensitivity
+                </span>
+                <div
+                    data-testid="caffeine-sensitivity-rail"
+                    role="radiogroup"
+                    aria-label="Caffeine sensitivity"
+                    class="relative mt-3"
+                >
+                    <div
+                        aria-hidden="true"
+                        class="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-gray-200"
+                    ></div>
+                    <div class="relative flex items-center justify-between">
+                        @foreach (range(1, 5) as $step)
+                            <button
+                                type="button"
+                                role="radio"
+                                wire:click="setSensitivity({{ $step }})"
+                                data-testid="caffeine-sensitivity-step-{{ $step }}"
+                                aria-checked="{{ $sensitivity === $step ? 'true' : 'false' }}"
+                                aria-label="Sensitivity step {{ $step }} of 5"
+                                @class([
+                                    'h-7 w-7 rounded-full border transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
+                                    'border-emerald-600 bg-emerald-600 ring-2 ring-inset ring-white' => $sensitivity === $step,
+                                    'border-gray-300 bg-white hover:border-gray-400' => $sensitivity !== $step,
+                                ])
+                            ></button>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-gray-500">
+                    <span>More tolerant</span>
+                    <span>Normal</span>
+                    <span>More sensitive</span>
+                </div>
             </div>
         </div>
     </div>

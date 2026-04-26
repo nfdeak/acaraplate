@@ -140,6 +140,48 @@ it('ignores unsupported unit values', function (): void {
         ->assertSet('weightUnit', 'kg');
 });
 
+it('renders a 5-step sensitivity segmented control with step 3 selected by default', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-form-row-sensitivity"',
+            'Caffeine sensitivity',
+            'data-testid="caffeine-sensitivity-rail"',
+            'data-testid="caffeine-sensitivity-step-1"',
+            'aria-checked="false"',
+            'data-testid="caffeine-sensitivity-step-2"',
+            'aria-checked="false"',
+            'data-testid="caffeine-sensitivity-step-3"',
+            'aria-checked="true"',
+            'bg-emerald-600',
+            'ring-white',
+            'data-testid="caffeine-sensitivity-step-4"',
+            'aria-checked="false"',
+            'data-testid="caffeine-sensitivity-step-5"',
+            'aria-checked="false"',
+            'More tolerant',
+            'Normal',
+            'More sensitive',
+        ], false);
+});
+
+it('changes sensitivity selection when a step is clicked', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->assertSet('sensitivity', 3)
+        ->call('setSensitivity', 1)
+        ->assertSet('sensitivity', 1)
+        ->call('setSensitivity', 5)
+        ->assertSet('sensitivity', 5);
+});
+
+it('ignores out-of-range sensitivity values', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->call('setSensitivity', 0)
+        ->assertSet('sensitivity', 3)
+        ->call('setSensitivity', 6)
+        ->assertSet('sensitivity', 3);
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');
