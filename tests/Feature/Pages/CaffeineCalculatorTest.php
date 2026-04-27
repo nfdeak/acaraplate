@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\CalculateCaffeineSafeDose;
 use App\Models\CaffeineDrink;
+use App\Models\User;
 use App\Utilities\WeightConverter;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -899,6 +900,25 @@ it('does not render the sign-up CTA before a successful calculation', function (
     $this->get(route('caffeine-calculator'))
         ->assertSuccessful()
         ->assertDontSee('data-testid="caffeine-signup-cta"', false);
+});
+
+it('does not render the sign-up CTA for authenticated visitors after a successful calculation', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    $html = Livewire::actingAs(User::factory()->create())
+        ->test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->call('selectDrink', $drink->id)
+        ->call('calculate')
+        ->html();
+
+    expect($html)
+        ->not->toContain('data-testid="caffeine-signup-cta"')
+        ->not->toContain('data-testid="caffeine-signup-cta-button"');
 });
 
 it('renders the tiny 12px disclaimer footer below the result after a successful calculation', function (): void {
