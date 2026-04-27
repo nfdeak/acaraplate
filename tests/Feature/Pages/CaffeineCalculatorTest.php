@@ -717,6 +717,60 @@ it('keeps the primary CTA enabled when drinks exist', function (): void {
         ->assertDontSee('disabled aria-disabled', false);
 });
 
+it('renders a fallback panel when the picked drink lacks a caffeine_mg estimate', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Mystery Brew',
+        'slug' => 'mystery-brew',
+        'caffeine_mg' => 0,
+    ]);
+
+    $component = Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->call('selectDrink', $drink->id)
+        ->call('calculate');
+
+    $component
+        ->assertSet('lacksCaffeineEstimate', true)
+        ->assertSet('safeMg', null)
+        ->assertSet('safeCups', null)
+        ->assertSet('perCupMg', null);
+
+    $html = $component->html();
+
+    expect($html)
+        ->toContain('data-testid="caffeine-result-fallback"')
+        ->toContain("We don't have a confident estimate for this drink yet.")
+        ->toContain('Try picking another drink');
+
+    expect($html)
+        ->not->toContain('data-testid="caffeine-result-panel"')
+        ->not->toContain('data-testid="caffeine-result-cups"');
+});
+
+it('clears the fallback panel and renders results when switching to a drink with an estimate', function (): void {
+    $missing = CaffeineDrink::factory()->create([
+        'name' => 'Mystery Brew',
+        'slug' => 'mystery-brew',
+        'caffeine_mg' => 0,
+    ]);
+
+    $known = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->call('selectDrink', $missing->id)
+        ->call('calculate')
+        ->assertSet('lacksCaffeineEstimate', true)
+        ->call('selectDrink', $known->id)
+        ->call('calculate')
+        ->assertSet('lacksCaffeineEstimate', false)
+        ->assertSet('perCupMg', 150.0);
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');

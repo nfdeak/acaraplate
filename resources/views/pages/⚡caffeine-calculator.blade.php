@@ -40,6 +40,8 @@ class extends Component
 
     public ?float $perCupMg = null;
 
+    public bool $lacksCaffeineEstimate = false;
+
     public function mount(): void
     {
         app(LogToolEvent::class)->handle('caffeine-calculator', 'page_view');
@@ -119,6 +121,17 @@ class extends Component
         if ($drink === null) {
             return;
         }
+
+        if ($drink->caffeine_mg === null || (float) $drink->caffeine_mg <= 0) {
+            $this->lacksCaffeineEstimate = true;
+            $this->safeMg = null;
+            $this->safeCups = null;
+            $this->perCupMg = null;
+
+            return;
+        }
+
+        $this->lacksCaffeineEstimate = false;
 
         $weightKg = WeightConverter::convertToKg((float) $this->weight, $this->weightUnit);
         $clampedKg = max(self::MIN_WEIGHT_KG, min(self::MAX_WEIGHT_KG, $weightKg));
@@ -487,6 +500,28 @@ class extends Component
                 How Much Coffee?
             </button>
         </div>
+
+        @if ($lacksCaffeineEstimate)
+            <div
+                data-testid="caffeine-result-fallback"
+                role="status"
+                aria-live="polite"
+                class="mt-6 rounded-xl border border-amber-200 border-t-4 border-t-amber-500 bg-amber-50 p-6 md:p-8 dark:border-amber-900/50 dark:border-t-amber-500 dark:bg-amber-950/30"
+            >
+                <p
+                    data-testid="caffeine-result-fallback-headline"
+                    class="text-lg font-semibold text-amber-900 dark:text-amber-200"
+                >
+                    We don't have a confident estimate for this drink yet.
+                </p>
+                <p
+                    data-testid="caffeine-result-fallback-suggestion"
+                    class="mt-2 text-sm text-amber-800 dark:text-amber-300"
+                >
+                    Try picking another drink from the list above so we can calculate your safe daily limit.
+                </p>
+            </div>
+        @endif
 
         @if ($safeMg !== null && $safeCups !== null && $perCupMg !== null)
             @php
