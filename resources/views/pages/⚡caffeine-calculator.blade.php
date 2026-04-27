@@ -88,133 +88,135 @@ class extends Component
     }
 }; ?>
 
-<div class="mx-auto max-w-2xl px-4 py-12">
-    <h1 class="text-[32px] font-bold leading-tight tracking-tight md:text-5xl">
-        Coffee Caffeine Calculator: How Much Is Too Much?
-    </h1>
-    <p class="mt-4 text-lg text-gray-600">
-        Choose your drink, tell us about you, and find your safe daily limit.
-    </p>
+<div class="min-h-screen w-full bg-gray-50 dark:bg-slate-900">
+    <div class="mx-auto max-w-2xl px-4 py-12">
+        <h1 class="text-[32px] font-bold leading-tight tracking-tight text-gray-900 md:text-5xl dark:text-slate-50">
+            Coffee Caffeine Calculator: How Much Is Too Much?
+        </h1>
+        <p class="mt-4 text-lg text-gray-600 dark:text-slate-400">
+            Choose your drink, tell us about you, and find your safe daily limit.
+        </p>
 
-    <div
-        data-testid="caffeine-form-card"
-        class="mt-8 rounded-xl border border-gray-200 bg-white p-6 md:p-8"
-    >
-        <div data-testid="caffeine-form-rows" class="space-y-6">
-            <div data-testid="caffeine-form-row-weight">
-                <div class="flex items-center justify-between gap-4">
-                    <label for="caffeine-weight" class="block text-sm font-medium text-gray-700">
-                        Your weight
-                    </label>
-                    <div
-                        data-testid="caffeine-weight-unit-toggle"
-                        role="group"
-                        aria-label="Weight unit"
-                        class="inline-flex gap-2"
-                    >
-                        <button
-                            type="button"
-                            wire:click="setUnit('kg')"
-                            data-testid="caffeine-weight-unit-kg"
-                            aria-pressed="{{ $weightUnit === 'kg' ? 'true' : 'false' }}"
-                            @class([
-                                'rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
-                                'border-emerald-600 bg-emerald-600 text-white' => $weightUnit === 'kg',
-                                'border-gray-300 bg-white text-gray-700 hover:bg-gray-50' => $weightUnit !== 'kg',
-                            ])
+        <div
+            data-testid="caffeine-form-card"
+            class="mt-8 rounded-xl border border-gray-200 bg-white p-6 md:p-8 dark:border-slate-700 dark:bg-slate-800"
+        >
+            <div data-testid="caffeine-form-rows" class="space-y-6">
+                <div data-testid="caffeine-form-row-weight">
+                    <div class="flex items-center justify-between gap-4">
+                        <label for="caffeine-weight" class="block text-sm font-medium text-gray-700 dark:text-slate-200">
+                            Your weight
+                        </label>
+                        <div
+                            data-testid="caffeine-weight-unit-toggle"
+                            role="group"
+                            aria-label="Weight unit"
+                            class="inline-flex gap-2"
                         >
-                            Kilos
-                        </button>
-                        <button
-                            type="button"
-                            wire:click="setUnit('lb')"
-                            data-testid="caffeine-weight-unit-lb"
-                            aria-pressed="{{ $weightUnit === 'lb' ? 'true' : 'false' }}"
-                            @class([
-                                'rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
-                                'border-emerald-600 bg-emerald-600 text-white' => $weightUnit === 'lb',
-                                'border-gray-300 bg-white text-gray-700 hover:bg-gray-50' => $weightUnit !== 'lb',
-                            ])
-                        >
-                            Pounds
-                        </button>
-                    </div>
-                </div>
-                <input
-                    type="number"
-                    id="caffeine-weight"
-                    wire:model.blur="weight"
-                    inputmode="decimal"
-                    min="0"
-                    step="0.1"
-                    placeholder="e.g. 70"
-                    aria-describedby="caffeine-weight-error"
-                    @class([
-                        'mt-1 block w-full rounded-md border bg-white px-3.5 py-2.5 text-base text-gray-900 placeholder-gray-400 outline-none focus:ring-2',
-                        'border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/15' => ! $errors->has('weight'),
-                        'border-red-600 focus:border-red-600 focus:ring-red-600/15' => $errors->has('weight'),
-                    ])
-                />
-                @error('weight')
-                    <p
-                        id="caffeine-weight-error"
-                        data-testid="caffeine-weight-error"
-                        class="mt-1 text-sm text-red-600"
-                    >
-                        {{ $message }}
-                    </p>
-                @enderror
-            </div>
-
-            <div data-testid="caffeine-form-row-sensitivity">
-                <span class="block text-sm font-medium text-gray-700">
-                    Caffeine sensitivity
-                </span>
-                <div
-                    data-testid="caffeine-sensitivity-rail"
-                    role="radiogroup"
-                    aria-label="Caffeine sensitivity"
-                    class="relative mt-3"
-                >
-                    <div
-                        aria-hidden="true"
-                        class="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-gray-200"
-                    ></div>
-                    <div class="relative flex items-center justify-between">
-                        @foreach (range(1, 5) as $step)
                             <button
                                 type="button"
-                                role="radio"
-                                wire:click="setSensitivity({{ $step }})"
-                                data-testid="caffeine-sensitivity-step-{{ $step }}"
-                                aria-checked="{{ $sensitivity === $step ? 'true' : 'false' }}"
-                                aria-label="Sensitivity step {{ $step }} of 5"
+                                wire:click="setUnit('kg')"
+                                data-testid="caffeine-weight-unit-kg"
+                                aria-pressed="{{ $weightUnit === 'kg' ? 'true' : 'false' }}"
                                 @class([
-                                    'h-7 w-7 rounded-full border transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
-                                    'border-emerald-600 bg-emerald-600 ring-2 ring-inset ring-white' => $sensitivity === $step,
-                                    'border-gray-300 bg-white hover:border-gray-400' => $sensitivity !== $step,
+                                    'rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
+                                    'border-emerald-600 bg-emerald-600 text-white dark:hover:bg-emerald-400' => $weightUnit === 'kg',
+                                    'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700' => $weightUnit !== 'kg',
                                 ])
-                            ></button>
-                        @endforeach
+                            >
+                                Kilos
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="setUnit('lb')"
+                                data-testid="caffeine-weight-unit-lb"
+                                aria-pressed="{{ $weightUnit === 'lb' ? 'true' : 'false' }}"
+                                @class([
+                                    'rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
+                                    'border-emerald-600 bg-emerald-600 text-white dark:hover:bg-emerald-400' => $weightUnit === 'lb',
+                                    'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700' => $weightUnit !== 'lb',
+                                ])
+                            >
+                                Pounds
+                            </button>
+                        </div>
+                    </div>
+                    <input
+                        type="number"
+                        id="caffeine-weight"
+                        wire:model.blur="weight"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.1"
+                        placeholder="e.g. 70"
+                        aria-describedby="caffeine-weight-error"
+                        @class([
+                            'mt-1 block w-full rounded-md border bg-white px-3.5 py-2.5 text-base text-gray-900 placeholder-gray-400 outline-none focus:ring-2 dark:bg-slate-900 dark:text-slate-50 dark:placeholder-slate-500',
+                            'border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/15 dark:border-slate-700' => ! $errors->has('weight'),
+                            'border-red-600 focus:border-red-600 focus:ring-red-600/15 dark:border-red-500' => $errors->has('weight'),
+                        ])
+                    />
+                    @error('weight')
+                        <p
+                            id="caffeine-weight-error"
+                            data-testid="caffeine-weight-error"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <div data-testid="caffeine-form-row-sensitivity">
+                    <span class="block text-sm font-medium text-gray-700 dark:text-slate-200">
+                        Caffeine sensitivity
+                    </span>
+                    <div
+                        data-testid="caffeine-sensitivity-rail"
+                        role="radiogroup"
+                        aria-label="Caffeine sensitivity"
+                        class="relative mt-3"
+                    >
+                        <div
+                            aria-hidden="true"
+                            class="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-gray-200 dark:bg-slate-700"
+                        ></div>
+                        <div class="relative flex items-center justify-between">
+                            @foreach (range(1, 5) as $step)
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    wire:click="setSensitivity({{ $step }})"
+                                    data-testid="caffeine-sensitivity-step-{{ $step }}"
+                                    aria-checked="{{ $sensitivity === $step ? 'true' : 'false' }}"
+                                    aria-label="Sensitivity step {{ $step }} of 5"
+                                    @class([
+                                        'h-7 w-7 rounded-full border transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
+                                        'border-emerald-600 bg-emerald-600 ring-2 ring-inset ring-white dark:ring-slate-800' => $sensitivity === $step,
+                                        'border-gray-300 bg-white hover:border-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-slate-500' => $sensitivity !== $step,
+                                    ])
+                                ></button>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                        <span>More tolerant</span>
+                        <span>Normal</span>
+                        <span>More sensitive</span>
                     </div>
                 </div>
-                <div class="mt-2 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-gray-500">
-                    <span>More tolerant</span>
-                    <span>Normal</span>
-                    <span>More sensitive</span>
-                </div>
             </div>
+
+            <button
+                type="button"
+                wire:click="calculate"
+                data-testid="caffeine-cta-calculate"
+                class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-white transition duration-150 hover:-translate-y-px hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0 active:bg-emerald-700 sm:w-auto dark:hover:bg-emerald-400 dark:focus:ring-offset-slate-900"
+            >
+                How Much Coffee?
+            </button>
         </div>
 
-        <button
-            type="button"
-            wire:click="calculate"
-            data-testid="caffeine-cta-calculate"
-            class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-white transition duration-150 hover:-translate-y-px hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0 active:bg-emerald-700 sm:w-auto"
-        >
-            How Much Coffee?
-        </button>
+        <x-json-ld.caffeine-calculator />
     </div>
-
-    <x-json-ld.caffeine-calculator />
 </div>
