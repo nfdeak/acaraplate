@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\CalculateCaffeineSafeDose;
 use App\Actions\CalculateCaffeineSleepCutoff;
 use App\Actions\LogToolEvent;
+use App\Actions\SearchCaffeineDrinks;
 use App\Data\SafeDoseData;
 use App\Models\CaffeineDrink;
 use App\Utilities\WeightConverter;
@@ -124,6 +125,19 @@ class extends Component
         ]);
     }
 
+    public function updatedDrinkQuery(): void
+    {
+        $normalized = mb_strtolower(mb_trim($this->drinkQuery));
+
+        if ($normalized === '') {
+            return;
+        }
+
+        app(LogToolEvent::class)->handle('caffeine-calculator', 'search_submitted', [
+            'query_length' => mb_strlen($normalized),
+        ]);
+    }
+
     public function calculate(): void
     {
         $this->validate();
@@ -203,34 +217,22 @@ class extends Component
             return collect();
         }
 
-        return CaffeineDrink::query()
-            ->orderBy('name')
-            ->get(['id', 'name', 'category', 'caffeine_mg'])
-            ->map(function (CaffeineDrink $drink) use ($query): ?array {
-                $name = mb_strtolower($drink->name);
+        $results = app(SearchCaffeineDrinks::class)->handle($query);
 
-                $rank = match (true) {
-                    $name === $query => 0,
-                    str_starts_with($name, $query) => 1,
-                    str_contains($name, $query) => 2,
-                    default => null,
-                };
+        $logger = app(LogToolEvent::class);
 
-                if ($rank === null) {
-                    return null;
-                }
+        $logger->handle('caffeine-calculator', 'search_results_returned', [
+            'result_count' => $results->count(),
+            'query_length' => mb_strlen($query),
+        ]);
 
-                return [
-                    'id' => $drink->id,
-                    'name' => $drink->name,
-                    'category' => $drink->category,
-                    'caffeine_mg' => (float) $drink->caffeine_mg,
-                    'rank' => $rank,
-                ];
-            })
-            ->filter()
-            ->sortBy([['rank', 'asc'], ['name', 'asc']])
-            ->values();
+        if ($results->isEmpty()) {
+            $logger->handle('caffeine-calculator', 'search_no_results', [
+                'query_length' => mb_strlen($query),
+            ]);
+        }
+
+        return $results;
     }
 
     public function selectDrink(int $id): void
@@ -244,8 +246,16 @@ class extends Component
         $this->drinkId = $drink->id;
         $this->drinkQuery = $drink->name;
 
+        $rank = $this->drinkOptions->firstWhere('id', $id)['rank'] ?? null;
+
         app(LogToolEvent::class)->handle('caffeine-calculator', 'drink_picked', [
             'drink' => $drink->slug,
+        ]);
+
+        app(LogToolEvent::class)->handle('caffeine-calculator', 'search_result_selected', [
+            'drink' => $drink->slug,
+            'rank' => $rank,
+            'query_length' => mb_strlen(mb_strtolower(mb_trim($this->drinkQuery))),
         ]);
     }
 
@@ -504,6 +514,7 @@ class extends Component
                             >
                                 @foreach ($this->drinkOptions as $index => $option)
                                     <li
+                                        wire:key="caffeine-drink-option-{{ $option['id'] }}"
                                         id="caffeine-drink-option-{{ $index }}"
                                         data-testid="caffeine-drink-option-{{ $option['id'] }}"
                                         role="option"
@@ -523,6 +534,16 @@ class extends Component
                                     </li>
                                 @endforeach
                             </ul>
+                        @elseif ($drinkQuery !== '' && count($this->drinkOptions) === 0)
+                            <div
+                                x-show="open"
+                                x-cloak
+                                x-transition.opacity.duration.150ms
+                                data-testid="caffeine-drink-no-results"
+                                class="absolute left-0 right-0 z-10 mt-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-500 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                            >
+                                No drinks found — try a different term.
+                            </div>
                         @endif
                     </div>
                     @endif

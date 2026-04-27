@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read string $name
  * @property-read string $slug
  * @property-read string|null $category
+ * @property-read array<int, string>|null $aliases
+ * @property-read string|null $search_text
+ * @property-read array<int, float>|null $embedding
  * @property-read string|null $volume_oz
  * @property-read string $caffeine_mg
  * @property-read string|null $source
@@ -39,6 +42,9 @@ final class CaffeineDrink extends Model
             'name' => 'string',
             'slug' => 'string',
             'category' => 'string',
+            'aliases' => 'array',
+            'search_text' => 'string',
+            'embedding' => 'array',
             'volume_oz' => 'decimal:2',
             'caffeine_mg' => 'decimal:2',
             'source' => 'string',

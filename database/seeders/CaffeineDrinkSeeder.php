@@ -7,7 +7,9 @@ namespace Database\Seeders;
 use App\Models\CaffeineDrink;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Laravel\Ai\Embeddings;
 use RuntimeException;
+use Throwable;
 
 final class CaffeineDrinkSeeder extends Seeder
 {
@@ -17,6 +19,7 @@ final class CaffeineDrinkSeeder extends Seeder
         'name',
         'slug',
         'category',
+        'aliases',
         'volume_oz',
         'caffeine_mg',
         'source',
@@ -86,11 +89,16 @@ final class CaffeineDrinkSeeder extends Seeder
                     }
                 }
 
-                CaffeineDrink::query()->updateOrCreate(
+                $aliases = $this->parseAliases($record['aliases'] ?? '');
+                $searchText = $this->buildSearchText($record['name'], $record['category'] ?? null, $aliases);
+
+                $drink = CaffeineDrink::query()->updateOrCreate(
                     ['slug' => $record['slug']],
                     [
                         'name' => $record['name'],
                         'category' => $record['category'] !== '' ? $record['category'] : null,
+                        'aliases' => $aliases,
+                        'search_text' => $searchText,
                         'volume_oz' => $record['volume_oz'] !== '' ? $record['volume_oz'] : null,
                         'caffeine_mg' => $record['caffeine_mg'],
                         'source' => $record['source'],
@@ -99,9 +107,63 @@ final class CaffeineDrinkSeeder extends Seeder
                         'verified_at' => CarbonImmutable::parse($record['verified_at']),
                     ]
                 );
+
+                if ($drink->wasRecentlyCreated || $drink->wasChanged('search_text')) {
+                    $this->generateEmbedding($drink);
+                }
             }
         } finally {
             fclose($handle);
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function parseAliases(string $raw): array
+    {
+        if ($raw === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (string $alias): string => mb_trim($alias),
+            explode(',', $raw)
+        )));
+    }
+
+    /**
+     * @param  array<int, string>  $aliases
+     */
+    private function buildSearchText(string $name, ?string $category, array $aliases): string
+    {
+        $parts = [$name];
+
+        if ($category !== null && $category !== '') {
+            $parts[] = $category;
+        }
+
+        if ($aliases !== []) {
+            $parts[] = implode(' ', $aliases);
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function generateEmbedding(CaffeineDrink $drink): void
+    {
+        if ($drink->search_text === null || $drink->search_text === '') {
+            return;
+        }
+
+        try {
+            $response = Embeddings::for([$drink->search_text])->generate();
+
+            $drink->updateQuietly([
+                'embedding' => $response->embeddings[0],
+            ]);
+        } catch (Throwable $throwable) {
+            //
         }
     }
 }

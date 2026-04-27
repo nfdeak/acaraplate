@@ -4,12 +4,33 @@ declare(strict_types=1);
 
 use App\Actions\CalculateCaffeineSafeDose;
 use App\Actions\CalculateCaffeineSleepCutoff;
+use App\Actions\SearchCaffeineDrinks;
 use App\Models\CaffeineDrink;
 use App\Models\User;
 use App\Utilities\WeightConverter;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+
+/**
+ * @param  array<int, array{id: int, name: string, category: ?string, caffeine_mg: float, rank: int}>  $results
+ */
+function fakeSearchResults(array $results): void
+{
+    app()->bind(SearchCaffeineDrinks::class, fn () => new class($results)
+    {
+        /**
+         * @param  array<int, array{id: int, name: string, category: ?string, caffeine_mg: float, rank: int}>  $results
+         */
+        public function __construct(private array $results) {}
+
+        public function handle(string $query): Collection
+        {
+            return collect($this->results);
+        }
+    });
+}
 
 it('returns 200 for the caffeine calculator route without authentication', function (): void {
     $this->get(route('caffeine-calculator'))
@@ -386,12 +407,14 @@ it('renders the drink typeahead with the Choose a coffee label and Americano pla
         ], false);
 });
 
-it('ranks drink typeahead matches as exact, then prefix, then substring', function (): void {
-    CaffeineDrink::factory()->create(['name' => 'Caramel Americano', 'slug' => 'caramel-americano']);
-    CaffeineDrink::factory()->create(['name' => 'Iced Americano', 'slug' => 'iced-americano']);
-    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
-    CaffeineDrink::factory()->create(['name' => 'Americano with Milk', 'slug' => 'americano-milk']);
-    CaffeineDrink::factory()->create(['name' => 'Latte', 'slug' => 'latte']);
+it('renders typeahead matches in the order returned by the similarity search', function (): void {
+    $americano = CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+    $milk = CaffeineDrink::factory()->create(['name' => 'Americano with Milk', 'slug' => 'americano-milk']);
+
+    fakeSearchResults([
+        ['id' => $americano->id, 'name' => 'Americano', 'category' => null, 'caffeine_mg' => 95.0, 'rank' => 0],
+        ['id' => $milk->id, 'name' => 'Americano with Milk', 'category' => null, 'caffeine_mg' => 110.0, 'rank' => 1],
+    ]);
 
     $component = Livewire::test('pages::caffeine-calculator')
         ->set('drinkQuery', 'ameri');
@@ -400,12 +423,7 @@ it('ranks drink typeahead matches as exact, then prefix, then substring', functi
         ->pluck('name')
         ->all();
 
-    expect($names)->toBe([
-        'Americano',
-        'Americano with Milk',
-        'Caramel Americano',
-        'Iced Americano',
-    ]);
+    expect($names)->toBe(['Americano', 'Americano with Milk']);
 });
 
 it('does not render the drink dropdown listbox when the query is empty', function (): void {
@@ -417,8 +435,13 @@ it('does not render the drink dropdown listbox when the query is empty', functio
 });
 
 it('renders the drink dropdown with floating shadow and listbox semantics when the query has matches', function (): void {
-    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
-    CaffeineDrink::factory()->create(['name' => 'Iced Americano', 'slug' => 'iced-americano']);
+    $americano = CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+    $iced = CaffeineDrink::factory()->create(['name' => 'Iced Americano', 'slug' => 'iced-americano']);
+
+    fakeSearchResults([
+        ['id' => $americano->id, 'name' => 'Americano', 'category' => null, 'caffeine_mg' => 95.0, 'rank' => 0],
+        ['id' => $iced->id, 'name' => 'Iced Americano', 'category' => null, 'caffeine_mg' => 95.0, 'rank' => 1],
+    ]);
 
     $html = Livewire::test('pages::caffeine-calculator')
         ->set('drinkQuery', 'ameri')
@@ -1251,4 +1274,115 @@ it('registers the caffeine calculator route at /tools/caffeine-calculator withou
         ->and($route->uri())->toBe('tools/caffeine-calculator')
         ->and($route->gatherMiddleware())->not->toContain('auth')
         ->and($route->gatherMiddleware())->not->toContain('auth:web');
+});
+
+it('logs a search_submitted tool event when the drink query is entered', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', 'ameri');
+
+    $row = DB::table('tool_events')
+        ->where('event_name', 'search_submitted')
+        ->latest('id')
+        ->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->tool_name)->toBe('caffeine-calculator');
+
+    $properties = json_decode($row->properties, true);
+
+    expect($properties)->toHaveKey('query_length');
+});
+
+it('does not log a search_submitted tool event when the drink query is empty', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', '');
+
+    expect(DB::table('tool_events')->where('event_name', 'search_submitted')->count())->toBe(0);
+});
+
+it('logs a search_results_returned tool event with result count', function (): void {
+    $drink = CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    fakeSearchResults([
+        ['id' => $drink->id, 'name' => 'Americano', 'category' => null, 'caffeine_mg' => 95.0, 'rank' => 0],
+    ]);
+
+    Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', 'ameri');
+
+    $row = DB::table('tool_events')
+        ->where('event_name', 'search_results_returned')
+        ->latest('id')
+        ->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->tool_name)->toBe('caffeine-calculator');
+
+    $properties = json_decode($row->properties, true);
+
+    expect($properties)
+        ->toHaveKey('result_count', 1)
+        ->toHaveKey('query_length');
+});
+
+it('logs a search_no_results tool event when no matches are found', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', 'xyz');
+
+    $row = DB::table('tool_events')
+        ->where('event_name', 'search_no_results')
+        ->latest('id')
+        ->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->tool_name)->toBe('caffeine-calculator');
+});
+
+it('logs a search_result_selected tool event when a drink is selected', function (): void {
+    $drink = CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', 'ameri')
+        ->call('selectDrink', $drink->id);
+
+    $row = DB::table('tool_events')
+        ->where('event_name', 'search_result_selected')
+        ->latest('id')
+        ->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->tool_name)->toBe('caffeine-calculator');
+
+    $properties = json_decode($row->properties, true);
+
+    expect($properties)
+        ->toHaveKey('drink', 'americano')
+        ->toHaveKey('rank')
+        ->toHaveKey('query_length');
+});
+
+it('renders a no-results message when the query has no matches', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    $html = Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', 'xyz')
+        ->html();
+
+    expect($html)
+        ->toContain('data-testid="caffeine-drink-no-results"')
+        ->toContain('No drinks found');
+});
+
+it('does not render the no-results message when the query is empty', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    $html = Livewire::test('pages::caffeine-calculator')
+        ->set('drinkQuery', '')
+        ->html();
+
+    expect($html)->not->toContain('data-testid="caffeine-drink-no-results"');
 });

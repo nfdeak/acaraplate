@@ -27,11 +27,14 @@ final class CaffeineDrinkFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(asText: true).' '.fake()->randomElement(['Brew', 'Cold Brew', 'Latte', 'Espresso', 'Energy', 'Cola']);
+        $category = fake()->randomElement(self::CATEGORIES);
 
         return [
             'name' => $name,
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 1_000_000),
-            'category' => fake()->randomElement(self::CATEGORIES),
+            'category' => $category,
+            'aliases' => [],
+            'search_text' => "{$name} {$category}",
             'volume_oz' => fake()->randomFloat(2, 1, 32),
             'caffeine_mg' => fake()->randomFloat(2, 5, 400),
             'source' => fake()->company(),

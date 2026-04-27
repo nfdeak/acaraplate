@@ -39,8 +39,8 @@ it('is idempotent on re-run', function (): void {
 it('throws when source is missing on a row', function (): void {
     file_put_contents(
         $this->csvPath,
-        "name,slug,category,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
-        ."\"Test Drink\",test-drink,coffee,8.00,80.00,,https://example.com/,Example,2026-04-26\n"
+        "name,slug,category,aliases,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
+        ."\"Test Drink\",test-drink,coffee,,8.00,80.00,,https://example.com/,Example,2026-04-26\n"
     );
 
     $this->seed(CaffeineDrinkSeeder::class);
@@ -49,8 +49,8 @@ it('throws when source is missing on a row', function (): void {
 it('throws when license_url is missing on a row', function (): void {
     file_put_contents(
         $this->csvPath,
-        "name,slug,category,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
-        ."\"Test Drink\",test-drink,coffee,8.00,80.00,USDA,,Example,2026-04-26\n"
+        "name,slug,category,aliases,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
+        ."\"Test Drink\",test-drink,coffee,,8.00,80.00,USDA,,Example,2026-04-26\n"
     );
 
     $this->seed(CaffeineDrinkSeeder::class);
@@ -59,8 +59,8 @@ it('throws when license_url is missing on a row', function (): void {
 it('throws when verified_at is missing on a row', function (): void {
     file_put_contents(
         $this->csvPath,
-        "name,slug,category,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
-        ."\"Test Drink\",test-drink,coffee,8.00,80.00,USDA,https://example.com/,Example,\n"
+        "name,slug,category,aliases,volume_oz,caffeine_mg,source,license_url,attribution,verified_at\n"
+        ."\"Test Drink\",test-drink,coffee,,8.00,80.00,USDA,https://example.com/,Example,\n"
     );
 
     $this->seed(CaffeineDrinkSeeder::class);
