@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Actions\CalculateCaffeineSafeDose;
 use App\Actions\LogToolEvent;
+use App\Data\SafeDoseData;
 use App\Models\CaffeineDrink;
 use App\Utilities\WeightConverter;
 use Illuminate\Support\Collection;
@@ -27,6 +29,10 @@ class extends Component
     public string $drinkQuery = '';
 
     public ?int $drinkId = null;
+
+    public ?float $safeMg = null;
+
+    public ?int $safeCups = null;
 
     public function mount(): void
     {
@@ -97,6 +103,29 @@ class extends Component
     public function calculate(): void
     {
         $this->validate();
+
+        if ($this->drinkId === null) {
+            return;
+        }
+
+        $drink = CaffeineDrink::query()->find($this->drinkId);
+
+        if ($drink === null) {
+            return;
+        }
+
+        $weightKg = WeightConverter::convertToKg((float) $this->weight, $this->weightUnit);
+
+        $result = app(CalculateCaffeineSafeDose::class)->handle(
+            weightKg: $weightKg,
+            sensitivityStep: $this->sensitivity - 1,
+            perCupMg: (float) $drink->caffeine_mg,
+        );
+
+        assert($result instanceof SafeDoseData);
+
+        $this->safeMg = $result->safeMg;
+        $this->safeCups = $result->cups;
     }
 
     /**

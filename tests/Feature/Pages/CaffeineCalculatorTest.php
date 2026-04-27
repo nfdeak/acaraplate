@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Actions\CalculateCaffeineSafeDose;
 use App\Models\CaffeineDrink;
+use App\Utilities\WeightConverter;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
@@ -452,6 +454,41 @@ it('does not log a drink_picked tool event when selectDrink is called with an un
         ->call('selectDrink', 999_999);
 
     expect(DB::table('tool_events')->where('event_name', 'drink_picked')->count())->toBe(0);
+});
+
+it('produces a SafeDoseData result on submit using the shared LB_TO_KG conversion constant', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    $component = Livewire::test('pages::caffeine-calculator')
+        ->set('weightUnit', 'lb')
+        ->set('weight', '154')
+        ->call('selectDrink', $drink->id)
+        ->call('setSensitivity', 3)
+        ->call('calculate');
+
+    $weightKg = WeightConverter::convertToKg(154.0, 'lb');
+    $expected = (new CalculateCaffeineSafeDose)->handle(
+        weightKg: $weightKg,
+        sensitivityStep: 2,
+        perCupMg: 150.0,
+    );
+
+    $component
+        ->assertHasNoErrors()
+        ->assertSet('safeMg', $expected->safeMg)
+        ->assertSet('safeCups', $expected->cups);
+});
+
+it('does not store a safe dose result when no drink is selected', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->call('calculate')
+        ->assertSet('safeMg', null)
+        ->assertSet('safeCups', null);
 });
 
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
