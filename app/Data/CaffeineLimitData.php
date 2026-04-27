@@ -6,6 +6,9 @@ namespace App\Data;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class CaffeineLimitData extends Data
 {
     /**

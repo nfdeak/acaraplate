@@ -9,15 +9,20 @@ use App\Actions\ResolveCaffeineLimit;
 use App\Ai\Agents\CaffeineGuidanceAgent;
 use App\Http\Requests\CaffeineAssessmentRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final readonly class CaffeineCalculatorController
 {
-    public function create(Request $request): Response
+    public function create(): Response
     {
-        return Inertia::render('caffeine-calculator');
+        return Inertia::render('caffeine-calculator', [
+            'seo' => [
+                'appName' => config('app.name'),
+                'appUrl' => url('/'),
+                'canonicalUrl' => route('caffeine-calculator'),
+            ],
+        ]);
     }
 
     public function plan(CaffeineAssessmentRequest $request): JsonResponse

@@ -10,7 +10,11 @@ covers(CaffeineCalculatorController::class);
 it('returns 200 for the caffeine calculator route without authentication', function (): void {
     $this->get(route('caffeine-calculator'))
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('caffeine-calculator'));
+        ->assertInertia(fn ($page) => $page
+            ->component('caffeine-calculator')
+            ->where('seo.appName', config('app.name'))
+            ->where('seo.appUrl', url('/'))
+            ->where('seo.canonicalUrl', route('caffeine-calculator')));
 });
 
 it('rejects the assessment endpoint when required inputs are missing', function (): void {

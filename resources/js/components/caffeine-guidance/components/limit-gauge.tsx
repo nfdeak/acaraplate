@@ -28,8 +28,12 @@ export function LimitGauge({
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50">{props.label}</h3>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{props.caption}</p>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                        {props.label}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {props.caption}
+                    </p>
                 </div>
                 <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-900 dark:bg-slate-800 dark:text-slate-100">
                     {props.value_label}

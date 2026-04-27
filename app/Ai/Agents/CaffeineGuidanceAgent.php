@@ -113,6 +113,6 @@ final class CaffeineGuidanceAgent implements Agent, HasStructuredOutput
         ];
 
         return "Create the caffeine guidance UI copy from this deterministic assessment JSON:\n"
-            .(string) json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            .json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 }

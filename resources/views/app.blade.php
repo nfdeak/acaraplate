@@ -49,14 +49,7 @@
             }
         </style>
 
-        @if (($page['component'] ?? '') === 'caffeine-calculator')
-            <title inertia>Caffeine Calculator: How Much Is Too Much? - {{ config('app.name') }}</title>
-            <meta data-inertia="description" name="description" content="Free caffeine calculator: enter height and sensitivity to get a personalized daily caffeine limit.">
-            <meta data-inertia="keywords" name="keywords" content="caffeine calculator, how much caffeine is too much, caffeine limit by height, caffeine sensitivity">
-            <x-json-ld.caffeine-calculator />
-        @else
-            <title inertia>{{ config('app.name') }}</title>
-        @endif
+        <title inertia>{{ config('app.name') }}</title>
         @inertiaHead
 
         <link rel="icon" href="/favicon.ico" sizes="any">

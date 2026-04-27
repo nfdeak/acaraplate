@@ -38,13 +38,9 @@ final readonly class ResolveCaffeineLimit
 
     public function handle(int $heightCm, string $sensitivity, ?string $context = null): CaffeineLimitData
     {
-        if ($heightCm < 90 || $heightCm > 230) {
-            throw new InvalidArgumentException('Height must be between 90 and 230 centimeters.');
-        }
+        throw_if($heightCm < 90 || $heightCm > 230, InvalidArgumentException::class, 'Height must be between 90 and 230 centimeters.');
 
-        if (! array_key_exists($sensitivity, self::SENSITIVITY_MULTIPLIERS)) {
-            throw new InvalidArgumentException('Sensitivity must be low, normal, or high.');
-        }
+        throw_unless(array_key_exists($sensitivity, self::SENSITIVITY_MULTIPLIERS), InvalidArgumentException::class, 'Sensitivity must be low, normal, or high.');
 
         $hasCautionContext = $this->hasCautionContext($context);
         $baseLimitMg = $this->heightAdjustedBaseLimit($heightCm);
@@ -79,8 +75,8 @@ final readonly class ResolveCaffeineLimit
         int $limitMg,
     ): array {
         $reasons = [
-            "Your height of {$heightCm} cm adjusts the adult reference limit to {$baseLimitMg} mg before sensitivity.",
-            "Your {$sensitivity} sensitivity setting adjusts the limit to {$limitMg} mg.",
+            sprintf('Your height of %d cm adjusts the adult reference limit to %d mg before sensitivity.', $heightCm, $baseLimitMg),
+            sprintf('Your %s sensitivity setting adjusts the limit to %d mg.', $sensitivity, $limitMg),
         ];
 
         if ($hasCautionContext) {

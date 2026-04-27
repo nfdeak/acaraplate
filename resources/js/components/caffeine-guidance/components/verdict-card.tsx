@@ -23,7 +23,9 @@ export function VerdictCard({
     const Icon = props.limit_mg === null ? AlertTriangle : CheckCircle2;
 
     return (
-        <section className={`rounded-2xl border p-5 shadow-sm ${TONE_CLASSES[props.tone] ?? TONE_CLASSES.slate}`}>
+        <section
+            className={`rounded-2xl border p-5 shadow-sm ${TONE_CLASSES[props.tone] ?? TONE_CLASSES.slate}`}
+        >
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-2">
                     <span className="flex size-9 items-center justify-center rounded-full bg-white/70 dark:bg-white/10">
@@ -42,8 +44,12 @@ export function VerdictCard({
                     </div>
                 </div>
             </div>
-            <h2 className="mt-5 text-2xl font-bold leading-tight md:text-3xl">{props.title}</h2>
-            <p className="mt-2 text-sm leading-relaxed opacity-85">{props.body}</p>
+            <h2 className="mt-5 text-2xl leading-tight font-bold md:text-3xl">
+                {props.title}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed opacity-85">
+                {props.body}
+            </p>
         </section>
     );
 }

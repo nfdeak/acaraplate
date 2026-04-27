@@ -44,7 +44,8 @@ export const caffeineGuidanceCatalog = defineCatalog(schema, {
                 title: z.string(),
                 body: z.string(),
             }),
-            description: 'Personal context note when context changes the recommendation.',
+            description:
+                'Personal context note when context changes the recommendation.',
         },
         SafetyNote: {
             props: z.object({

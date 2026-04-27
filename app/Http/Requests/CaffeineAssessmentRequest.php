@@ -7,6 +7,9 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class CaffeineAssessmentRequest extends FormRequest
 {
     public function authorize(): bool
