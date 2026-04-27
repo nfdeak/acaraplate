@@ -19,6 +19,10 @@ new
 #[Title('Coffee Caffeine Calculator: How Much Is Too Much?')]
 class extends Component
 {
+    public const float MIN_WEIGHT_KG = 30.0;
+
+    public const float MAX_WEIGHT_KG = 250.0;
+
     public ?string $weight = null;
 
     #[Url(as: 'unit', except: 'kg')]
@@ -117,9 +121,10 @@ class extends Component
         }
 
         $weightKg = WeightConverter::convertToKg((float) $this->weight, $this->weightUnit);
+        $clampedKg = max(self::MIN_WEIGHT_KG, min(self::MAX_WEIGHT_KG, $weightKg));
 
         $result = app(CalculateCaffeineSafeDose::class)->handle(
-            weightKg: $weightKg,
+            weightKg: $clampedKg,
             sensitivityStep: $this->sensitivity - 1,
             perCupMg: (float) $drink->caffeine_mg,
         );
@@ -129,6 +134,18 @@ class extends Component
         $this->safeMg = $result->safeMg;
         $this->safeCups = $result->cups;
         $this->perCupMg = (float) $drink->caffeine_mg;
+    }
+
+    #[Computed]
+    public function isWeightOutOfRange(): bool
+    {
+        if (! is_numeric($this->weight) || (float) $this->weight <= 0) {
+            return false;
+        }
+
+        $weightKg = WeightConverter::convertToKg((float) $this->weight, $this->weightUnit);
+
+        return $weightKg < self::MIN_WEIGHT_KG || $weightKg > self::MAX_WEIGHT_KG;
     }
 
     /**
@@ -273,6 +290,21 @@ class extends Component
                             {{ $message }}
                         </p>
                     @enderror
+                    @if (! $errors->has('weight') && $this->isWeightOutOfRange)
+                        <p
+                            data-testid="caffeine-weight-clamp-notice"
+                            class="mt-1 text-sm text-amber-700 dark:text-amber-400"
+                        >
+                            That's outside our documented range. Calculations are clamped to typical adult weights of 30&ndash;250 kg (66&ndash;551 lb).
+                        </p>
+                    @else
+                        <p
+                            data-testid="caffeine-weight-typical-adult-note"
+                            class="mt-1 text-xs text-gray-500 dark:text-slate-400"
+                        >
+                            Calibrated for typical adult weights of 30&ndash;250 kg (66&ndash;551 lb).
+                        </p>
+                    @endif
                 </div>
 
                 <div data-testid="caffeine-form-row-drink">

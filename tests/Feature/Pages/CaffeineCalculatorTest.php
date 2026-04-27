@@ -583,6 +583,92 @@ it('does not store a safe dose result when no drink is selected', function (): v
         ->assertSet('safeCups', null);
 });
 
+it('shows the typical adult range copy under the weight input on initial render', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-form-row-weight"',
+            'data-testid="caffeine-weight-typical-adult-note"',
+            'Calibrated for typical adult weights',
+            '30',
+            '250 kg',
+        ], false);
+});
+
+it('shows a clamp notice when the entered weight in kg is below the documented minimum', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '20')
+        ->assertSee('outside our documented range')
+        ->assertSee('clamped to typical adult weights');
+});
+
+it('shows a clamp notice when the entered weight in kg is above the documented maximum', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '300')
+        ->assertSee('outside our documented range');
+});
+
+it('shows a clamp notice when the entered weight in pounds falls outside the documented range', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weightUnit', 'lb')
+        ->set('weight', '40')
+        ->assertSee('outside our documented range');
+});
+
+it('does not show a clamp notice for a typical adult weight inside the documented range', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->assertDontSee('outside our documented range');
+});
+
+it('clamps the safe dose calculation to the documented minimum weight', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    $component = Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '15')
+        ->call('selectDrink', $drink->id)
+        ->call('setSensitivity', 3)
+        ->call('calculate');
+
+    $expected = (new CalculateCaffeineSafeDose)->handle(
+        weightKg: 30.0,
+        sensitivityStep: 2,
+        perCupMg: 150.0,
+    );
+
+    $component
+        ->assertSet('safeMg', $expected->safeMg)
+        ->assertSet('safeCups', $expected->cups);
+});
+
+it('clamps the safe dose calculation to the documented maximum weight', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    $component = Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '400')
+        ->call('selectDrink', $drink->id)
+        ->call('setSensitivity', 3)
+        ->call('calculate');
+
+    $expected = (new CalculateCaffeineSafeDose)->handle(
+        weightKg: 250.0,
+        sensitivityStep: 2,
+        perCupMg: 150.0,
+    );
+
+    $component
+        ->assertSet('safeMg', $expected->safeMg)
+        ->assertSet('safeCups', $expected->cups);
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');
