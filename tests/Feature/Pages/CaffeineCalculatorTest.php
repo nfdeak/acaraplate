@@ -186,6 +186,48 @@ it('ignores out-of-range sensitivity values', function (): void {
         ->assertSet('sensitivity', 3);
 });
 
+it('wires arrow-left and arrow-right keyboard navigation on the sensitivity stepper', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSee('x-on:keydown.arrow-right.prevent', false)
+        ->assertSee('x-on:keydown.arrow-left.prevent', false);
+});
+
+it('announces the current sensitivity step via an aria-live region', function (): void {
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-sensitivity-announcement"',
+            'aria-live="polite"',
+            'Sensitivity: Normal, step 3 of 5',
+        ], false);
+});
+
+it('updates the sensitivity announcement when the step changes', function (): void {
+    Livewire::test('pages::caffeine-calculator')
+        ->assertSee('Sensitivity: Normal, step 3 of 5')
+        ->call('setSensitivity', 1)
+        ->assertSee('Sensitivity: More tolerant, step 1 of 5')
+        ->call('setSensitivity', 5)
+        ->assertSee('Sensitivity: More sensitive, step 5 of 5');
+});
+
+it('uses a roving tabindex so only the selected sensitivity step is tabbable', function (): void {
+    $response = $this->get(route('caffeine-calculator'))->assertSuccessful();
+
+    $response->assertSeeInOrder([
+        'data-testid="caffeine-sensitivity-step-3"',
+        'tabindex="0"',
+    ], false);
+
+    foreach ([1, 2, 4, 5] as $step) {
+        $response->assertSeeInOrder([
+            'data-testid="caffeine-sensitivity-step-'.$step.'"',
+            'tabindex="-1"',
+        ], false);
+    }
+});
+
 it('renders the How Much Coffee? primary CTA with solid emerald and responsive width', function (): void {
     $this->get(route('caffeine-calculator'))
         ->assertSuccessful()

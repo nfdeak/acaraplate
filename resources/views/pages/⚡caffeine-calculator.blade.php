@@ -355,6 +355,15 @@ class extends Component
                     </div>
                 </div>
 
+                @php
+                    $sensitivityLabels = [
+                        1 => 'More tolerant',
+                        2 => 'Tolerant',
+                        3 => 'Normal',
+                        4 => 'Sensitive',
+                        5 => 'More sensitive',
+                    ];
+                @endphp
                 <div data-testid="caffeine-form-row-sensitivity">
                     <span class="block text-sm font-medium text-gray-700 dark:text-slate-200">
                         Caffeine sensitivity
@@ -375,9 +384,23 @@ class extends Component
                                     type="button"
                                     role="radio"
                                     wire:click="setSensitivity({{ $step }})"
+                                    wire:key="caffeine-sensitivity-step-{{ $step }}"
                                     data-testid="caffeine-sensitivity-step-{{ $step }}"
                                     aria-checked="{{ $sensitivity === $step ? 'true' : 'false' }}"
-                                    aria-label="Sensitivity step {{ $step }} of 5"
+                                    aria-label="Sensitivity step {{ $step }} of 5: {{ $sensitivityLabels[$step] }}"
+                                    tabindex="{{ $sensitivity === $step ? '0' : '-1' }}"
+                                    @if ($step < 5)
+                                        x-on:keydown.arrow-right.prevent="
+                                            const next = $el.nextElementSibling;
+                                            if (next) { next.focus(); $wire.setSensitivity({{ $step + 1 }}); }
+                                        "
+                                    @endif
+                                    @if ($step > 1)
+                                        x-on:keydown.arrow-left.prevent="
+                                            const prev = $el.previousElementSibling;
+                                            if (prev) { prev.focus(); $wire.setSensitivity({{ $step - 1 }}); }
+                                        "
+                                    @endif
                                     @class([
                                         'h-7 w-7 rounded-full border transition focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
                                         'border-emerald-600 bg-emerald-600 ring-2 ring-inset ring-white dark:ring-slate-800' => $sensitivity === $step,
@@ -391,6 +414,14 @@ class extends Component
                         <span>More tolerant</span>
                         <span>Normal</span>
                         <span>More sensitive</span>
+                    </div>
+                    <div
+                        data-testid="caffeine-sensitivity-announcement"
+                        class="sr-only"
+                        aria-live="polite"
+                        aria-atomic="true"
+                    >
+                        Sensitivity: {{ $sensitivityLabels[$sensitivity] }}, step {{ $sensitivity }} of 5
                     </div>
                 </div>
             </div>
