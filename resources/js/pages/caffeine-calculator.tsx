@@ -6,9 +6,8 @@ import { CaffeineGuidanceRenderer } from '@/components/caffeine-guidance/render'
 import { cn } from '@/lib/utils';
 import type { Spec } from '@json-render/core';
 import { Head, useHttp } from '@inertiajs/react';
-import { Activity, ChevronDown, Coffee, LoaderCircle, Ruler, Sparkles } from 'lucide-react';
+import { Activity, Coffee, LoaderCircle, MessageSquareText, Ruler, Sparkles } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { useState } from 'react';
 
 interface AssessmentResponse {
     summary: string;
@@ -38,7 +37,6 @@ const SENSITIVITY_OPTIONS: Array<{
 ];
 
 export default function CaffeineCalculator() {
-    const [showContext, setShowContext] = useState(true);
     const form = useHttp<AssessmentFormData, AssessmentResponse>(planRoute(), {
         height_cm: '',
         sensitivity: 'normal',
@@ -164,36 +162,27 @@ export default function CaffeineCalculator() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowContext((value) => !value)}
-                                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-800 dark:text-slate-100"
-                                    aria-expanded={showContext}
-                                >
-                                    <span>Additional context</span>
-                                    <ChevronDown
-                                        className={cn('size-4 transition', showContext && 'rotate-180')}
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                                {showContext && (
-                                    <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-                                        <Textarea
-                                            value={form.data.context}
-                                            onChange={(event) => form.setData('context', event.target.value)}
-                                            placeholder="Pregnant, breastfeeding, anxiety, heart condition, medication, or recent jitters"
-                                            rows={4}
-                                            maxLength={1000}
-                                            className="bg-white dark:bg-slate-900"
-                                            aria-invalid={form.errors.context ? 'true' : undefined}
-                                        />
-                                        {form.errors.context && (
-                                            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                                                {form.errors.context}
-                                            </p>
-                                        )}
-                                    </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <MessageSquareText className="size-4 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
+                                    <label htmlFor="context" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                        Drink or personal context
+                                    </label>
+                                </div>
+                                <Textarea
+                                    id="context"
+                                    value={form.data.context}
+                                    onChange={(event) => form.setData('context', event.target.value)}
+                                    placeholder="Example: morning latte, two Americanos, pregnant, anxiety, heart medication, or caffeine makes me jittery"
+                                    rows={4}
+                                    maxLength={1000}
+                                    className="mt-2 bg-white text-base dark:bg-slate-950"
+                                    aria-invalid={form.errors.context ? 'true' : undefined}
+                                />
+                                {form.errors.context && (
+                                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                                        {form.errors.context}
+                                    </p>
                                 )}
                             </div>
 

@@ -36,7 +36,8 @@ final class CaffeineGuidanceAgent implements Agent, HasStructuredOutput
                 '2. Write a direct answer to "How much is too much?" for the user.',
                 '3. Keep copy short, specific, and practical.',
                 '4. Treat height as a coarse body-size proxy, not medical precision.',
-                '5. Mention medical/medication caution only in the safety note, not as a long disclaimer.',
+                '5. If the context names drinks, use them as examples without estimating their caffeine unless the user supplied exact amounts.',
+                '6. Mention medical/medication caution only in the safety note, not as a long disclaimer.',
             ],
             output: [
                 'Return only the structured response requested by the schema.',
@@ -107,6 +108,7 @@ final class CaffeineGuidanceAgent implements Agent, HasStructuredOutput
                 'max_guidance_items' => 4,
                 'limit_mg_is_authoritative' => true,
                 'height_cm_is_only_a_body_size_proxy' => true,
+                'use_drink_context_without_inventing_milligrams' => true,
             ],
         ];
 
