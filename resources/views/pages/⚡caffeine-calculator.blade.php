@@ -327,6 +327,22 @@ class extends Component
 }; ?>
 
 <div class="min-h-screen w-full bg-gray-50 dark:bg-slate-900">
+    @once
+        <style>
+            @keyframes caffeine-result-in {
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            [data-caffeine-result-enter] {
+                animation: caffeine-result-in 200ms ease-out both;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                [data-caffeine-result-enter] {
+                    animation: none;
+                }
+            }
+        </style>
+    @endonce
     <div class="mx-auto max-w-2xl px-4 py-12">
         <h1 class="text-[32px] font-bold leading-tight tracking-tight text-gray-900 md:text-5xl dark:text-slate-50">
             Coffee Caffeine Calculator: How Much Is Too Much?
@@ -598,6 +614,7 @@ class extends Component
         @if ($lacksCaffeineEstimate)
             <div
                 data-testid="caffeine-result-fallback"
+                data-caffeine-result-enter
                 role="status"
                 aria-live="polite"
                 class="mt-6 rounded-xl border border-amber-200 border-t-4 border-t-amber-500 bg-amber-50 p-6 md:p-8 dark:border-amber-900/50 dark:border-t-amber-500 dark:bg-amber-950/30"
@@ -625,6 +642,7 @@ class extends Component
             @endphp
             <div
                 data-testid="caffeine-result-panel"
+                data-caffeine-result-enter
                 role="status"
                 aria-live="polite"
                 class="mt-6 rounded-xl border border-gray-200 border-t-4 border-t-emerald-500 bg-white p-6 md:p-8 dark:border-slate-700 dark:border-t-emerald-500 dark:bg-slate-800"

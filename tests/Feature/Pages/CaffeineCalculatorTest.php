@@ -1213,6 +1213,36 @@ it('wires the sign-up CTA anchor to the signupCtaClicked Livewire handler', func
         ->toContain('wire:click="signupCtaClicked"');
 });
 
+it('animates the result panel entrance with opacity and translateY over 200ms ease-out and respects prefers-reduced-motion', function (): void {
+    $drink = CaffeineDrink::factory()->create([
+        'name' => 'Americano',
+        'slug' => 'americano',
+        'caffeine_mg' => 150,
+    ]);
+
+    $html = Livewire::test('pages::caffeine-calculator')
+        ->set('weight', '70')
+        ->call('selectDrink', $drink->id)
+        ->call('calculate')
+        ->html();
+
+    expect($html)
+        ->toContain('@keyframes caffeine-result-in')
+        ->toContain('opacity: 0')
+        ->toContain('translateY(8px)')
+        ->toContain('opacity: 1')
+        ->toContain('translateY(0)')
+        ->toContain('200ms ease-out')
+        ->toContain('@media (prefers-reduced-motion: reduce)')
+        ->toContain('animation: none');
+
+    $panelPos = mb_strpos($html, 'data-testid="caffeine-result-panel"');
+    $enterPos = mb_strpos($html, 'data-caffeine-result-enter');
+
+    expect($panelPos)->not->toBeFalse()
+        ->and($enterPos)->not->toBeFalse();
+});
+
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
     $route = collect(app('router')->getRoutes())
         ->first(fn ($route) => $route->getName() === 'caffeine-calculator');
