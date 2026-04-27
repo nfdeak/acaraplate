@@ -137,6 +137,12 @@ class extends Component
     }
 
     #[Computed]
+    public function hasDrinks(): bool
+    {
+        return CaffeineDrink::query()->exists();
+    }
+
+    #[Computed]
     public function isWeightOutOfRange(): bool
     {
         if (! is_numeric($this->weight) || (float) $this->weight <= 0) {
@@ -311,6 +317,14 @@ class extends Component
                     <label for="caffeine-drink" class="block text-sm font-medium text-gray-700 dark:text-slate-200">
                         Choose a coffee
                     </label>
+                    @if (! $this->hasDrinks)
+                        <p
+                            data-testid="caffeine-drink-empty-state"
+                            class="mt-1 text-sm text-gray-500 dark:text-slate-400"
+                        >
+                            We're refreshing our drinks list&mdash;please check back soon.
+                        </p>
+                    @else
                     <div
                         x-data="{
                             open: false,
@@ -388,6 +402,7 @@ class extends Component
                             </ul>
                         @endif
                     </div>
+                    @endif
                 </div>
 
                 @php
@@ -465,7 +480,9 @@ class extends Component
                 type="button"
                 wire:click="calculate"
                 data-testid="caffeine-cta-calculate"
-                class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-white transition duration-150 hover:-translate-y-px hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0 active:bg-emerald-700 sm:w-auto dark:hover:bg-emerald-400 dark:focus:ring-offset-slate-900"
+                @disabled(! $this->hasDrinks)
+                aria-disabled="{{ ! $this->hasDrinks ? 'true' : 'false' }}"
+                class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-white transition duration-150 hover:-translate-y-px hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0 active:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:bg-emerald-500 sm:w-auto dark:hover:bg-emerald-400 dark:focus:ring-offset-slate-900"
             >
                 How Much Coffee?
             </button>

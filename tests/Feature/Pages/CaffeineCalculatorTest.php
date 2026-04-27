@@ -367,6 +367,8 @@ it('does not log a unit_toggled tool event when the unit value is unsupported', 
 });
 
 it('renders the drink typeahead with the Choose a coffee label and Americano placeholder', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
     $this->get(route('caffeine-calculator'))
         ->assertSuccessful()
         ->assertSeeInOrder([
@@ -444,6 +446,8 @@ it('selects a drink when selectDrink is called and reflects it in the input valu
 });
 
 it('wires the drink typeahead input for keyboard accessibility', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
     $this->get(route('caffeine-calculator'))
         ->assertSuccessful()
         ->assertSee('x-on:keydown.arrow-down.prevent', false)
@@ -667,6 +671,50 @@ it('clamps the safe dose calculation to the documented maximum weight', function
     $component
         ->assertSet('safeMg', $expected->safeMg)
         ->assertSet('safeCups', $expected->cups);
+});
+
+it('renders an empty drinks state in the picker when no drinks exist', function (): void {
+    expect(CaffeineDrink::count())->toBe(0);
+
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-form-row-drink"',
+            'data-testid="caffeine-drink-empty-state"',
+            'refreshing our drinks list',
+        ], false)
+        ->assertDontSee('id="caffeine-drink"', false)
+        ->assertDontSee('role="combobox"', false);
+});
+
+it('disables the primary CTA when no drinks exist', function (): void {
+    expect(CaffeineDrink::count())->toBe(0);
+
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'data-testid="caffeine-cta-calculate"',
+            'disabled',
+            'aria-disabled="true"',
+        ], false);
+});
+
+it('does not render the empty drinks state when drinks exist', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    $this->get(route('caffeine-calculator'))
+        ->assertSuccessful()
+        ->assertDontSee('data-testid="caffeine-drink-empty-state"', false)
+        ->assertDontSee('refreshing our drinks list', false);
+});
+
+it('keeps the primary CTA enabled when drinks exist', function (): void {
+    CaffeineDrink::factory()->create(['name' => 'Americano', 'slug' => 'americano']);
+
+    $response = $this->get(route('caffeine-calculator'))->assertSuccessful();
+
+    $response->assertSee('aria-disabled="false"', false)
+        ->assertDontSee('disabled aria-disabled', false);
 });
 
 it('registers the caffeine calculator route at /tools/caffeine-calculator without auth middleware', function (): void {
