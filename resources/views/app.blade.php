@@ -49,7 +49,16 @@
             }
         </style>
 
-        <title inertia>Acara Plate</title>
+        <x-inertia::head>
+            @if (($page['component'] ?? '') === 'caffeine-calculator')
+                <title>Coffee Caffeine Calculator: How Much Is Too Much? - {{ config('app.name') }}</title>
+                <meta data-inertia="description" name="description" content="Free caffeine calculator: estimate your safe daily caffeine dose and find out when to stop drinking coffee for better sleep.">
+                <meta data-inertia="keywords" name="keywords" content="caffeine calculator, safe caffeine dose, caffeine sleep cutoff, coffee calculator, caffeine half life">
+                <x-json-ld.caffeine-calculator />
+            @else
+                <title>{{ config('app.name') }}</title>
+            @endif
+        </x-inertia::head>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicons/favicon-32x32.png" type="image/png">
@@ -62,7 +71,6 @@
 
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
-        @inertiaHead
     </head>
     <body class="font-sans antialiased">
         @inertia

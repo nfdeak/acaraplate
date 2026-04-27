@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const CAFFEINE_CALCULATOR_BLADE = __DIR__.'/../../../resources/views/pages/⚡caffeine-calculator.blade.php';
+const CAFFEINE_CALCULATOR_PAGE = __DIR__.'/../../../resources/js/pages/caffeine-calculator.tsx';
 
 const ACARA_HEX_TOKENS = [
     '#10b981', '#064e3b', '#111827', '#d1fae5', '#ecfdf5',
@@ -20,8 +20,8 @@ const ACARA_RADIUS_DIRECTIONS = [
     '', 't', 'b', 'l', 'r', 'tl', 'tr', 'bl', 'br', 's', 'e', 'ss', 'se', 'es', 'ee',
 ];
 
-it('uses no hex colors outside the Acara token palette in the caffeine calculator blade', function (): void {
-    $contents = file_get_contents(CAFFEINE_CALCULATOR_BLADE);
+it('uses no hex colors outside the Acara token palette in the caffeine calculator page', function (): void {
+    $contents = file_get_contents(CAFFEINE_CALCULATOR_PAGE);
 
     expect($contents)->not->toBeFalse();
 
@@ -36,8 +36,8 @@ it('uses no hex colors outside the Acara token palette in the caffeine calculato
     expect($offTokens)->toBe([]);
 });
 
-it('does not override font-family in the caffeine calculator blade', function (): void {
-    $contents = file_get_contents(CAFFEINE_CALCULATOR_BLADE);
+it('does not override font-family in the caffeine calculator page', function (): void {
+    $contents = file_get_contents(CAFFEINE_CALCULATOR_PAGE);
 
     expect($contents)->not->toBeFalse();
 
@@ -46,8 +46,8 @@ it('does not override font-family in the caffeine calculator blade', function ()
     expect($matches[0])->toBe([]);
 });
 
-it('only uses border-radius classes that map to 6, 8, 12, 16, 24, or 9999 px in the caffeine calculator blade', function (): void {
-    $contents = file_get_contents(CAFFEINE_CALCULATOR_BLADE);
+it('only uses border-radius classes that map to 6, 8, 12, 16, 24, or 9999 px in the caffeine calculator page', function (): void {
+    $contents = file_get_contents(CAFFEINE_CALCULATOR_PAGE);
 
     expect($contents)->not->toBeFalse();
 
@@ -69,8 +69,8 @@ it('only uses border-radius classes that map to 6, 8, 12, 16, 24, or 9999 px in 
     expect($offRadii)->toBe([]);
 });
 
-it('does not use arbitrary border-radius or inline radius styles in the caffeine calculator blade', function (): void {
-    $contents = file_get_contents(CAFFEINE_CALCULATOR_BLADE);
+it('does not use arbitrary border-radius or inline radius styles in the caffeine calculator page', function (): void {
+    $contents = file_get_contents(CAFFEINE_CALCULATOR_PAGE);
 
     expect($contents)->not->toBeFalse();
 

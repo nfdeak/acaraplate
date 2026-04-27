@@ -22,7 +22,13 @@ Route::view('/10-day-meal-plan', '10-day-meal-plan')->name('10-day-meal-plan');
 
 Route::livewire('/tools', 'pages::tools-index')->name('tools.index');
 Route::livewire('/tools/spike-calculator', 'pages::spike-calculator')->name('spike-calculator');
-Route::livewire('/tools/caffeine-calculator', 'pages::caffeine-calculator')->name('caffeine-calculator');
+
+Route::get('/tools/caffeine-calculator', [Web\CaffeineCalculatorController::class, 'index'])->name('caffeine-calculator');
+Route::get('/tools/caffeine-calculator/search', [Web\CaffeineCalculatorController::class, 'search'])->name('caffeine-calculator.search');
+Route::post('/tools/caffeine-calculator/calculate', [Web\CaffeineCalculatorController::class, 'calculate'])->name('caffeine-calculator.calculate');
+Route::post('/tools/caffeine-calculator/sleep-cutoff', [Web\CaffeineCalculatorController::class, 'sleepCutoff'])->name('caffeine-calculator.sleep-cutoff');
+Route::post('/tools/caffeine-calculator/events', [Web\CaffeineCalculatorController::class, 'event'])->name('caffeine-calculator.event');
+Route::post('/tools/caffeine-calculator/signup-cta', [Web\CaffeineCalculatorController::class, 'signupCta'])->name('caffeine-calculator.signup-cta');
 Route::livewire('/tools/snap-to-track', 'pages::snap-to-track')->name('snap-to-track');
 Route::livewire('/tools/usda-daily-servings-calculator', 'pages::usda-daily-servings-calculator')->name('usda-servings-calculator');
 Route::livewire('/tools/telegram-health-logging', 'pages::telegram-health-logging')->name('telegram-health-logging');
