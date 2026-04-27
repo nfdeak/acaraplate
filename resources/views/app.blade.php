@@ -49,16 +49,15 @@
             }
         </style>
 
-        <x-inertia::head>
-            @if (($page['component'] ?? '') === 'caffeine-calculator')
-                <title>Coffee Caffeine Calculator: How Much Is Too Much? - {{ config('app.name') }}</title>
-                <meta data-inertia="description" name="description" content="Free caffeine calculator: estimate your safe daily caffeine dose and find out when to stop drinking coffee for better sleep.">
-                <meta data-inertia="keywords" name="keywords" content="caffeine calculator, safe caffeine dose, caffeine sleep cutoff, coffee calculator, caffeine half life">
-                <x-json-ld.caffeine-calculator />
-            @else
-                <title>{{ config('app.name') }}</title>
-            @endif
-        </x-inertia::head>
+        @if (($page['component'] ?? '') === 'caffeine-calculator')
+            <title inertia>Caffeine Calculator: How Much Is Too Much? - {{ config('app.name') }}</title>
+            <meta data-inertia="description" name="description" content="Free caffeine calculator: enter height and sensitivity to get a personalized daily caffeine limit.">
+            <meta data-inertia="keywords" name="keywords" content="caffeine calculator, how much caffeine is too much, caffeine limit by height, caffeine sensitivity">
+            <x-json-ld.caffeine-calculator />
+        @else
+            <title inertia>{{ config('app.name') }}</title>
+        @endif
+        @inertiaHead
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicons/favicon-32x32.png" type="image/png">

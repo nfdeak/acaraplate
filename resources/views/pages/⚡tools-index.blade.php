@@ -91,14 +91,14 @@ class extends Component
             ],
             [
                 'name' => 'Caffeine Calculator',
-                'description' => 'Estimate your safe daily caffeine limit and find a sleep-friendly cutoff time based on your weight and sensitivity.',
+                'description' => 'Find how much caffeine is too much based on height, sensitivity, and optional personal context.',
                 'icon' => '☕',
                 'route' => route('caffeine-calculator'),
                 'badge' => 'New',
                 'features' => [
-                    'Personalized safe daily dose',
-                    'Sleep cutoff time estimate',
-                    'Tracks 30+ common drinks',
+                    'Height-adjusted daily limit',
+                    'Sensitivity adjustment',
+                    'AI-written guidance',
                 ],
             ],
             [

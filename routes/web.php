@@ -22,6 +22,9 @@ Route::view('/10-day-meal-plan', '10-day-meal-plan')->name('10-day-meal-plan');
 
 Route::livewire('/tools', 'pages::tools-index')->name('tools.index');
 Route::livewire('/tools/spike-calculator', 'pages::spike-calculator')->name('spike-calculator');
+Route::livewire('/tools/snap-to-track', 'pages::snap-to-track')->name('snap-to-track');
+Route::livewire('/tools/usda-daily-servings-calculator', 'pages::usda-daily-servings-calculator')->name('usda-servings-calculator');
+Route::livewire('/tools/telegram-health-logging', 'pages::telegram-health-logging')->name('telegram-health-logging');
 
 Route::get('/tools/caffeine-calculator', [Web\CaffeineCalculatorController::class, 'create'])->name('caffeine-calculator');
 Route::post('/tools/caffeine-calculator/plan', [Web\CaffeineCalculatorController::class, 'plan'])

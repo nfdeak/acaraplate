@@ -3,8 +3,8 @@
 {
     "@@context": "https://schema.org",
     "@@type": "WebApplication",
-    "name": "Coffee Caffeine Calculator",
-    "description": "Free caffeine calculator: estimate your safe daily caffeine dose and find out when to stop drinking coffee for better sleep.",
+    "name": "Caffeine Calculator: How Much Is Too Much?",
+    "description": "Free caffeine calculator: enter height and sensitivity to get a personalized daily caffeine limit.",
     "url": "{{ $currentUrl }}",
     "applicationCategory": "HealthApplication",
     "operatingSystem": "Any",
@@ -30,7 +30,7 @@
             "name": "How much caffeine is safe per day?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "For most healthy adults, up to 400 mg of caffeine per day is generally considered safe. This calculator personalizes that estimate based on your body weight and self-reported caffeine sensitivity, so your safe dose may be lower or higher than the 400 mg average."
+                "text": "For most healthy adults, up to 400 mg per day is a common reference point. This calculator adjusts that educational limit based on height as a body-size proxy and self-reported caffeine sensitivity."
             }
         },
         {
@@ -38,15 +38,15 @@
             "name": "How does the caffeine calculator work?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "The calculator multiplies your weight in kilograms by a base of 5.7 mg per kg, then scales the result by a sensitivity multiplier (0.7 to 1.3) based on the 5-step sensitivity slider. It divides the resulting safe milligrams by the caffeine content of your chosen drink to estimate how many cups you can have in a day."
+                "text": "The calculator starts with a common adult reference limit, adjusts it conservatively by height and sensitivity, then lowers it for optional context such as pregnancy or breastfeeding."
             }
         },
         {
             "@@type": "Question",
-            "name": "When should I stop drinking coffee before bed?",
+            "name": "Why does height matter for caffeine?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "Caffeine has a half-life of about 5 hours, so it can disrupt sleep many hours after your last cup. The calculator works backward from your bedtime to find the latest time you can drink coffee while keeping residual caffeine below a sleep-friendly threshold."
+                "text": "Height is used as a simple body-size proxy. It is not a medical measurement, but it helps the tool avoid giving the same caffeine limit to every person."
             }
         },
         {
@@ -54,7 +54,7 @@
             "name": "Is this caffeine calculator a substitute for medical advice?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "No. This tool provides educational estimates based on average half-life and sensitivity values. People with heart conditions, anxiety, pregnancy, or who take medications that interact with caffeine should follow their clinician's guidance instead of this calculator."
+                "text": "No. This tool provides educational guidance only. People who are pregnant, breastfeeding, trying to conceive, taking medications, or managing a health condition should follow clinician guidance."
             }
         },
         {
@@ -62,7 +62,7 @@
             "name": "Does caffeine affect everyone the same way?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "No. Genetics, age, body weight, tolerance, pregnancy, and medications all change how quickly your body clears caffeine. The 5-step sensitivity slider lets you adjust the safe dose up or down to better match your personal response."
+                "text": "No. Height, sensitivity, sleep, medications, health conditions, pregnancy, and breastfeeding can all change how caffeine feels and how much is too much."
             }
         }
     ]

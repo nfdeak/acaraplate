@@ -1,200 +1,256 @@
 import { plan as planRoute } from '@/actions/App/Http/Controllers/CaffeineCalculatorController';
-import { BrewPlanRenderer } from '@/components/brew-buddy/render';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { CaffeineGuidanceRenderer } from '@/components/caffeine-guidance/render';
+import { cn } from '@/lib/utils';
 import type { Spec } from '@json-render/core';
 import { Head, useHttp } from '@inertiajs/react';
+import { Activity, ChevronDown, Coffee, LoaderCircle, Ruler, Sparkles } from 'lucide-react';
 import type { FormEvent } from 'react';
+import { useState } from 'react';
 
-interface PlanResponse {
+interface AssessmentResponse {
     summary: string;
+    limit: {
+        heightCm: number;
+        sensitivity: string;
+        limitMg: number | null;
+        status: string;
+    };
     spec: Spec;
 }
 
-interface PlanFormData {
-    prompt: string;
-    weight_kg: string;
-    bedtime: string;
-    sensitivity: '' | 'low' | 'normal' | 'high';
+interface AssessmentFormData {
+    height_cm: string;
+    sensitivity: 'low' | 'normal' | 'high';
+    context: string;
 }
 
-const EXAMPLES: string[] = [
-    "I have a 9am sprint demo and a 3pm wall. Bedtime 22:30, ~75kg, normal sensitivity.",
-    "I'm cutting back. Want one solid morning coffee and then green tea.",
-    "I'm sensitive to caffeine and have a late dinner meeting. Bedtime 23:00.",
+const SENSITIVITY_OPTIONS: Array<{
+    value: AssessmentFormData['sensitivity'];
+    label: string;
+    detail: string;
+}> = [
+    { value: 'low', label: 'Low', detail: 'Tolerant' },
+    { value: 'normal', label: 'Normal', detail: 'Typical' },
+    { value: 'high', label: 'High', detail: 'Sensitive' },
 ];
 
 export default function CaffeineCalculator() {
-    const form = useHttp<PlanFormData, PlanResponse>(planRoute(), {
-        prompt: '',
-        weight_kg: '',
-        bedtime: '',
-        sensitivity: '',
+    const [showContext, setShowContext] = useState(true);
+    const form = useHttp<AssessmentFormData, AssessmentResponse>(planRoute(), {
+        height_cm: '',
+        sensitivity: 'normal',
+        context: '',
     });
 
     function onSubmit(event: FormEvent): void {
         event.preventDefault();
-        if (form.data.prompt.trim() === '' || form.processing) {
+        if (form.data.height_cm.trim() === '' || form.processing) {
             return;
         }
+
         form.transform((data) => ({
-            ...data,
-            weight_kg: data.weight_kg === '' ? null : Number(data.weight_kg),
-            bedtime: data.bedtime === '' ? null : data.bedtime,
-            sensitivity: data.sensitivity === '' ? null : data.sensitivity,
+            height_cm: Number(data.height_cm),
+            sensitivity: data.sensitivity,
+            context: data.context.trim() === '' ? null : data.context.trim(),
         }));
+
         void form.submit();
     }
 
     return (
         <>
-            <Head title="Brew Buddy — AI Caffeine Coach">
+            <Head title="Caffeine Calculator: How Much Is Too Much?">
                 <meta
                     name="description"
-                    content="Describe your day. Brew Buddy assembles a personalised caffeine plan with safe doses, drink picks, and a sleep-aware cutoff."
+                    content="Enter height and caffeine sensitivity to get a personalized daily caffeine limit with AI-written guidance."
                 />
             </Head>
             <style>{`
-                @keyframes brew-result-in {
+                @keyframes caffeine-result-in {
                     from { opacity: 0; transform: translateY(8px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
-                [data-brew-result] {
-                    animation: brew-result-in 220ms ease-out both;
+                [data-caffeine-result] {
+                    animation: caffeine-result-in 220ms ease-out both;
                 }
                 @media (prefers-reduced-motion: reduce) {
-                    [data-brew-result] { animation: none; }
+                    [data-caffeine-result] { animation: none; }
                 }
             `}</style>
 
-            <div className="mx-auto max-w-2xl px-4 py-12">
-                <h1 className="text-[32px] font-bold leading-tight tracking-tight text-slate-900 md:text-5xl dark:text-slate-50">
-                    Brew Buddy
-                </h1>
-                <p className="mt-3 text-lg text-slate-600 dark:text-slate-400">
-                    Tell me about your day. I'll build a caffeine plan that fits your schedule, your sensitivity,
-                    and your bedtime.
-                </p>
+            <div className="min-h-screen bg-slate-50 px-4 py-6 text-slate-950 md:py-10 dark:bg-slate-950 dark:text-slate-50">
+                <main className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+                    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="flex items-center gap-3">
+                            <span className="flex size-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                <Coffee className="size-5" aria-hidden="true" />
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold uppercase text-emerald-700 dark:text-emerald-300">
+                                    Caffeine limit
+                                </p>
+                                <h1 className="text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+                                    How Much Is Too Much?
+                                </h1>
+                            </div>
+                        </div>
 
-                <form
-                    onSubmit={onSubmit}
-                    className="mt-8 space-y-5 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 dark:border-slate-700 dark:bg-slate-800"
-                >
-                    <div>
-                        <label
-                            htmlFor="brew-prompt"
-                            className="block text-sm font-medium text-slate-700 dark:text-slate-200"
-                        >
-                            Your day
-                        </label>
-                        <textarea
-                            id="brew-prompt"
-                            value={form.data.prompt}
-                            onChange={(event) => form.setData('prompt', event.target.value)}
-                            placeholder="e.g. 9am demo, 3pm slump, bedtime 22:30, normal sensitivity, ~75kg"
-                            rows={4}
-                            className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50 dark:placeholder-slate-500"
-                            required
-                            maxLength={2000}
-                        />
-                        {form.errors.prompt && (
-                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.prompt}</p>
-                        )}
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            {EXAMPLES.map((example) => (
+                        <form onSubmit={onSubmit} className="mt-7 space-y-5">
+                            <div>
+                                <label htmlFor="height_cm" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                    Height
+                                </label>
+                                <div className="relative mt-2">
+                                    <Ruler
+                                        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+                                        aria-hidden="true"
+                                    />
+                                    <Input
+                                        id="height_cm"
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={90}
+                                        max={230}
+                                        value={form.data.height_cm}
+                                        onChange={(event) => form.setData('height_cm', event.target.value)}
+                                        placeholder="170"
+                                        className="h-11 bg-white pl-10 pr-14 text-base dark:bg-slate-950"
+                                        aria-invalid={form.errors.height_cm ? 'true' : undefined}
+                                    />
+                                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                        cm
+                                    </span>
+                                </div>
+                                {form.errors.height_cm && (
+                                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{form.errors.height_cm}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <label className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                        Sensitivity
+                                    </label>
+                                    {form.errors.sensitivity && (
+                                        <p className="text-sm text-red-600 dark:text-red-400">{form.errors.sensitivity}</p>
+                                    )}
+                                </div>
+                                <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Caffeine sensitivity">
+                                    {SENSITIVITY_OPTIONS.map((option) => {
+                                        const selected = form.data.sensitivity === option.value;
+
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={selected}
+                                                onClick={() => form.setData('sensitivity', option.value)}
+                                                className={cn(
+                                                    'rounded-xl border px-3 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-emerald-500/40',
+                                                    selected
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-950 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-50'
+                                                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-slate-600',
+                                                )}
+                                            >
+                                                <span className="block text-sm font-semibold">{option.label}</span>
+                                                <span className="mt-0.5 block text-xs opacity-70">{option.detail}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
                                 <button
                                     type="button"
-                                    key={example}
-                                    onClick={() => form.setData('prompt', example)}
-                                    className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-emerald-600 dark:hover:text-emerald-300"
+                                    onClick={() => setShowContext((value) => !value)}
+                                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-800 dark:text-slate-100"
+                                    aria-expanded={showContext}
                                 >
-                                    Try: {example.slice(0, 32)}…
+                                    <span>Additional context</span>
+                                    <ChevronDown
+                                        className={cn('size-4 transition', showContext && 'rotate-180')}
+                                        aria-hidden="true"
+                                    />
                                 </button>
-                            ))}
-                        </div>
-                    </div>
+                                {showContext && (
+                                    <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+                                        <Textarea
+                                            value={form.data.context}
+                                            onChange={(event) => form.setData('context', event.target.value)}
+                                            placeholder="Pregnant, breastfeeding, anxiety, heart condition, medication, or recent jitters"
+                                            rows={4}
+                                            maxLength={1000}
+                                            className="bg-white dark:bg-slate-900"
+                                            aria-invalid={form.errors.context ? 'true' : undefined}
+                                        />
+                                        {form.errors.context && (
+                                            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                                                {form.errors.context}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div>
-                            <label
-                                htmlFor="brew-weight"
-                                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+                            <Button
+                                type="submit"
+                                size="lg"
+                                disabled={form.processing || form.data.height_cm.trim() === ''}
+                                className="h-12 w-full"
                             >
-                                Weight (kg)
-                            </label>
-                            <input
-                                id="brew-weight"
-                                type="number"
-                                inputMode="decimal"
-                                min={30}
-                                max={200}
-                                step={0.1}
-                                value={form.data.weight_kg}
-                                onChange={(event) => form.setData('weight_kg', event.target.value)}
-                                placeholder="optional"
-                                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50"
-                            />
-                            {form.errors.weight_kg && (
-                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.weight_kg}</p>
-                            )}
-                        </div>
-                        <div>
-                            <label
-                                htmlFor="brew-bedtime"
-                                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
-                            >
-                                Bedtime
-                            </label>
-                            <input
-                                id="brew-bedtime"
-                                type="time"
-                                value={form.data.bedtime}
-                                onChange={(event) => form.setData('bedtime', event.target.value)}
-                                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50"
-                            />
-                            {form.errors.bedtime && (
-                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.bedtime}</p>
-                            )}
-                        </div>
-                        <div>
-                            <label
-                                htmlFor="brew-sensitivity"
-                                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
-                            >
-                                Sensitivity
-                            </label>
-                            <select
-                                id="brew-sensitivity"
-                                value={form.data.sensitivity}
-                                onChange={(event) =>
-                                    form.setData('sensitivity', event.target.value as PlanFormData['sensitivity'])
-                                }
-                                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50"
-                            >
-                                <option value="">Auto</option>
-                                <option value="low">Low (tolerant)</option>
-                                <option value="normal">Normal</option>
-                                <option value="high">High (sensitive)</option>
-                            </select>
-                            {form.errors.sensitivity && (
-                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.sensitivity}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={form.processing || form.data.prompt.trim() === ''}
-                        className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
-                    >
-                        {form.processing ? 'Brewing your plan…' : 'Plan my day'}
-                    </button>
-                </form>
-
-                {form.response && (
-                    <section data-brew-result className="mt-8" aria-label={form.response.summary}>
-                        <BrewPlanRenderer spec={form.response.spec} />
+                                {form.processing ? (
+                                    <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+                                ) : (
+                                    <Activity className="size-4" aria-hidden="true" />
+                                )}
+                                {form.processing ? 'Checking limit' : 'Show my limit'}
+                            </Button>
+                        </form>
                     </section>
-                )}
+
+                    <section data-caffeine-result aria-live="polite" aria-label={form.response?.summary ?? 'Caffeine limit result'}>
+                        {form.processing && <LoadingResult />}
+                        {!form.processing && form.response && <CaffeineGuidanceRenderer spec={form.response.spec} />}
+                        {!form.processing && !form.response && <EmptyResult />}
+                    </section>
+                </main>
             </div>
         </>
+    );
+}
+
+function LoadingResult() {
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="h-5 w-28 animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div className="mt-6 h-8 w-3/4 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+                <div className="mt-3 h-4 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+            </div>
+            <div className="h-28 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" />
+            <div className="h-44 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" />
+        </div>
+    );
+}
+
+function EmptyResult() {
+    return (
+        <div className="flex min-h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="max-w-sm">
+                <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                    <Sparkles className="size-5" aria-hidden="true" />
+                </span>
+                <h2 className="mt-4 text-xl font-bold text-slate-900 dark:text-slate-50">Your limit appears here</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    The answer starts with a daily milligram limit adjusted by height and sensitivity.
+                </p>
+            </div>
+        </div>
     );
 }

@@ -65,7 +65,7 @@
                 "@@type": "ListItem",
                 "position": 6,
                 "name": "Caffeine Calculator",
-                "description": "Estimate your safe daily caffeine limit and a sleep-friendly cutoff time",
+                "description": "Find how much caffeine is too much based on height and sensitivity",
                 "url": "{{ route('caffeine-calculator') }}"
             },
             {
