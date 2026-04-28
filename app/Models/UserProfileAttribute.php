@@ -26,6 +26,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read CarbonInterface $updated_at
  * @property-read UserProfile $userProfile
  */
+
+/**
+ * @codeCoverageIgnore
+ */
 final class UserProfileAttribute extends Model
 {
     /** @use HasFactory<UserProfileAttributeFactory> */
@@ -55,7 +59,6 @@ final class UserProfileAttribute extends Model
         return $this->belongsTo(UserProfile::class);
     }
 
-    // @codeCoverageIgnoreStart
     public function getMedicationDosage(): ?string
     {
         return $this->getMetadataString('dosage');
@@ -71,8 +74,6 @@ final class UserProfileAttribute extends Model
         return $this->getMetadataString('purpose');
     }
 
-    // @codeCoverageIgnoreEnd
-
     /**
      * @param  Builder<self>  $query
      */
@@ -82,13 +83,10 @@ final class UserProfileAttribute extends Model
         $query->whereIn('category', UserProfileAttributeCategory::dietaryPreferenceValues());
     }
 
-    // @codeCoverageIgnoreStart
     private function getMetadataString(string $key): ?string
     {
         $value = $this->metadata[$key] ?? null;
 
         return is_scalar($value) ? (string) $value : null;
     }
-
-    // @codeCoverageIgnoreEnd
 }
