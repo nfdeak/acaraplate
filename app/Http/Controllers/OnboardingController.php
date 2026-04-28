@@ -148,7 +148,7 @@ final readonly class OnboardingController
 
         DB::transaction(function () use ($profile, $attributes): void {
             $profile->attributes()
-                ->whereIn('category', UserProfileAttributeCategory::dietaryPreferenceValues())
+                ->dietaryPreferences()
                 ->delete();
 
             if ($attributes !== []) {

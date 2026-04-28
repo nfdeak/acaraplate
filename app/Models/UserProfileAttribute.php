@@ -8,6 +8,8 @@ use App\Enums\AllergySeverity;
 use App\Enums\UserProfileAttributeCategory;
 use Carbon\CarbonInterface;
 use Database\Factories\UserProfileAttributeFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,6 +71,18 @@ final class UserProfileAttribute extends Model
         return $this->getMetadataString('purpose');
     }
 
+    // @codeCoverageIgnoreEnd
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function dietaryPreferences(Builder $query): void
+    {
+        $query->whereIn('category', UserProfileAttributeCategory::dietaryPreferenceValues());
+    }
+
+    // @codeCoverageIgnoreStart
     private function getMetadataString(string $key): ?string
     {
         $value = $this->metadata[$key] ?? null;
