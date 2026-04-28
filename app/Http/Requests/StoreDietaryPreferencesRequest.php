@@ -24,7 +24,7 @@ final class StoreDietaryPreferencesRequest extends FormRequest
     {
         return [
             'attributes' => ['nullable', 'array'],
-            'attributes.*.category' => ['required', Rule::in(UserProfileAttributeCategory::dietaryPreferenceValues())],
+            'attributes.*.category' => ['required', Rule::enum(UserProfileAttributeCategory::class)],
             'attributes.*.value' => ['required', 'string', 'max:255'],
             'attributes.*.severity' => ['nullable', Rule::enum(AllergySeverity::class)],
             'attributes.*.notes' => ['nullable', 'string', 'max:500'],
